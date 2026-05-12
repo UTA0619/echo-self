@@ -1,0 +1,40 @@
+name: "\U0001F916 AI / Prompt Engineering"
+description: Propose an AI system change or prompt improvement
+labels: ["🤖 ai"]
+body:
+  - type: dropdown
+    id: system
+    attributes:
+      label: AI System
+      options:
+        - "echo-ai (main response)"
+        - "memory-ingest"
+        - "memory-retrieve"
+        - "emotion-analyze"
+        - "future-self"
+        - "notification-ai"
+    validations:
+      required: true
+  - type: textarea
+    id: current_behavior
+    attributes:
+      label: Current behavior
+  - type: textarea
+    id: desired_behavior
+    attributes:
+      label: Desired behavior
+  - type: textarea
+    id: prompt_change
+    attributes:
+      label: Proposed prompt change
+      description: Include current vs. proposed excerpt
+  - type: input
+    id: cost_impact
+    attributes:
+      label: Estimated token cost impact
+      placeholder: "+500 tokens/request ≈ +$0.01/user/day"
+  - type: textarea
+    id: eval
+    attributes:
+      label: Evaluation plan
+
