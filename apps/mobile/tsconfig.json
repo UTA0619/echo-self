@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "jsx": "react-native",
+    "moduleResolution": "Bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@echo-self/shared-types": ["../../packages/shared-types/src"],
+      "@echo-self/ai-core": ["../../packages/ai-core/src"]
+    },
+    "strict": true,
+    "noEmit": true
+  },
+  "include": ["src", "app.json"]
+}
