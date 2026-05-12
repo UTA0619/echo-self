@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      expo:
+        patterns: ["expo*", "@expo/*"]
+      supabase:
+        patterns: ["@supabase/*"]
+      ai:
+        patterns: ["openai", "@openai/*"]
+
