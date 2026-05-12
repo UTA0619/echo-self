@@ -1,0 +1,35 @@
+name: Deploy Staging
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+      - run: supabase db push --linked
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN_STAGING }}
+
+  deploy-functions:
+    needs: migrate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+      - run: supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_REF_STAGING }}
+
+  eas-build:
+    needs: migrate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: eas build --platform all --profile staging --non-interactive
+
