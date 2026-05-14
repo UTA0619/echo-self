@@ -1,1 +1,31 @@
-* @UTA0619
+# ECHO//SELF — Code Ownership
+# Format: <pattern> <owner(s)>
+# Owners are notified on PRs touching their owned paths
+
+# Default: CTO owns everything
+* @echo-self/cto
+
+# AI system — any AI/prompt changes require AI lead review
+src/lib/ai/** @echo-self/ai-lead @echo-self/cto
+src/lib/prompts/** @echo-self/ai-lead
+supabase/functions/** @echo-self/ai-lead @echo-self/backend-lead
+
+# Database — schema changes require senior review
+supabase/migrations/** @echo-self/cto @echo-self/backend-lead
+docs/architecture/DATABASE_SCHEMA.md @echo-self/cto
+
+# Security-sensitive paths
+src/lib/auth/** @echo-self/cto
+src/lib/stripe/** @echo-self/cto
+docs/compliance/** @echo-self/cto
+SECURITY.md @echo-self/cto
+
+# Infrastructure
+.github/workflows/** @echo-self/cto
+vercel.json @echo-self/cto
+.env.example @echo-self/cto
+
+# Documentation
+docs/** @echo-self/cto
+README.md @echo-self/cto
+CONTRIBUTING.md @echo-self/cto
