@@ -66,6 +66,55 @@ serve(async (req: Request) => {
         }
         break
       }
+      case 'customer.subscription.updated': {
+        const sub = event.data.object
+        const status = sub['status'] as string
+        const cancelAtPeriodEnd = sub['cancel_at_period_end'] as boolean
+        const currentPeriodEnd = sub['current_period_end'] as number
+        const priceId = (
+          (sub['items'] as Record<string, unknown>)?.['data'] as Record<string, unknown>[]
+        )?.[0]?.['price']
+          ? ((((sub['items'] as Record<string, unknown>)?.['data'] as Record<string, unknown>[])?.[0]?.['price']) as Record<string, unknown>)?.['id'] as string | undefined
+          : undefined
+
+        await supabase.from('subscriptions')
+          .update({
+            status: status === 'active' ? 'active' : status === 'past_due' ? 'past_due' : status,
+            cancel_at_period_end: cancelAtPeriodEnd,
+            current_period_end: currentPeriodEnd
+              ? new Date(currentPeriodEnd * 1000).toISOString()
+              : undefined,
+            ...(priceId ? { plan: priceId } : {}),
+          })
+          .eq('stripe_subscription_id', sub['id'] as string)
+
+        // Sync user tier based on subscription status
+        const { data: subscription } = await supabase.from('subscriptions')
+          .select('user_id').eq('stripe_subscription_id', sub['id'] as string).single()
+        if (subscription) {
+          const tier = status === 'active' ? 'premium' : 'free'
+          await supabase.from('users').update({ subscription_tier: tier }).eq('id', subscription.user_id)
+        }
+        break
+      }
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object
+        const subscriptionId = invoice['subscription'] as string | null
+        if (subscriptionId) {
+          await supabase.from('subscriptions')
+            .update({ status: 'active' })
+            .eq('stripe_subscription_id', subscriptionId)
+
+          const { data: subscription } = await supabase.from('subscriptions')
+            .select('user_id').eq('stripe_subscription_id', subscriptionId).single()
+          if (subscription) {
+            await supabase.from('users')
+              .update({ subscription_tier: 'premium' })
+              .eq('id', subscription.user_id)
+          }
+        }
+        break
+      }
       case 'invoice.payment_failed': {
         const invoice = event.data.object
         await supabase.from('subscriptions')
