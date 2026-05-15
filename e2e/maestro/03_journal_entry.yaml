@@ -1,0 +1,46 @@
+# Maestro E2E — Journal Entry + Echo Response
+# Tests: write entry → submit → streaming echo appears → emotion badge shown
+# Requires authenticated + onboarded user with network access to Supabase
+# Run: maestro test e2e/maestro/03_journal_entry.yaml
+
+appId: app.echoself.mobile
+name: Journal Entry and Echo Response
+
+---
+
+- launchApp
+
+# Should land on Daily Mirror tab
+- assertVisible: "Mirror"
+
+# ── 1. Tap on text area and write an entry ───────────────────────────────
+- tapOn:
+    id: "journal-input"
+
+# Write enough words to pass the 10-word gate
+- inputText: "Today I woke up feeling really energized and ready to tackle new challenges ahead."
+
+# Word count indicator should show progress
+- assertVisible: "16 / 2000"
+
+# ── 2. Submit the entry ──────────────────────────────────────────────────
+- tapOn:
+    text: "Reflect →"
+
+# ── 3. Echo response loading state ──────────────────────────────────────
+- assertVisible: "Your echo is reflecting…"
+
+# ── 4. Wait for streaming response (up to 20s) ──────────────────────────
+- waitForAnimationToEnd:
+    timeout: 20000
+
+- assertVisible:
+    id: "echo-response-card"
+
+# ── 5. Emotion badge appears after streaming completes ──────────────────
+- assertVisible: "Detected emotion"
+
+# ── 6. Entry appears in past entries list ────────────────────────────────
+- scrollTo:
+    direction: down
+- assertVisible: "Today I woke up feeling"

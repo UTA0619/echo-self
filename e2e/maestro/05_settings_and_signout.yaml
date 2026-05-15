@@ -1,0 +1,41 @@
+# Maestro E2E — Settings Screen + Sign Out
+# Tests: profile tab → settings → notification toggle → sign out
+# Run: maestro test e2e/maestro/05_settings_and_signout.yaml
+
+appId: app.echoself.mobile
+name: Settings and Sign Out
+
+---
+
+- launchApp
+
+# ── Navigate to Profile tab ──────────────────────────────────────────────
+- tapOn:
+    text: "Profile"
+
+- assertVisible: "Settings"
+
+# ── Notification toggle ──────────────────────────────────────────────────
+- assertVisible: "Daily Reminder"
+- tapOn:
+    id: "notification-toggle"
+
+# ── Referral section ─────────────────────────────────────────────────────
+- scrollTo:
+    direction: down
+- assertVisible: "Referral Code"
+
+# ── Sign out ──────────────────────────────────────────────────────────────
+- scrollTo:
+    direction: down
+- tapOn:
+    text: "Sign Out"
+
+# Confirmation dialog
+- assertVisible: "Sign out"
+- tapOn:
+    text: "Sign Out"
+
+# Should return to LoginScreen
+- assertVisible: "ECHO//SELF"
+- assertVisible: "Know who you're becoming"

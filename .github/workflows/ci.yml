@@ -1,28 +1,250 @@
 name: CI
+
 on:
   pull_request:
-    branches: [main, develop]
+    branches: [master, main, develop]
   push:
-    branches: [develop]
+    branches: [master, main]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # ─── Type-check + Lint ───────────────────────────────────────────────────
   quality:
-    name: Quality Checks
+    name: Quality (type-check + lint)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: pnpm/action-setup@v3
         with:
           version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm turbo lint
-      - run: pnpm turbo type-check
-      - run: pnpm turbo test --coverage
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check
+        run: pnpm turbo type-check
+
+      - name: Lint
+        run: pnpm turbo lint
+
+  # ─── Migration validation ────────────────────────────────────────────────
+  migrations:
+    name: Validate migrations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate migration files
+        run: node --loader tsx scripts/validate-migrations.ts
+        env:
+          NODE_NO_WARNINGS: 1
+
+      - name: Supabase DB diff (linked project)
+        if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Check for schema drift
+        if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
+        run: supabase db diff --linked --schema public
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+  # ─── Supabase edge functions type-check ──────────────────────────────────
+  edge-functions:
+    name: Edge functions (Deno type-check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Type-check edge functions
+        run: |
+          for dir in supabase/functions/*/; do
+            fn=$(basename "$dir")
+            echo "→ checking $fn"
+            deno check "$dir/index.ts" || exit 1
+          done
+
+  # ─── Tests ───────────────────────────────────────────────────────────────
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm turbo test --coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+  # ─── Expo prebuild check ─────────────────────────────────────────────────
+  expo-check:
+    name: Expo prebuild (iOS + Android)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        working-directory: apps/mobile
+        run: pnpm install --frozen-lockfile
+
+      - name: Expo Doctor
+        working-directory: apps/mobile
+        run: npx expo-doctor
+        continue-on-error: true
+
+      - name: EAS Build check (dry-run)
+        working-directory: apps/mobile
+        run: eas build --platform all --profile preview --non-interactive --dry-run
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+  # ─── Security scan ───────────────────────────────────────────────────────
+  security:
+    name: Security audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit dependencies
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Check for secrets in code
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+  # ─── Maestro E2E tests (runs on merge to master only) ────────────────────
+  maestro-e2e:
+    name: Maestro E2E (iOS Simulator)
+    runs-on: macos-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        working-directory: apps/mobile
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Maestro
+        run: curl -Ls "https://get.maestro.mobile.dev" | bash
+
+      - name: Build iOS Simulator app
+        working-directory: apps/mobile
+        run: |
+          eas build \
+            --platform ios \
+            --profile e2e \
+            --local \
+            --non-interactive \
+            --output ./build/echoself.app
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Boot iOS Simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j \
+            | jq -r '.devices | to_entries[] | .value[] | select(.name == "iPhone 15") | .udid' \
+            | head -1)
+          xcrun simctl boot "$UDID"
+          xcrun simctl install "$UDID" apps/mobile/build/echoself.app
+
+      - name: Run Maestro flows
+        run: |
+          ~/.maestro/bin/maestro test e2e/maestro/ \
+            --format junit \
+            --output e2e/results.xml
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maestro-results
+          path: e2e/results.xml
