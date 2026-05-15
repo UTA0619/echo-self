@@ -1,0 +1,93 @@
+name: Deploy Preview
+
+on:
+  pull_request:
+    branches: [master, main]
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── Deploy edge functions to staging Supabase project ───────────────────
+  deploy-edge-functions:
+    name: Deploy edge functions (staging)
+    runs-on: ubuntu-latest
+    if: ${{ secrets.SUPABASE_PROJECT_REF_STAGING != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy edge functions to staging
+        run: supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_REF_STAGING }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Comment deployment URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const ref = '${{ secrets.SUPABASE_PROJECT_REF_STAGING }}';
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `### 🚀 Edge Functions deployed to staging\n\n**Supabase Project**: \`${ref}\`\n\nEdge functions are live at:\n- \`echo-ai\`\n- \`emotion-analyze\`\n- \`memory-ingest\`\n- \`memory-retrieve\`\n- \`stripe-webhook\`\n- \`update-future-self\`\n- \`send-streak-reminders\`\n\nCommit: ${{ github.sha }}`
+            });
+
+  # ─── EAS Preview build ───────────────────────────────────────────────────
+  eas-preview-build:
+    name: EAS Preview build
+    runs-on: ubuntu-latest
+    if: ${{ secrets.EXPO_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        working-directory: apps/mobile
+        run: pnpm install --frozen-lockfile
+
+      - name: Create EAS preview build
+        id: build
+        working-directory: apps/mobile
+        run: |
+          BUILD_URL=$(eas build \
+            --platform all \
+            --profile preview \
+            --non-interactive \
+            --json \
+            --no-wait \
+            | jq -r '.[0].buildDetailsPageUrl // "pending"')
+          echo "url=$BUILD_URL" >> $GITHUB_OUTPUT
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Comment build status on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const buildUrl = '${{ steps.build.outputs.url }}';
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `### 📱 EAS Preview Build Started\n\nYour preview build is building on Expo Application Services.\n\n${buildUrl !== 'pending' ? `**Build Details**: [View on Expo](${buildUrl})` : 'Build queued — check Expo dashboard.'}\n\nCommit: ${{ github.sha }}`
+            });
