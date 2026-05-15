@@ -1,49 +1,51 @@
+// ECHO//SELF — Design Tokens
+
 export const Colors = {
+  // Base
+  black:    '#0A0A0F',
+  white:    '#FFFFFF',
+  silver:   '#A0A0B0',
+
   // Brand
-  indigo: '#4F46E5',
-  violet: '#7B5EA7',
-  cyan: '#06B6D4',
+  indigo:   '#4F46E5',
+  violet:   '#7C3AED',
+  cyan:     '#06B6D4',
+  teal:     '#14B8A6',
+  amber:    '#F59E0B',
+  rose:     '#F43F5E',
+  emerald:  '#10B981',
 
-  // Neutrals
-  black: '#0A0A0F',
-  blackSoft: '#12121A',
-  surface: '#1A1A28',
-  surfaceElevated: '#22223A',
-  border: '#2D2D4A',
-  silverDim: '#6B6B8A',
-  silver: '#C8C8D4',
-  white: '#FFFFFF',
+  // UI surfaces
+  surface:  '#13131A',
+  card:     '#1A1A26',
+  border:   'rgba(255,255,255,0.08)',
+  overlay:  'rgba(0,0,0,0.6)',
 
-  // Emotions
-  joy: '#FBBF24',
-  sadness: '#6366F1',
-  anger: '#EF4444',
-  fear: '#8B5CF6',
-  surprise: '#F97316',
-  disgust: '#10B981',
-  anticipation: '#06B6D4',
-  trust: '#34D399',
-  optimism: '#F59E0B',
-  love: '#EC4899',
-  awe: '#8B5CF6',
-
-  // Status
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  info: '#06B6D4',
+  // Text
+  textPrimary:   '#F0F0FF',
+  textSecondary: '#8080A0',
+  textMuted:     '#404060',
 } as const
 
 export const Spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  base: 16,
-  lg: 24,
-  xl: 32,
+  xs:  4,
+  sm:  8,
+  md:  16,
+  lg:  24,
+  xl:  32,
   xxl: 48,
   xxxl: 64,
-  screen: 96,
+} as const
+
+export const Typography = {
+  displayXl: { fontSize: 48, fontWeight: '800' as const, letterSpacing: -2 },
+  displayLg: { fontSize: 36, fontWeight: '700' as const, letterSpacing: -1 },
+  displayMd: { fontSize: 28, fontWeight: '700' as const, letterSpacing: -0.5 },
+  headingLg: { fontSize: 22, fontWeight: '600' as const },
+  headingMd: { fontSize: 18, fontWeight: '600' as const },
+  bodySm:    { fontSize: 14, fontWeight: '400' as const },
+  bodyMd:    { fontSize: 16, fontWeight: '400' as const },
+  caption:   { fontSize: 12, fontWeight: '500' as const, letterSpacing: 0.4 },
 } as const
 
 export const BorderRadius = {
@@ -53,33 +55,3 @@ export const BorderRadius = {
   xl: 24,
   full: 999,
 } as const
-
-export const FontSize = {
-  xs: 11,
-  sm: 13,
-  base: 16,
-  md: 18,
-  lg: 22,
-  xl: 28,
-  xxl: 36,
-  display: 48,
-  hero: 64,
-} as const
-
-export const FontWeight = {
-  regular: '400' as const,
-  medium: '500' as const,
-  semibold: '600' as const,
-  bold: '700' as const,
-  extrabold: '800' as const,
-}
-
-export const AnimationDuration = {
-  instant: 0,
-  quick: 150,
-  standard: 300,
-  cinematic: 600,
-  dramatic: 1000,
-} as const
-
-export type EmotionColor = keyof typeof Colors

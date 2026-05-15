@@ -1,44 +1,71 @@
-import React from 'react'
-import { NavigationContainer } from '@react-navigation/native'
-import { createStackNavigator } from '@react-navigation/stack'
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { useAuthStore } from '../store/auth'
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useAuthStore } from '../store/auth';
+import { useOnboardingStore } from '../store/onboarding';
+import { OnboardingNavigator } from './OnboardingNavigator';
 
-const Stack = createStackNavigator()
-const Tab = createBottomTabNavigator()
+// Placeholder screens — replaced in EPIC-03+
+import { View, Text, StyleSheet } from 'react-native';
+import { Colors } from '../theme/tokens';
 
-function HomeStack() {
+function PlaceholderMain() {
+  const { user } = useAuthStore();
+  const { name } = useOnboardingStore();
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Home" component={() => null} />
-    </Stack.Navigator>
-  )
+    <View style={styles.placeholder}>
+      <Text style={styles.placeholderText}>ECHO//SELF</Text>
+      <Text style={styles.placeholderSub}>Welcome, {name || user?.displayName} ✦</Text>
+      <Text style={styles.placeholderHint}>Daily Mirror — coming in EPIC-03</Text>
+    </View>
+  );
 }
 
-function MainTabs() {
-  return (
-    <Tab.Navigator screenOptions={{ headerShown: false, tabBarStyle: { backgroundColor: '#0A0A0F' } }}>
-      <Tab.Screen name="HomeTab" component={HomeStack} options={{ title: 'Echo' }} />
-      <Tab.Screen name="Memory" component={() => null} options={{ title: 'Memory' }} />
-      <Tab.Screen name="Future" component={() => null} options={{ title: 'Future' }} />
-      <Tab.Screen name="Insights" component={() => null} options={{ title: 'Insights' }} />
-    </Tab.Navigator>
-  )
-}
+const styles = StyleSheet.create({
+  placeholder: {
+    flex: 1,
+    backgroundColor: Colors.black,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  placeholderText: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -1,
+  },
+  placeholderSub: {
+    fontSize: 18,
+    color: Colors.violet,
+  },
+  placeholderHint: {
+    fontSize: 13,
+    color: Colors.silver,
+    opacity: 0.5,
+    marginTop: 8,
+  },
+});
+
+export type RootStackParamList = {
+  Onboarding: undefined;
+  Main: undefined;
+};
+
+const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
-  const { isAuthenticated, isLoading } = useAuthStore()
-  if (isLoading) return null
+  const { isComplete } = useOnboardingStore();
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!isAuthenticated ? (
-          <Stack.Screen name="Onboarding" component={() => null} />
+      <RootStack.Navigator screenOptions={{ headerShown: false }}>
+        {!isComplete ? (
+          <RootStack.Screen name="Onboarding" component={OnboardingNavigator} />
         ) : (
-          <Stack.Screen name="Main" component={MainTabs} />
+          <RootStack.Screen name="Main" component={PlaceholderMain} />
         )}
-      </Stack.Navigator>
+      </RootStack.Navigator>
     </NavigationContainer>
-  )
+  );
 }

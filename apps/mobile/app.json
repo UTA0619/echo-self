@@ -4,44 +4,42 @@
     "slug": "echo-self",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icons/icon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/icons/splash.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#0A0A0F"
     },
-    "updates": {
-      "fallbackToCacheTimeout": 0,
-      "url": "https://u.expo.dev/your-project-id"
-    },
-    "runtimeVersion": { "policy": "appVersion" },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "ai.echoself.app",
-      "usesAppleSignIn": true,
+      "bundleIdentifier": "com.echoself.app",
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "ECHO//SELF uses your microphone to record voice journal entries.",
-        "NSPhotoLibraryUsageDescription": "ECHO//SELF saves your identity cards to your photo library."
+        "UIBackgroundModes": ["fetch", "remote-notification"]
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icons/adaptive-icon.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0A0A0F"
       },
-      "package": "ai.echoself.app",
-      "permissions": ["RECORD_AUDIO", "READ_MEDIA_IMAGES"]
+      "package": "com.echoself.app"
     },
     "plugins": [
-      ["expo-secure-store"],
-      ["expo-av"],
-      ["react-native-onesignal", { "mode": "production" }],
-      ["@stripe/stripe-react-native", { "merchantIdentifier": "merchant.ai.echoself" }]
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#4F46E5"
+        }
+      ]
     ],
     "extra": {
-      "eas": { "projectId": "your-eas-project-id" }
+      "eas": {
+        "projectId": "echo-self-eas-project-id"
+      }
     }
   }
 }
