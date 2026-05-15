@@ -1,0 +1,58 @@
+# Maestro E2E — Onboarding Flow
+# Tests: post-auth first launch → 5-step onboarding → Daily Mirror
+# Requires a fresh authenticated user (no onboarding_completed flag)
+# Run: maestro test e2e/maestro/02_onboarding_flow.yaml
+
+appId: app.echoself.mobile
+name: Onboarding Flow
+
+---
+
+- launchApp:
+    clearState: false  # Preserve auth session set by test harness
+
+# ── Step 1: Welcome ──────────────────────────────────────────────────────
+- assertVisible: "ECHO//SELF"
+- tapOn:
+    text: "Begin →"
+
+# ── Step 2: Name ─────────────────────────────────────────────────────────
+- assertVisible:
+    text: "What should we call you?"
+    enabled: true
+- tapOn:
+    id: "name-input"
+- inputText: "E2E Tester"
+- tapOn:
+    text: "Continue"
+
+# ── Step 3: Emotional Baseline ───────────────────────────────────────────
+- assertVisible: "What are you feeling"
+- tapOn:
+    text: "Joy"
+- tapOn:
+    text: "Anticipation"
+- assertNotVisible:
+    text: "Love"  # Max 3 selections — 4th tap should be blocked
+- tapOn:
+    text: "Continue"
+
+# ── Step 4: Notifications ────────────────────────────────────────────────
+- assertVisible: "Stay in touch"
+- tapOn:
+    text: "Enable Notifications"
+# System permission dialog may appear — dismiss it
+- optional:
+    - tapOn:
+        text: "Allow"
+- tapOn:
+    text: "Continue"
+
+# ── Step 5: Paywall ──────────────────────────────────────────────────────
+- assertVisible: "Echo Premium"
+- tapOn:
+    text: "Start Free"
+
+# ── Should land on Daily Mirror ──────────────────────────────────────────
+- assertVisible: "Mirror"
+- assertVisible: "What's on your mind"
