@@ -1,0 +1,40 @@
+# Maestro E2E — Future Self Screen
+# Tests: tab navigation → prediction cards → persona reveal → share
+# Requires user with at least 1 generated prediction (premium user)
+# Run: maestro test e2e/maestro/04_future_self.yaml
+
+appId: app.echoself.mobile
+name: Future Self Screen
+
+---
+
+- launchApp
+
+# ── Navigate to Future Self tab ──────────────────────────────────────────
+- tapOn:
+    text: "Future"
+
+- assertVisible: "Your Future Self"
+
+# ── Prediction cards should be visible ──────────────────────────────────
+- assertVisible: "30 days"
+- assertVisible: "90 days"
+- assertVisible: "1 year"
+
+# ── Tap reveal on 30-day card ────────────────────────────────────────────
+- tapOn:
+    id: "reveal-btn-30d"
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Persona description should appear
+- assertVisible:
+    id: "persona-description"
+
+# ── Share button ─────────────────────────────────────────────────────────
+- tapOn:
+    id: "share-btn"
+
+# Share sheet should appear
+- assertVisible: "Share"

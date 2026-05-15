@@ -1,0 +1,40 @@
+# Maestro E2E — Authentication Flow
+# Tests: cold launch → LoginScreen → magic link flow → check-email screen
+# Run: maestro test e2e/maestro/01_auth_flow.yaml
+
+appId: app.echoself.mobile
+name: Auth Flow
+
+---
+
+- launchApp:
+    clearState: true
+
+# 1. Should land on LoginScreen
+- assertVisible: "ECHO//SELF"
+- assertVisible: "Know who you're becoming"
+
+# 2. Email flow — tap "Continue with Email"
+- tapOn:
+    text: "Continue with Email"
+
+- assertVisible: "Enter your email"
+- assertVisible: "We'll send a magic link"
+
+# 3. Type a test email
+- tapOn:
+    id: "email-input"
+- inputText: "test@echoself-e2e.app"
+
+# 4. Submit
+- tapOn:
+    text: "Send Magic Link →"
+
+# 5. Should show check-email screen
+- assertVisible: "Check your inbox"
+- assertVisible: "test@echoself-e2e.app"
+
+# 6. Back navigation
+- tapOn:
+    text: "Use a different email"
+- assertVisible: "Enter your email"
