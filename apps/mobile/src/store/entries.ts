@@ -1,104 +1,107 @@
-import { create } from 'zustand'
-import type { Entry, EmotionType } from '@echo-self/shared-types'
-import { supabase } from '../services/supabase'
-import { useAuthStore } from './auth'
+import { create } from 'zustand';
+import { supabase } from '../services/supabase';
+import type { Entry, EmotionAnalysis } from '@echo-self/shared-types';
 
-interface EntryDraft {
-  content: string
-  emotion: EmotionType | null
-  savedAt: number
-}
+export type StreamState = 'idle' | 'submitting' | 'streaming' | 'complete' | 'error';
 
 interface EntriesState {
-  entries: Entry[]
-  draft: EntryDraft | null
-  isSubmitting: boolean
-  isLoading: boolean
-  echoResponse: string
-  isStreaming: boolean
-  loadEntries: () => Promise<void>
-  saveDraft: (content: string, emotion: EmotionType | null) => void
-  submitEntry: (content: string, emotion: EmotionType | null) => Promise<void>
-  rateEcho: (entryId: string, rating: -1 | 1) => Promise<void>
+  entries: Entry[];
+  todayEntry: Entry | null;
+  streamState: StreamState;
+  streamedEcho: string;
+  detectedEmotion: EmotionAnalysis | null;
+  errorMessage: string | null;
+
+  // Actions
+  loadEntries: () => Promise<void>;
+  submitEntry: (content: string, userId: string) => Promise<void>;
+  resetStream: () => void;
 }
 
 export const useEntriesStore = create<EntriesState>((set, get) => ({
   entries: [],
-  draft: null,
-  isSubmitting: false,
-  isLoading: false,
-  echoResponse: '',
-  isStreaming: false,
+  todayEntry: null,
+  streamState: 'idle',
+  streamedEcho: '',
+  detectedEmotion: null,
+  errorMessage: null,
 
   loadEntries: async () => {
-    set({ isLoading: true })
-    const user = useAuthStore.getState().user
-    if (!user) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('entries')
       .select('*')
-      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-      .limit(50)
-    set({ entries: (data as Entry[]) ?? [], isLoading: false })
+      .limit(20);
+
+    if (error) { console.error('loadEntries:', error); return; }
+
+    const today = new Date().toISOString().split('T')[0];
+    const todayEntry = data?.find(
+      (e) => e.created_at.startsWith(today)
+    ) ?? null;
+
+    set({ entries: data ?? [], todayEntry });
   },
 
-  saveDraft: (content, emotion) => {
-    set({ draft: { content, emotion, savedAt: Date.now() } })
-  },
+  submitEntry: async (content: string, userId: string) => {
+    set({ streamState: 'submitting', streamedEcho: '', detectedEmotion: null, errorMessage: null });
 
-  submitEntry: async (content, emotion) => {
-    set({ isSubmitting: true, echoResponse: '', isStreaming: true })
-    const { session, user } = useAuthStore.getState()
-    if (!session || !user) throw new Error('Not authenticated')
+    try {
+      // 1. Insert entry to DB
+      const { data: entry, error: insertError } = await supabase
+        .from('entries')
+        .insert({ user_id: userId, content, word_count: content.split(/\s+/).filter(Boolean).length })
+        .select()
+        .single();
 
-    // Insert entry
-    const { data: entry, error } = await supabase
-      .from('entries')
-      .insert({ user_id: user.id, content, emotion })
-      .select()
-      .single()
-    if (error || !entry) throw error
+      if (insertError || !entry) throw new Error(insertError?.message ?? 'Insert failed');
 
-    // Subscribe to echo response via Realtime
-    const channel = supabase
-      .channel(`echo:${user.id}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'entries',
-        filter: `id=eq.${entry.id}`,
-      }, payload => {
-        const newEntry = payload.new as Entry
-        if (newEntry.ai_response) {
-          set({ echoResponse: newEntry.ai_response, isStreaming: false })
-          supabase.removeChannel(channel)
+      // Optimistically add to list
+      set((s) => ({ entries: [entry, ...s.entries], todayEntry: entry }));
+
+      // 2. Subscribe to Realtime updates on this entry
+      set({ streamState: 'streaming' });
+      const channel = supabase
+        .channel(`entry-${entry.id}`)
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'entries', filter: `id=eq.${entry.id}` },
+          (payload) => {
+            const updated = payload.new as Entry;
+            if (updated.ai_response) {
+              set({ streamedEcho: updated.ai_response });
+            }
+            if (updated.emotion_data) {
+              set({ detectedEmotion: updated.emotion_data as unknown as EmotionAnalysis });
+            }
+            if (updated.ai_response && updated.emotion_data) {
+              set({ streamState: 'complete' });
+              channel.unsubscribe();
+              // Refresh entries list
+              get().loadEntries();
+            }
+          }
+        )
+        .subscribe();
+
+      // 3. Invoke echo-ai edge function (fire and forget — Realtime delivers result)
+      supabase.functions.invoke('echo-ai', {
+        body: { entryId: entry.id, userId, content },
+      }).catch(console.error);
+
+      // Timeout fallback after 30s
+      setTimeout(() => {
+        const { streamState } = get();
+        if (streamState === 'streaming') {
+          channel.unsubscribe();
+          set({ streamState: 'error', errorMessage: 'Echo took too long. Please try again.' });
         }
-      })
-      .subscribe()
+      }, 30_000);
 
-    // Trigger AI echo
-    await supabase.functions.invoke('echo-ai', {
-      body: { entry_id: entry.id, content, emotion, emotion_score: null },
-    })
-
-    // Also trigger emotion analysis
-    supabase.functions.invoke('emotion-analyze', {
-      body: { content, entry_id: entry.id },
-    })
-
-    // Optimistic update
-    set(state => ({
-      entries: [entry as Entry, ...state.entries],
-      draft: null,
-      isSubmitting: false,
-    }))
+    } catch (err) {
+      set({ streamState: 'error', errorMessage: (err as Error).message });
+    }
   },
 
-  rateEcho: async (entryId, rating) => {
-    await supabase.from('entries').update({ echo_rating: rating }).eq('id', entryId)
-    set(state => ({
-      entries: state.entries.map(e => e.id === entryId ? { ...e, echoRating: rating } : e),
-    }))
-  },
-}))
+  resetStream: () => set({ streamState: 'idle', streamedEcho: '', detectedEmotion: null, errorMessage: null }),
+}));

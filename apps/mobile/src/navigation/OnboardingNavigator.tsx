@@ -1,42 +1,48 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { WelcomeScreen } from '../screens/onboarding/WelcomeScreen';
-import { NameScreen } from '../screens/onboarding/NameScreen';
-import { EmotionalBaselineScreen } from '../screens/onboarding/EmotionalBaselineScreen';
-import { NotificationScreen } from '../screens/onboarding/NotificationScreen';
-import { PaywallScreen } from '../screens/onboarding/PaywallScreen';
 
-export type OnboardingStackParamList = {
-  Welcome: undefined;
-  Name: undefined;
-  EmotionalBaseline: undefined;
-  Notifications: undefined;
-  Paywall: undefined;
+// Inline placeholder screens — will be replaced when EPIC-02 onboarding screens merge
+function WelcomeScreen({ navigation }: any) {
+  const React = require('react');
+  const { View, Text, TouchableOpacity, StyleSheet } = require('react-native');
+  const { useOnboardingStore } = require('../store/onboarding');
+  const { complete } = useOnboardingStore();
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.logo}>ECHO//SELF</Text>
+      <Text style={styles.tagline}>Your AI identity journal</Text>
+      <TouchableOpacity style={styles.cta} onPress={() => { complete(); }}>
+        <Text style={styles.ctaText}>Begin →</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = {
+  container: { flex: 1, backgroundColor: '#0A0A0F', alignItems: 'center' as const, justifyContent: 'center' as const, padding: 32 },
+  logo: { fontSize: 32, fontWeight: '800' as const, color: '#FFFFFF', letterSpacing: -1 },
+  tagline: { fontSize: 16, color: 'rgba(255,255,255,0.5)', marginTop: 12, marginBottom: 48 },
+  cta: { backgroundColor: '#4F46E5', paddingHorizontal: 32, paddingVertical: 16, borderRadius: 999 },
+  ctaText: { color: '#FFFFFF', fontSize: 17, fontWeight: '600' as const },
 };
 
-const Stack = createNativeStackNavigator<OnboardingStackParamList>();
+export type OnboardingParamList = {
+  Welcome: undefined;
+};
+
+const Stack = createNativeStackNavigator<OnboardingParamList>();
 
 export function OnboardingNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        animation: 'slide_from_right',
+        animation: 'fade',
         contentStyle: { backgroundColor: '#0A0A0F' },
-        gestureEnabled: false, // Prevent back-swipe mid-onboarding
       }}
     >
-      <Stack.Screen name="Welcome"           component={WelcomeScreen} />
-      <Stack.Screen name="Name"              component={NameScreen} />
-      <Stack.Screen name="EmotionalBaseline" component={EmotionalBaselineScreen} />
-      <Stack.Screen name="Notifications"     component={NotificationScreen} />
-      <Stack.Screen
-        name="Paywall"
-        component={PaywallScreen}
-        options={{
-          animation: 'fade_from_bottom', // Dramatic entrance for paywall
-        }}
-      />
+      <Stack.Screen name="Welcome" component={WelcomeScreen} />
     </Stack.Navigator>
   );
 }

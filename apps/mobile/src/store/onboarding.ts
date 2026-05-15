@@ -3,65 +3,65 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { EmotionType } from '@echo-self/shared-types';
 
-export interface OnboardingData {
-  name: string;
-  emotions: EmotionType[];
-  notificationsEnabled: boolean;
-}
-
 interface OnboardingState {
-  step: number;
-  name: string;
-  selectedEmotions: EmotionType[];
-  notificationsEnabled: boolean;
   isComplete: boolean;
+  currentStep: number;
+  displayName: string;
+  selectedEmotions: EmotionType[];
+  goals: string[];
+  notificationsEnabled: boolean;
 
   // Actions
-  setName: (name: string) => void;
-  toggleEmotion: (emotion: EmotionType) => void;
-  setNotificationsEnabled: (enabled: boolean) => void;
+  setStep: (step: number) => void;
   nextStep: () => void;
-  prevStep: () => void;
-  completeOnboarding: () => OnboardingData;
-  resetOnboarding: () => void;
+  setDisplayName: (name: string) => void;
+  toggleEmotion: (emotion: EmotionType) => void;
+  setGoals: (goals: string[]) => void;
+  setNotificationsEnabled: (enabled: boolean) => void;
+  complete: () => void;
+  reset: () => void;
 }
+
+const initialState = {
+  isComplete: false,
+  currentStep: 0,
+  displayName: '',
+  selectedEmotions: [] as EmotionType[],
+  goals: [] as string[],
+  notificationsEnabled: false,
+};
 
 export const useOnboardingStore = create<OnboardingState>()(
   persist(
     (set, get) => ({
-      step: 0,
-      name: '',
-      selectedEmotions: [],
-      notificationsEnabled: false,
-      isComplete: false,
+      ...initialState,
 
-      setName: (name) => set({ name }),
+      setStep: (step) => set({ currentStep: step }),
+
+      nextStep: () => set((s) => ({ currentStep: s.currentStep + 1 })),
+
+      setDisplayName: (name) => set({ displayName: name }),
 
       toggleEmotion: (emotion) => {
-        const current = get().selectedEmotions;
-        if (current.includes(emotion)) {
-          set({ selectedEmotions: current.filter((e) => e !== emotion) });
-        } else if (current.length < 3) {
-          set({ selectedEmotions: [...current, emotion] });
+        const { selectedEmotions } = get();
+        const already = selectedEmotions.includes(emotion);
+        if (already) {
+          set({ selectedEmotions: selectedEmotions.filter((e) => e !== emotion) });
+        } else if (selectedEmotions.length < 3) {
+          set({ selectedEmotions: [...selectedEmotions, emotion] });
         }
       },
 
+      setGoals: (goals) => set({ goals }),
+
       setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
 
-      nextStep: () => set((s) => ({ step: Math.min(s.step + 1, 4) })),
-      prevStep: () => set((s) => ({ step: Math.max(s.step - 1, 0) })),
+      complete: () => set({ isComplete: true }),
 
-      completeOnboarding: () => {
-        const { name, selectedEmotions, notificationsEnabled } = get();
-        set({ isComplete: true });
-        return { name, emotions: selectedEmotions, notificationsEnabled };
-      },
-
-      resetOnboarding: () =>
-        set({ step: 0, name: '', selectedEmotions: [], notificationsEnabled: false, isComplete: false }),
+      reset: () => set(initialState),
     }),
     {
-      name: 'echo-onboarding',
+      name: 'echo-self-onboarding',
       storage: createJSONStorage(() => AsyncStorage),
     }
   )
