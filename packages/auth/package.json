@@ -9,7 +9,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@echoself/supabase": "*",
+    "@echoself/supabase": "workspace:*",
     "@supabase/supabase-js": "^2.47.10"
   },
   "devDependencies": {
