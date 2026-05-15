@@ -1,0 +1,24 @@
+{
+  "name": "echo-self",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ECHO//SELF — AI-native identity OS monorepo",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "test": "turbo run test",
+    "validate:migrations": "tsx scripts/validate-migrations.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "turbo": "^1.13.3",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@9.0.0"
+}
