@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { insertEntry, getInternalUserId } from '@/lib/entries'
+import { VoiceRecorder } from './VoiceRecorder'
 import type { Entry } from '@/lib/entries'
 
 const MAX_CHARS = 2000
@@ -102,9 +103,14 @@ export function EntryComposer({ onEntryCreated }: EntryComposerProps) {
         </div>
       </div>
 
-      {error && (
-        <p className="text-xs text-red-400">{error}</p>
-      )}
+      <div className="flex items-center justify-between">
+        <VoiceRecorder
+          onTranscription={(text) =>
+            setContent((prev) => (prev ? `${prev} ${text}` : text).slice(0, MAX_CHARS))
+          }
+        />
+        {error && <p className="text-xs text-red-400">{error}</p>}
+      </div>
 
       <button
         type="submit"

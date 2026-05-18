@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { fetchEntries } from '@/lib/entries'
+import { fetchIdentityNodes } from '@/lib/identity'
+import { fetchEmotionHistory } from '@/lib/emotions'
+import { getSubscriptionStatus } from '@/lib/subscription'
 import { DashboardClient } from './DashboardClient'
 
 export default async function DashboardPage() {
@@ -8,7 +11,12 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth')
 
-  const entries = await fetchEntries(20).catch(() => [])
+  const [entries, identityNodes, emotionHistory, subscription] = await Promise.all([
+    fetchEntries(20).catch(() => []),
+    fetchIdentityNodes().catch(() => []),
+    fetchEmotionHistory(30).catch(() => []),
+    getSubscriptionStatus().catch(() => ({ tier: 'free' as const, isPremium: false, expiresAt: null })),
+  ])
 
   return (
     <main className="min-h-screen max-w-xl mx-auto px-4 py-8 space-y-8">
@@ -19,12 +27,22 @@ export default async function DashboardPage() {
         >
           ECHO
         </h1>
-        <span className="text-xs text-[#8B8FA8]">
-          {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
-        </span>
+        <div className="flex items-center gap-3">
+          {subscription.isPremium && (
+            <span className="text-xs text-[#7B6CF6] font-medium">Pro</span>
+          )}
+          <span className="text-xs text-[#8B8FA8]">
+            {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+          </span>
+        </div>
       </header>
 
-      <DashboardClient initialEntries={entries} />
+      <DashboardClient
+        initialEntries={entries}
+        identityNodes={identityNodes}
+        emotionHistory={emotionHistory}
+        isPremium={subscription.isPremium}
+      />
     </main>
   )
 }
