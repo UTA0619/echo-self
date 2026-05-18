@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@echo-self/shared-types": "workspace:*",
+    "@echoself/auth": "workspace:*",
+    "@echoself/supabase": "workspace:*",
     "@supabase/supabase-js": "^2.47.10",
     "@supabase/ssr": "^0.5.2",
     "@tanstack/react-query": "^5.60.0",
