@@ -1,0 +1,64 @@
+name: Bug Report
+description: Report a bug in ECHO
+labels: ["type: bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What broke? Be specific.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. Log in as existing user
+        2. Open memory timeline
+        3. Tap "Add Memory"
+        4. Submit with empty content
+        5. App crashes instead of showing validation error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-actual
+    attributes:
+      label: Expected vs Actual
+      placeholder: |
+        **Expected:** Validation error shown inline
+        **Actual:** App crashes to blank screen
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: true
+      options:
+        - Web
+        - iOS
+        - Android
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - "p0: critical (data loss / crash for all users)"
+        - "p1: high (broken core feature)"
+        - "p2: medium (degraded experience)"
+        - "p3: low (cosmetic / edge case)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Screenshots
+      description: Paste error messages or attach screenshots

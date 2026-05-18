@@ -1,0 +1,34 @@
+epic: 01-foundation:
+  - packages/shared/**
+  - apps/web/app/(auth)/**
+  - apps/web/components/ui/**
+
+epic: 02-memory:
+  - packages/supabase/migrations/**
+  - packages/supabase/functions/memory-*/**
+  - apps/web/app/(dashboard)/memory/**
+  - packages/ai-core/src/memory-engine/**
+
+epic: 03-identity:
+  - packages/ai-core/src/behavioral/**
+  - apps/web/components/echo/identity*/**
+
+epic: 04-behavioral:
+  - packages/ai-core/src/behavioral/**
+  - packages/supabase/functions/behavioral-*/**
+
+epic: 05-emotional:
+  - packages/ai-core/src/emotional/**
+  - packages/ai-core/src/future-self/**
+
+epic: 06-monetization:
+  - apps/web/app/(dashboard)/settings/**
+  - apps/web/components/echo/paywall*
+
+type: chore:
+  - .github/**
+  - turbo.json
+  - pnpm-workspace.yaml
+  - '*.config.*'
+  - '*.json'
+  - docs/**

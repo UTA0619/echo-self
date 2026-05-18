@@ -1,0 +1,102 @@
+name: Feature Request
+description: Propose a new feature for ECHO
+labels: ["type: feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Before submitting:** Check the backlog to avoid duplicates.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One sentence — what is this and why does it matter?
+      placeholder: "Add voice memory capture so users can log memories hands-free"
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-story
+    attributes:
+      label: User Story
+      description: As a [persona], I want [capability] so that [outcome].
+      placeholder: "As a user, I want to record a voice note so that I can capture memories while walking."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Checkable criteria for "done"
+      placeholder: |
+        - [ ] User can tap microphone icon to begin recording
+        - [ ] Recording transcribed via Whisper API
+        - [ ] Transcription stored as memory with content_type = 'voice'
+        - [ ] Original audio file stored in Supabase Storage
+    validations:
+      required: true
+
+  - type: dropdown
+    id: epic
+    attributes:
+      label: Epic
+      options:
+        - "epic: 01-foundation"
+        - "epic: 02-memory"
+        - "epic: 03-identity"
+        - "epic: 04-behavioral"
+        - "epic: 05-emotional"
+        - "epic: 06-monetization"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "p0: critical"
+        - "p1: high"
+        - "p2: medium"
+        - "p3: low"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: size
+    attributes:
+      label: Complexity
+      options:
+        - "size: XS (< 1h)"
+        - "size: S (1-3h)"
+        - "size: M (3-8h)"
+        - "size: L (1-2 days)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: ai-tool
+    attributes:
+      label: Primary AI Tool
+      options:
+        - "ai: lovable"
+        - "ai: cursor"
+        - "ai: claude"
+        - "ai: auto"
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Issue numbers this depends on
+      placeholder: "#12, #15"
+
+  - type: textarea
+    id: implementation-notes
+    attributes:
+      label: Implementation Notes
+      description: Technical hints, API references, gotchas
