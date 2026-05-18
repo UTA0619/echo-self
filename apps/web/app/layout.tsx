@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter, Geist, Geist_Mono } from 'next/font/google'
+import { Providers } from '@/components/providers'
 import './globals.css'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
@@ -19,7 +20,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${geist.variable} ${geistMono.variable} ${inter.variable}`}>
-      <body className="bg-[#0A0B0F] text-[#F0F0F5] antialiased">{children}</body>
+      <body className="bg-[#0A0B0F] text-[#F0F0F5] antialiased">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   )
 }
