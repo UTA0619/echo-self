@@ -2,26 +2,36 @@
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": [".env.local"],
   "globalEnv": [
+    "NODE_ENV",
+    "VERCEL_ENV",
     "EXPO_PUBLIC_SUPABASE_URL",
     "EXPO_PUBLIC_SUPABASE_ANON_KEY",
     "EXPO_PUBLIC_POSTHOG_API_KEY",
     "EXPO_PUBLIC_SENTRY_DSN",
     "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY",
     "EXPO_PUBLIC_ONESIGNAL_APP_ID",
-    "EXPO_PUBLIC_APP_ENV"
+    "EXPO_PUBLIC_APP_ENV",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "NEXT_PUBLIC_POSTHOG_KEY",
+    "NEXT_PUBLIC_POSTHOG_HOST",
+    "NEXT_PUBLIC_SENTRY_DSN",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+    "NEXT_PUBLIC_APP_URL"
   ],
-  "pipeline": {
+  "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".expo/**"]
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**", ".expo/**", ".next/**", "!.next/cache/**"]
     },
     "test": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"],
       "env": ["CI"]
     },
-    "lint": { "outputs": [] },
-    "type-check": { "dependsOn": ["^build"], "outputs": [] },
+    "lint": {},
+    "type-check": { "dependsOn": ["^type-check"] },
     "dev": { "cache": false, "persistent": true },
     "clean": { "cache": false }
   }
