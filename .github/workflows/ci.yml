@@ -1,250 +1,171 @@
 name: CI
 
 on:
-  pull_request:
-    branches: [master, main, develop]
   push:
-    branches: [master, main]
+    branches: [main, staging]
+  pull_request:
+    branches: [main, staging]
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # ─── Type-check + Lint ───────────────────────────────────────────────────
-  quality:
-    name: Quality (type-check + lint)
+  # ── Type Check ────────────────────────────────────────────────────────────
+  type-check:
+    name: TypeScript
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: pnpm
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
-      - name: Type-check
-        run: pnpm turbo type-check
+      - name: Type check
+        run: npm run type-check
 
-      - name: Lint
-        run: pnpm turbo lint
-
-  # ─── Migration validation ────────────────────────────────────────────────
-  migrations:
-    name: Validate migrations
+  # ── Lint ─────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: pnpm
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
-      - name: Validate migration files
-        run: node --loader tsx scripts/validate-migrations.ts
-        env:
-          NODE_NO_WARNINGS: 1
+      - name: ESLint
+        run: npm run lint
 
-      - name: Supabase DB diff (linked project)
-        if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
-      - name: Check for schema drift
-        if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
-        run: supabase db diff --linked --schema public
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-
-  # ─── Supabase edge functions type-check ──────────────────────────────────
-  edge-functions:
-    name: Edge functions (Deno type-check)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
-
-      - name: Type-check edge functions
-        run: |
-          for dir in supabase/functions/*/; do
-            fn=$(basename "$dir")
-            echo "→ checking $fn"
-            deno check "$dir/index.ts" || exit 1
-          done
-
-  # ─── Tests ───────────────────────────────────────────────────────────────
+  # ── Unit Tests ────────────────────────────────────────────────────────────
   test:
-    name: Unit tests
+    name: Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: pnpm
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
-      - name: Run tests
-        run: pnpm turbo test --coverage
+      - name: Run tests with coverage
+        run: npm run test:coverage
+        env:
+          CI: true
 
-      - name: Upload coverage
+      - name: Upload coverage report
         uses: codecov/codecov-action@v4
-        if: always()
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
 
-  # ─── Expo prebuild check ─────────────────────────────────────────────────
-  expo-check:
-    name: Expo prebuild (iOS + Android)
+  # ── Supabase Migration Check ──────────────────────────────────────────────
+  supabase-migrations:
+    name: Supabase Migrations
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - uses: supabase/setup-cli@v1
         with:
-          version: 9
+          version: latest
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
+      - name: Start Supabase local dev
+        run: supabase start
 
-      - uses: expo/expo-github-action@v8
-        with:
-          expo-version: latest
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Verify migrations apply cleanly
+        run: supabase db push --local
 
-      - name: Install dependencies
-        working-directory: apps/mobile
-        run: pnpm install --frozen-lockfile
+      - name: Check generated types are up to date
+        run: |
+          supabase gen types typescript --local > /tmp/supabase-types.ts
+          diff /tmp/supabase-types.ts src/types/supabase.ts || \
+            (echo "❌ Supabase types are out of date. Run: npx supabase gen types typescript --local > src/types/supabase.ts" && exit 1)
 
-      - name: Expo Doctor
-        working-directory: apps/mobile
-        run: npx expo-doctor
-        continue-on-error: true
-
-      - name: EAS Build check (dry-run)
-        working-directory: apps/mobile
-        run: eas build --platform all --profile preview --non-interactive --dry-run
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-  # ─── Security scan ───────────────────────────────────────────────────────
-  security:
-    name: Security audit
+  # ── Secret Scanning ───────────────────────────────────────────────────────
+  secret-scan:
+    name: Secret Scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v3
         with:
-          version: 9
+          fetch-depth: 0
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Audit dependencies
-        run: pnpm audit --audit-level=high
-        continue-on-error: true
-
-      - name: Check for secrets in code
+      - name: Scan for secrets (gitleaks)
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
-  # ─── Maestro E2E tests (runs on merge to master only) ────────────────────
-  maestro-e2e:
-    name: Maestro E2E (iOS Simulator)
-    runs-on: macos-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+  # ── Dependency Audit ──────────────────────────────────────────────────────
+  audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - uses: actions/setup-node@v4
         with:
-          version: 9
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit for high/critical vulnerabilities
+        run: npm audit --audit-level=high
+
+  # ── Build Check ───────────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [type-check, lint]
+    steps:
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: pnpm
-
-      - uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
-        working-directory: apps/mobile
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
-      - name: Install Maestro
-        run: curl -Ls "https://get.maestro.mobile.dev" | bash
-
-      - name: Build iOS Simulator app
-        working-directory: apps/mobile
-        run: |
-          eas build \
-            --platform ios \
-            --profile e2e \
-            --local \
-            --non-interactive \
-            --output ./build/echoself.app
+      - name: Build
+        run: npm run build
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_POSTHOG_KEY: ${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
+          NEXT_PUBLIC_POSTHOG_HOST: https://eu.i.posthog.com
+          NEXT_PUBLIC_APP_ENV: ci
 
-      - name: Boot iOS Simulator
+  # ── Status Gate ───────────────────────────────────────────────────────────
+  ci-pass:
+    name: CI Pass
+    runs-on: ubuntu-latest
+    needs: [type-check, lint, test, supabase-migrations, secret-scan, audit, build]
+    if: always()
+    steps:
+      - name: Check all jobs passed
         run: |
-          UDID=$(xcrun simctl list devices available -j \
-            | jq -r '.devices | to_entries[] | .value[] | select(.name == "iPhone 15") | .udid' \
-            | head -1)
-          xcrun simctl boot "$UDID"
-          xcrun simctl install "$UDID" apps/mobile/build/echoself.app
-
-      - name: Run Maestro flows
-        run: |
-          ~/.maestro/bin/maestro test e2e/maestro/ \
-            --format junit \
-            --output e2e/results.xml
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: maestro-results
-          path: e2e/results.xml
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "❌ One or more CI jobs failed"
+            exit 1
+          fi
+          echo "✅ All CI checks passed"
