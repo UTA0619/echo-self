@@ -65,6 +65,20 @@ serve(async (req: Request) => {
       emotionalArcSummary,
     })
 
+    // Safety check before generating response
+    const safetyRes = await supabase.functions.invoke('safety-check', {
+      body: { user_id: userData.id, content },
+    })
+    const safety = safetyRes.data ?? { safe: true, risk_level: 'none' }
+
+    if (!safety.safe || safety.risk_level === 'crisis') {
+      // For crisis: return the intervention directly, do not generate AI response
+      await supabase.from('entries').update({
+        ai_response: safety.intervention,
+      }).eq('id', entry_id)
+      return jsonResponse({ response: safety.intervention, success: true, crisis: true })
+    }
+
     // Stream from OpenAI
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -116,9 +130,8 @@ serve(async (req: Request) => {
       }
     }
 
-    // Store response and log usage in parallel
+    // Log usage and trigger async pipelines
     await Promise.all([
-      supabase.from('entries').update({ ai_response: fullResponse }).eq('id', entry_id),
       supabase.from('ai_usage').insert({
         user_id: userData.id,
         edge_function: 'echo-ai',
@@ -133,7 +146,14 @@ serve(async (req: Request) => {
       }),
     ])
 
-    return jsonResponse({ response: fullResponse, success: true })
+    // Append safety resources for moderate-risk entries (below AI response)
+    const finalResponse = safety.risk_level === 'moderate' && safety.intervention
+      ? `${fullResponse}\n\n---\n\n${safety.intervention}`
+      : fullResponse
+
+    await supabase.from('entries').update({ ai_response: finalResponse }).eq('id', entry_id)
+
+    return jsonResponse({ response: finalResponse, success: true })
   } catch (err) {
     console.error('[echo-ai] Error:', err)
     return errorResponse(err instanceof Error ? err.message : 'Internal server error')

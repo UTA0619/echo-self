@@ -7,15 +7,17 @@ import { MemorySearch } from '@/components/echo/MemorySearch'
 import { IdentityWeb } from '@/components/echo/IdentityWeb'
 import { EmotionalTimeline } from '@/components/echo/EmotionalTimeline'
 import { FutureSelfCard } from '@/components/echo/FutureSelfCard'
+import { PatternInsights } from '@/components/echo/PatternInsights'
 import { UpgradeModal } from '@/components/echo/UpgradeModal'
 import type { Entry } from '@/lib/entries'
-import type { IdentityNode } from '@/lib/identity'
+import type { IdentityNode, BehavioralPattern } from '@/lib/identity'
 import type { EmotionPoint } from '@/lib/emotions'
 
 interface DashboardClientProps {
   initialEntries: Entry[]
   identityNodes: IdentityNode[]
   emotionHistory: EmotionPoint[]
+  behavioralPatterns: BehavioralPattern[]
   isPremium: boolean
 }
 
@@ -60,6 +62,7 @@ export function DashboardClient({
   initialEntries,
   identityNodes,
   emotionHistory,
+  behavioralPatterns,
   isPremium,
 }: DashboardClientProps) {
   const [entries, setEntries] = useState<Entry[]>(initialEntries)
@@ -136,9 +139,14 @@ export function DashboardClient({
 
       {/* Identity tab */}
       {tab === 'identity' && (
-        <PremiumGate feature="Identity Web" isPremium={isPremium}>
-          <IdentityWeb nodes={identityNodes} />
-        </PremiumGate>
+        <div className="space-y-6">
+          <PremiumGate feature="Identity Web" isPremium={isPremium}>
+            <IdentityWeb nodes={identityNodes} />
+          </PremiumGate>
+          <PremiumGate feature="Pattern Insights" isPremium={isPremium}>
+            <PatternInsights patterns={behavioralPatterns} />
+          </PremiumGate>
+        </div>
       )}
 
       {/* Future Self tab */}

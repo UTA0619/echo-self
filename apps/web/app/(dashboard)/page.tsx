@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { fetchEntries } from '@/lib/entries'
-import { fetchIdentityNodes } from '@/lib/identity'
+import { fetchIdentityNodes, fetchBehavioralPatterns } from '@/lib/identity'
 import { fetchEmotionHistory } from '@/lib/emotions'
 import { getSubscriptionStatus } from '@/lib/subscription'
 import { DashboardClient } from './DashboardClient'
@@ -11,10 +11,11 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth')
 
-  const [entries, identityNodes, emotionHistory, subscription] = await Promise.all([
+  const [entries, identityNodes, emotionHistory, behavioralPatterns, subscription] = await Promise.all([
     fetchEntries(20).catch(() => []),
     fetchIdentityNodes().catch(() => []),
     fetchEmotionHistory(30).catch(() => []),
+    fetchBehavioralPatterns().catch(() => []),
     getSubscriptionStatus().catch(() => ({ tier: 'free' as const, isPremium: false, expiresAt: null })),
   ])
 
@@ -41,6 +42,7 @@ export default async function DashboardPage() {
         initialEntries={entries}
         identityNodes={identityNodes}
         emotionHistory={emotionHistory}
+        behavioralPatterns={behavioralPatterns}
         isPremium={subscription.isPremium}
       />
     </main>
