@@ -7,15 +7,19 @@ import { MemorySearch } from '@/components/echo/MemorySearch'
 import { IdentityWeb } from '@/components/echo/IdentityWeb'
 import { EmotionalTimeline } from '@/components/echo/EmotionalTimeline'
 import { FutureSelfCard } from '@/components/echo/FutureSelfCard'
+import { PatternInsights } from '@/components/echo/PatternInsights'
+import { IdentityShareCard } from '@/components/echo/IdentityShareCard'
 import { UpgradeModal } from '@/components/echo/UpgradeModal'
 import type { Entry } from '@/lib/entries'
-import type { IdentityNode } from '@/lib/identity'
+import type { IdentityNode, BehavioralPattern } from '@/lib/identity'
 import type { EmotionPoint } from '@/lib/emotions'
 
 interface DashboardClientProps {
   initialEntries: Entry[]
   identityNodes: IdentityNode[]
   emotionHistory: EmotionPoint[]
+  behavioralPatterns: BehavioralPattern[]
+  referralCode: string | null
   isPremium: boolean
 }
 
@@ -60,6 +64,8 @@ export function DashboardClient({
   initialEntries,
   identityNodes,
   emotionHistory,
+  behavioralPatterns,
+  referralCode,
   isPremium,
 }: DashboardClientProps) {
   const [entries, setEntries] = useState<Entry[]>(initialEntries)
@@ -131,14 +137,27 @@ export function DashboardClient({
               Your memory layer is ready. Write your first entry above.
             </p>
           )}
+
+          {/* Referral section at bottom of journal */}
+          {referralCode && (
+            <ReferralBanner referralCode={referralCode} />
+          )}
         </div>
       )}
 
       {/* Identity tab */}
       {tab === 'identity' && (
-        <PremiumGate feature="Identity Web" isPremium={isPremium}>
-          <IdentityWeb nodes={identityNodes} />
-        </PremiumGate>
+        <div className="space-y-6">
+          <PremiumGate feature="Identity Web" isPremium={isPremium}>
+            <IdentityWeb nodes={identityNodes} />
+          </PremiumGate>
+          <PremiumGate feature="Pattern Insights" isPremium={isPremium}>
+            <PatternInsights patterns={behavioralPatterns} />
+          </PremiumGate>
+          {identityNodes.length >= 3 && (
+            <IdentityShareCard nodes={identityNodes} />
+          )}
+        </div>
       )}
 
       {/* Future Self tab */}
@@ -147,6 +166,38 @@ export function DashboardClient({
           <FutureSelfCard />
         </PremiumGate>
       )}
+    </div>
+  )
+}
+
+function ReferralBanner({ referralCode }: { referralCode: string }) {
+  const [copied, setCopied] = useState(false)
+  const referralUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/join/${referralCode}`
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(referralUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="rounded-xl bg-[#141620] border border-[#7B6CF6]/20 p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <span className="text-[#7B6CF6]">✦</span>
+        <p className="text-sm font-medium text-[#F0F0F5]">Share ECHO, earn 1 month free</p>
+      </div>
+      <p className="text-xs text-[#8B8FA8]">
+        Invite a friend — when they join, you both get 1 month Pro free.
+      </p>
+      <button
+        onClick={handleCopy}
+        className="w-full flex items-center justify-between rounded-lg bg-[#0A0B0F] border border-white/10 px-3 py-2 text-xs text-[#8B8FA8] hover:border-[#7B6CF6]/40 transition-colors"
+      >
+        <span className="truncate">{referralUrl}</span>
+        <span className="ml-2 flex-shrink-0 text-[#7B6CF6]">
+          {copied ? '✓ Copied' : 'Copy'}
+        </span>
+      </button>
     </div>
   )
 }
