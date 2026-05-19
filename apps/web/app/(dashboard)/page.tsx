@@ -6,17 +6,28 @@ import { fetchEmotionHistory } from '@/lib/emotions'
 import { getSubscriptionStatus } from '@/lib/subscription'
 import { DashboardClient } from './DashboardClient'
 
+async function fetchReferralCode(userId: string): Promise<string | null> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('referrals')
+    .select('referral_code')
+    .eq('user_id', userId)
+    .maybeSingle()
+  return data?.referral_code ?? null
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth')
 
-  const [entries, identityNodes, emotionHistory, behavioralPatterns, subscription] = await Promise.all([
+  const [entries, identityNodes, emotionHistory, behavioralPatterns, subscription, referralCode] = await Promise.all([
     fetchEntries(20).catch(() => []),
     fetchIdentityNodes().catch(() => []),
     fetchEmotionHistory(30).catch(() => []),
     fetchBehavioralPatterns().catch(() => []),
     getSubscriptionStatus().catch(() => ({ tier: 'free' as const, isPremium: false, expiresAt: null })),
+    fetchReferralCode(user.id).catch(() => null),
   ])
 
   return (
@@ -32,6 +43,12 @@ export default async function DashboardPage() {
           {subscription.isPremium && (
             <span className="text-xs text-[#7B6CF6] font-medium">Pro</span>
           )}
+          <a
+            href="/wrapped"
+            className="text-xs text-[#8B8FA8] hover:text-[#7B6CF6] transition-colors"
+          >
+            Wrapped ✦
+          </a>
           <span className="text-xs text-[#8B8FA8]">
             {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
           </span>
@@ -43,6 +60,7 @@ export default async function DashboardPage() {
         identityNodes={identityNodes}
         emotionHistory={emotionHistory}
         behavioralPatterns={behavioralPatterns}
+        referralCode={referralCode}
         isPremium={subscription.isPremium}
       />
     </main>
