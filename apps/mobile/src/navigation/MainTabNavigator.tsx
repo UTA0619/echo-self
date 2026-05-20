@@ -3,51 +3,10 @@ import { View, Text, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
 import { DailyMirrorScreen } from '../screens/mirror/DailyMirrorScreen';
+import { TimelineScreen } from '../screens/timeline/TimelineScreen';
+import { FutureSelfScreen } from '../screens/future/FutureSelfScreen';
+import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { Colors } from '../theme/tokens';
-
-// Placeholder screens for EPIC-04+
-function TimelineScreen() {
-  return (
-    <View style={styles.placeholder}>
-      <Text style={styles.ph}>📊</Text>
-      <Text style={styles.phText}>Timeline</Text>
-      <Text style={styles.phSub}>Coming in EPIC-04</Text>
-    </View>
-  );
-}
-
-function FutureSelfScreen() {
-  return (
-    <View style={styles.placeholder}>
-      <Text style={styles.ph}>🔮</Text>
-      <Text style={styles.phText}>Future Self</Text>
-      <Text style={styles.phSub}>Coming in EPIC-05</Text>
-    </View>
-  );
-}
-
-function ProfileScreen() {
-  return (
-    <View style={styles.placeholder}>
-      <Text style={styles.ph}>👤</Text>
-      <Text style={styles.phText}>Profile</Text>
-      <Text style={styles.phSub}>Coming in EPIC-06</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  placeholder: {
-    flex: 1,
-    backgroundColor: Colors.black,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  ph: { fontSize: 48 },
-  phText: { fontSize: 20, fontWeight: '700', color: '#FFFFFF' },
-  phSub: { fontSize: 13, color: Colors.silver, opacity: 0.5 },
-});
 
 export type MainTabParamList = {
   Mirror: undefined;
@@ -135,3 +94,5 @@ export function MainTabNavigator() {
     </Tab.Navigator>
   );
 }
+
+const styles = StyleSheet.create({});
