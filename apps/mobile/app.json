@@ -1,46 +1,86 @@
 {
   "expo": {
-    "name": "ECHO//SELF",
+    "name": "ECHO",
     "slug": "echo-self",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0A0A0F"
+      "backgroundColor": "#0A0B0F"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.echoself.app",
+      "buildNumber": "1",
+      "requireFullScreen": true,
+      "usesAppleSignIn": true,
       "infoPlist": {
-        "UIBackgroundModes": ["fetch", "remote-notification"]
+        "UIBackgroundModes": ["fetch", "remote-notification"],
+        "NSMicrophoneUsageDescription": "ECHO uses the microphone to let you record voice memories.",
+        "NSSpeechRecognitionUsageDescription": "ECHO transcribes your voice notes into written memories.",
+        "NSCameraUsageDescription": "ECHO uses the camera to let you capture photo memories.",
+        "NSPhotoLibraryUsageDescription": "ECHO accesses your photos so you can attach them to memories."
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0A0A0F"
+        "backgroundColor": "#0A0B0F"
       },
-      "package": "com.echoself.app"
+      "package": "com.echoself.app",
+      "versionCode": 1,
+      "permissions": [
+        "RECORD_AUDIO",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "POST_NOTIFICATIONS"
+      ]
     },
     "scheme": "echoself",
     "plugins": [
       [
         "expo-notifications",
         {
-          "color": "#4F46E5"
+          "icon": "./assets/notification-icon.png",
+          "color": "#7B6CF6",
+          "defaultChannel": "default"
         }
       ],
       "expo-apple-authentication",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.0"
+          },
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "minSdkVersion": 26
+          }
+        }
+      ]
     ],
+    "updates": {
+      "url": "https://u.expo.dev/echo-self-eas-project-id",
+      "enabled": true,
+      "fallbackToCacheTimeout": 0
+    },
     "extra": {
       "eas": {
         "projectId": "echo-self-eas-project-id"
       }
-    }
+    },
+    "owner": "echoself"
   }
 }
