@@ -1,5 +1,4 @@
-import { createClient } from '@/lib/supabase/client'
-
+// ─── Shared types ────────────────────────────────────────────────────────────
 export interface Entry {
   id: string
   user_id: string
@@ -16,47 +15,9 @@ export interface Entry {
   updated_at: string
 }
 
-export async function fetchEntries(limit = 20): Promise<Entry[]> {
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from('entries')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(limit)
+// ─── Client-side operations (safe to import in 'use client' files) ────────────
 
-  if (error) throw error
-  return data ?? []
-}
-
-export async function fetchTodayEntry(): Promise<Entry | null> {
-  const supabase = createClient()
-  const today = new Date().toISOString().split('T')[0]
-
-  const { data, error } = await supabase
-    .from('entries')
-    .select('*')
-    .gte('created_at', `${today}T00:00:00`)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  if (error) throw error
-  return data
-}
-
-export async function getInternalUserId(): Promise<string | null> {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-
-  const { data } = await supabase
-    .from('users')
-    .select('id')
-    .eq('auth_id', user.id)
-    .single()
-
-  return data?.id ?? null
-}
+import { createClient } from '@/lib/supabase/client'
 
 export async function insertEntry(content: string, userId: string): Promise<Entry> {
   const supabase = createClient()
@@ -78,4 +39,47 @@ export async function rateEntry(entryId: string, rating: -1 | 1): Promise<void> 
     .eq('id', entryId)
 
   if (error) throw error
+}
+
+/** Client-side: fetch today's entry (used inside Client Components) */
+export async function fetchTodayEntryClient(): Promise<Entry | null> {
+  const supabase = createClient()
+  const today = new Date().toISOString().split('T')[0]
+
+  const { data, error } = await supabase
+    .from('entries')
+    .select('*')
+    .gte('created_at', `${today}T00:00:00`)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error) throw error
+  return data
+}
+
+/** Client-side: subscribe to a single entry's AI response via Realtime */
+export function subscribeToEntryAI(
+  entryId: string,
+  onUpdate: (ai_response: string) => void,
+): () => void {
+  const supabase = createClient()
+  const channel = supabase
+    .channel(`entry-ai-${entryId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'entries',
+        filter: `id=eq.${entryId}`,
+      },
+      (payload) => {
+        const ai = (payload.new as Entry).ai_response
+        if (ai) onUpdate(ai)
+      },
+    )
+    .subscribe()
+
+  return () => { supabase.removeChannel(channel) }
 }

@@ -10,6 +10,7 @@ import { FutureSelfCard } from '@/components/echo/FutureSelfCard'
 import { PatternInsights } from '@/components/echo/PatternInsights'
 import { IdentityShareCard } from '@/components/echo/IdentityShareCard'
 import { UpgradeModal } from '@/components/echo/UpgradeModal'
+import { SectionErrorBoundary } from '@/components/echo/ErrorBoundary'
 import type { Entry } from '@/lib/entries'
 import type { IdentityNode, BehavioralPattern } from '@/lib/identity'
 import type { EmotionPoint } from '@/lib/emotions'
@@ -21,6 +22,7 @@ interface DashboardClientProps {
   behavioralPatterns: BehavioralPattern[]
   referralCode: string | null
   isPremium: boolean
+  todayCount: number
 }
 
 type Tab = 'journal' | 'identity' | 'future'
@@ -67,6 +69,7 @@ export function DashboardClient({
   behavioralPatterns,
   referralCode,
   isPremium,
+  todayCount,
 }: DashboardClientProps) {
   const [entries, setEntries] = useState<Entry[]>(initialEntries)
   const [newEntryIds, setNewEntryIds] = useState<Set<string>>(new Set())
@@ -109,25 +112,36 @@ export function DashboardClient({
       {/* Journal tab */}
       {tab === 'journal' && (
         <div className="space-y-6">
-          <PremiumGate feature="Memory Search" isPremium={isPremium}>
-            <MemorySearch />
-          </PremiumGate>
+          <SectionErrorBoundary context="Memory Search">
+            <PremiumGate feature="Memory Search" isPremium={isPremium}>
+              <MemorySearch />
+            </PremiumGate>
+          </SectionErrorBoundary>
 
-          <EntryComposer onEntryCreated={handleEntryCreated} />
+          <SectionErrorBoundary context="Entry Composer">
+            <EntryComposer
+              onEntryCreated={handleEntryCreated}
+              todayCount={todayCount}
+              isPremium={isPremium}
+            />
+          </SectionErrorBoundary>
 
           {emotionHistory.length > 0 && (
-            <EmotionalTimeline data={emotionHistory} />
+            <SectionErrorBoundary context="Emotional Timeline">
+              <EmotionalTimeline data={emotionHistory} />
+            </SectionErrorBoundary>
           )}
 
           {entries.length > 0 && (
             <section className="space-y-3">
               <h2 className="text-xs font-medium text-[#8B8FA8] uppercase tracking-widest">Recent</h2>
               {entries.map((entry) => (
-                <EntryCard
-                  key={entry.id}
-                  entry={entry}
-                  isNew={newEntryIds.has(entry.id)}
-                />
+                <SectionErrorBoundary key={entry.id} context="EntryCard">
+                  <EntryCard
+                    entry={entry}
+                    isNew={newEntryIds.has(entry.id)}
+                  />
+                </SectionErrorBoundary>
               ))}
             </section>
           )}
@@ -145,23 +159,31 @@ export function DashboardClient({
       {/* Identity tab */}
       {tab === 'identity' && (
         <div className="space-y-6">
-          <PremiumGate feature="Identity Web" isPremium={isPremium}>
-            <IdentityWeb nodes={identityNodes} />
-          </PremiumGate>
-          <PremiumGate feature="Pattern Insights" isPremium={isPremium}>
-            <PatternInsights patterns={behavioralPatterns} />
-          </PremiumGate>
+          <SectionErrorBoundary context="Identity Web">
+            <PremiumGate feature="Identity Web" isPremium={isPremium}>
+              <IdentityWeb nodes={identityNodes} />
+            </PremiumGate>
+          </SectionErrorBoundary>
+          <SectionErrorBoundary context="Pattern Insights">
+            <PremiumGate feature="Pattern Insights" isPremium={isPremium}>
+              <PatternInsights patterns={behavioralPatterns} />
+            </PremiumGate>
+          </SectionErrorBoundary>
           {identityNodes.length >= 3 && (
-            <IdentityShareCard nodes={identityNodes} />
+            <SectionErrorBoundary context="Identity Share Card">
+              <IdentityShareCard nodes={identityNodes} />
+            </SectionErrorBoundary>
           )}
         </div>
       )}
 
       {/* Future Self tab */}
       {tab === 'future' && (
-        <PremiumGate feature="Future Self" isPremium={isPremium}>
-          <FutureSelfCard />
-        </PremiumGate>
+        <SectionErrorBoundary context="Future Self">
+          <PremiumGate feature="Future Self" isPremium={isPremium}>
+            <FutureSelfCard />
+          </PremiumGate>
+        </SectionErrorBoundary>
       )}
     </div>
   )

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { fetchEntries } from '@/lib/entries'
+import { fetchEntries, countTodayEntries } from '@/lib/entries.server'
 import { fetchIdentityNodes, fetchBehavioralPatterns } from '@/lib/identity'
 import { fetchEmotionHistory } from '@/lib/emotions'
 import { getSubscriptionStatus } from '@/lib/subscription'
@@ -21,13 +21,14 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth')
 
-  const [entries, identityNodes, emotionHistory, behavioralPatterns, subscription, referralCode] = await Promise.all([
+  const [entries, identityNodes, emotionHistory, behavioralPatterns, subscription, referralCode, todayCount] = await Promise.all([
     fetchEntries(20).catch(() => []),
     fetchIdentityNodes().catch(() => []),
     fetchEmotionHistory(30).catch(() => []),
     fetchBehavioralPatterns().catch(() => []),
     getSubscriptionStatus().catch(() => ({ tier: 'free' as const, isPremium: false, expiresAt: null })),
     fetchReferralCode(user.id).catch(() => null),
+    countTodayEntries().catch(() => 0),
   ])
 
   return (
@@ -62,6 +63,7 @@ export default async function DashboardPage() {
         behavioralPatterns={behavioralPatterns}
         referralCode={referralCode}
         isPremium={subscription.isPremium}
+        todayCount={todayCount}
       />
     </main>
   )
