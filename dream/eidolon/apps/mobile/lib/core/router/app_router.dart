@@ -1,6 +1,7 @@
 import 'package:eidolon/features/auth/auth.dart';
 import 'package:eidolon/features/dungeon/dungeon.dart';
 import 'package:eidolon/features/eidolon/eidolon.dart';
+import 'package:eidolon/features/gacha/gacha.dart';
 import 'package:eidolon/features/home/home.dart';
 import 'package:eidolon/features/onboarding/onboarding.dart';
 import 'package:eidolon/features/settings/settings.dart';
@@ -129,8 +130,7 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: Routes.gacha,
-                builder: (context, state) =>
-                    const _PlaceholderPage(name: 'Gacha'),
+                builder: (context, state) => const GachaPage(),
               ),
             ],
           ),
@@ -176,27 +176,6 @@ class _SplashScreen extends StatelessWidget {
             const CircularProgressIndicator(),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ── Placeholder ────────────────────────────────────────────────────────────
-
-class _PlaceholderPage extends StatelessWidget {
-  const _PlaceholderPage({required this.name});
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(name),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Center(
-        child: Text(name, style: Theme.of(context).textTheme.titleMedium),
       ),
     );
   }
