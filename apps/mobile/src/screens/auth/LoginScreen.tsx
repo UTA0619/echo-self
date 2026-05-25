@@ -14,17 +14,19 @@ import {
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
   withTiming,
   FadeIn,
   FadeInDown,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Crypto from 'expo-crypto';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../store/auth';
 import { Colors, Spacing, Typography } from '../../theme/tokens';
 import { HapticPatterns } from '../../theme/haptics';
+
+const APP_URL = process.env.EXPO_PUBLIC_APP_URL ?? 'https://echo-self.app';
 
 type Step = 'landing' | 'magic-link' | 'check-email';
 
@@ -85,26 +87,55 @@ export function LoginScreen() {
   const handleAppleSignIn = async () => {
     HapticPatterns.light();
     try {
+      // 1. Generate a cryptographically random nonce
+      const rawNonce = Array.from(
+        { length: 32 },
+        () => Math.floor(Math.random() * 36).toString(36),
+      ).join('');
+
+      // 2. SHA-256 hash for Apple (Apple verifies the hash; Supabase gets the raw value)
+      const hashedNonce = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        rawNonce,
+      );
+
+      // 3. Ask Apple to sign in, passing the hashed nonce
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
+        nonce: hashedNonce,
       });
 
+      if (!credential.identityToken) throw new Error('No identity token returned');
+
+      // 4. Exchange Apple token for Supabase session, passing the RAW nonce
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'apple',
-        token: credential.identityToken ?? '',
-        nonce: credential.user,
+        token: credential.identityToken,
+        nonce: rawNonce,
       });
 
       if (error) throw error;
+
       if (data.user) {
+        // Apple only provides name on first sign-in — save it to profile if present
+        const fullName = credential.fullName;
+        if (fullName?.givenName) {
+          const displayName = [fullName.givenName, fullName.familyName]
+            .filter(Boolean)
+            .join(' ');
+          await supabase
+            .from('profiles')
+            .update({ display_name: displayName })
+            .eq('id', data.user.id);
+        }
         await loadProfile(data.user.id);
         HapticPatterns.success();
       }
     } catch (err: any) {
-      if (err?.code === 'ERR_REQUEST_CANCELED') return; // user dismissed
+      if (err?.code === 'ERR_REQUEST_CANCELED') return; // user dismissed — no alert needed
       HapticPatterns.error();
       Alert.alert('Apple Sign In Failed', err?.message ?? 'Please try again.');
     }
@@ -243,14 +274,14 @@ export function LoginScreen() {
           By continuing, you agree to our{' '}
           <Text
             style={styles.link}
-            onPress={() => Linking.openURL('https://echoself.app/terms')}
+            onPress={() => Linking.openURL('https://echo-self.app/terms')}
           >
             Terms
           </Text>{' '}
           and{' '}
           <Text
             style={styles.link}
-            onPress={() => Linking.openURL('https://echoself.app/privacy')}
+            onPress={() => Linking.openURL('https://echo-self.app/privacy')}
           >
             Privacy Policy
           </Text>
