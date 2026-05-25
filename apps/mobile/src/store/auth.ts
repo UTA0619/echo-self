@@ -20,7 +20,6 @@ interface AuthState {
   isLoading: boolean;
   isAuthenticated: boolean;
 
-  // Actions
   setUser: (user: User | null) => void;
   loadProfile: (userId: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -40,30 +39,45 @@ export const useAuthStore = create<AuthState>()(
       loadProfile: async (userId: string) => {
         set({ isLoading: true });
         try {
+          // Use `profiles` table — profiles.id == auth.users.id (no separate users table)
           const { data, error } = await supabase
-            .from('users')
-            .select('*')
+            .from('profiles')
+            .select('id, display_name, created_at, subscription_tier, onboarding_completed')
             .eq('id', userId)
-            .single();
+            .maybeSingle();
 
-          if (error) throw error;
-
-          if (data) {
-            const user: User = {
-              id: data.id,
-              email: data.email,
-              displayName: data.display_name,
-              avatarUrl: data.avatar_url,
-              currentStreak: data.current_streak ?? 0,
-              longestStreak: data.longest_streak ?? 0,
-              totalEntries: data.total_entries ?? 0,
-              subscriptionTier: data.subscription_tier ?? 'free',
-              createdAt: data.created_at,
-            };
-            set({ user, isAuthenticated: true });
+          // Profile might not exist yet for brand-new Apple/Google sign-ins
+          // Supabase trigger should auto-create it, but race condition is possible
+          if (error && error.code !== 'PGRST116') {
+            console.error('[auth] loadProfile error:', error);
           }
+
+          // Fetch total entry count separately
+          const { count: entryCount } = await supabase
+            .from('entries')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', userId);
+
+          // Fetch auth user for email
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+
+          const profile: User = {
+            id: userId,
+            email: authUser?.email,
+            displayName: data?.display_name ?? undefined,
+            avatarUrl: undefined,
+            currentStreak: 0,
+            longestStreak: 0,
+            totalEntries: entryCount ?? 0,
+            subscriptionTier: data?.subscription_tier === 'premium' ? 'premium' : 'free',
+            createdAt: data?.created_at ?? new Date().toISOString(),
+          };
+
+          set({ user: profile, isAuthenticated: true });
         } catch (err) {
           console.error('[auth] loadProfile failed:', err);
+          // Still mark as authenticated so the user isn't stuck on login screen
+          set({ isAuthenticated: true });
         } finally {
           set({ isLoading: false });
         }
@@ -103,6 +117,6 @@ export const useAuthStore = create<AuthState>()(
       name: 'echo-self-auth',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
-    }
-  )
+    },
+  ),
 );
