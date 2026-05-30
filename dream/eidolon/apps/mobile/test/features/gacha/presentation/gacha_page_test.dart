@@ -330,4 +330,7 @@ class _FakeAuthNotifier extends AuthNotifier {
 
   @override
   AuthState build() => _state;
+
+  @override
+  Future<void> deleteAccount() async {}
 }

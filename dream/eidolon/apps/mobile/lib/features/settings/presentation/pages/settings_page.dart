@@ -47,6 +47,12 @@ class SettingsPage extends ConsumerWidget {
             isDestructive: true,
             onTap: () => _confirmSignOut(context, ref),
           ),
+          _SettingsTile(
+            icon: Icons.delete_forever_rounded,
+            label: 'Delete Account',
+            isDestructive: true,
+            onTap: () => _confirmDeleteAccount(context, ref),
+          ),
 
           const SizedBox(height: 16),
           _SectionHeader(title: 'About'),
@@ -89,6 +95,44 @@ class SettingsPage extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _confirmDeleteAccount(
+      BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: EidolonColors.surface,
+        title: Text(
+          'Delete Account?',
+          style: Theme.of(ctx).textTheme.titleMedium,
+        ),
+        content: Text(
+          'This permanently deletes your Eidolon, dungeon history, and all '
+          'data. This action cannot be undone.',
+          style: Theme.of(ctx).textTheme.bodyMedium,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: EidolonColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Delete',
+              style: TextStyle(color: EidolonColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await ref.read(authNotifierProvider.notifier).deleteAccount();
+    }
   }
 
   Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {

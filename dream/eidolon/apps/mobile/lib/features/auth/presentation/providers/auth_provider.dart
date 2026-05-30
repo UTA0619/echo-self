@@ -6,6 +6,7 @@ import 'package:eidolon/features/auth/domain/usecases/create_account_usecase.dar
 import 'package:eidolon/features/auth/domain/usecases/sign_in_with_apple_usecase.dart';
 import 'package:eidolon/features/auth/domain/usecases/sign_in_with_email_usecase.dart';
 import 'package:eidolon/features/auth/domain/usecases/sign_in_with_google_usecase.dart';
+import 'package:eidolon/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:eidolon/features/auth/domain/usecases/sign_out_usecase.dart';
 // Hide Supabase's User type which clashes with Firebase's User
 import 'package:firebase_auth/firebase_auth.dart' hide OAuthProvider;
@@ -113,6 +114,18 @@ class AuthNotifier extends _$AuthNotifier {
     await ref.read(signOutUseCaseProvider).call();
     // Firebase stream will trigger state update via _handleFirebaseUser(null)
     state = state.copyWith(isLoading: false);
+  }
+
+  Future<void> deleteAccount() async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    final result = await ref.read(deleteAccountUseCaseProvider).call();
+    if (!result.isSuccess) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: _errorMsg(result.error!),
+      );
+    }
+    // On success, Firebase stream will transition state to unauthenticated
   }
 
   void clearError() => state = state.copyWith(errorMessage: null);

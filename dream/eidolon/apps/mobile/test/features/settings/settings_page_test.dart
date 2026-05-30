@@ -131,6 +131,55 @@ void main() {
       expect(find.text('1. Acceptance'), findsOneWidget);
     });
 
+    testWidgets('renders Delete Account tile', (tester) async {
+      await tester.pumpWidget(_wrap(const SettingsPage()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete Account'), findsOneWidget);
+    });
+
+    testWidgets('tapping Delete Account shows confirmation dialog',
+        (tester) async {
+      await tester.pumpWidget(_wrap(const SettingsPage()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Delete Account'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete Account?'), findsOneWidget);
+      expect(find.text('Cancel'), findsOneWidget);
+      expect(find.text('Delete'), findsOneWidget);
+    });
+
+    testWidgets('confirming Delete Account calls deleteAccount', (tester) async {
+      final fakeNotifier = _FakeAuthNotifier(_authState());
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [GoRoute(path: '/', builder: (_, __) => const SettingsPage())],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authNotifierProvider.overrideWith(() => fakeNotifier),
+            settingsAppVersionProvider.overrideWith((_) async => '0.1.0 (1)'),
+          ],
+          child: MaterialApp.router(
+            theme: buildEidolonTheme(),
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Delete Account'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+
+      expect(fakeNotifier.deleteAccountCalled, true);
+    });
+
     testWidgets('tapping Sign Out shows confirmation dialog', (tester) async {
       await tester.pumpWidget(_wrap(const SettingsPage()));
       await tester.pumpAndSettle();
@@ -210,6 +259,7 @@ class _FakeAuthNotifier extends AuthNotifier {
   _FakeAuthNotifier(this._state);
   final AuthState _state;
   bool signOutCalled = false;
+  bool deleteAccountCalled = false;
 
   @override
   AuthState build() => _state;
@@ -217,5 +267,10 @@ class _FakeAuthNotifier extends AuthNotifier {
   @override
   Future<void> signOut() async {
     signOutCalled = true;
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    deleteAccountCalled = true;
   }
 }
