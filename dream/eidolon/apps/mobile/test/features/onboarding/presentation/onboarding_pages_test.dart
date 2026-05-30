@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+// ignore: always_use_package_imports
 import '../../../helpers/test_app.dart';
 
 // Stub router that does nothing on context.go()

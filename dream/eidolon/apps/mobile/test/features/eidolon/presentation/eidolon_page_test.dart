@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_types/shared_types.dart';
 
+// ignore: always_use_package_imports
 import '../../../helpers/test_app.dart';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
