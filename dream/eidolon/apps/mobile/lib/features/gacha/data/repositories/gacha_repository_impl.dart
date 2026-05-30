@@ -77,10 +77,18 @@ class GachaRepositoryImpl implements GachaRepository {
         );
       }
 
-      final pkg = offering.availablePackages.firstWhere(
-        (p) => p.storeProduct.identifier == productId,
-        orElse: () => throw Exception('Product not found: $productId'),
-      );
+      final matchedPackage = offering.availablePackages
+          .where((p) => p.storeProduct.identifier == productId)
+          .firstOrNull;
+      if (matchedPackage == null) {
+        return err(
+          AppError.network(
+            message: 'Product not found: $productId',
+            statusCode: 404,
+          ),
+        );
+      }
+      final pkg = matchedPackage;
 
       // Trigger native purchase sheet
       final purchaseResult = await Purchases.purchase(
