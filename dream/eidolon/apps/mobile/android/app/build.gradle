@@ -1,0 +1,66 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+// Load signing properties from key.properties (never committed — CI injects via env)
+def keystorePropertiesFile = rootProject.file("key.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    namespace = "studio.eidolon.eidolon"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    signingConfigs {
+        release {
+            keyAlias = keystoreProperties['keyAlias'] ?: System.getenv('KEY_ALIAS') ?: ''
+            keyPassword = keystoreProperties['keyPassword'] ?: System.getenv('KEY_PASSWORD') ?: ''
+            storeFile = keystoreProperties['storeFile']
+                ? file(keystoreProperties['storeFile'])
+                : file(System.getenv('STORE_FILE') ?: 'app/keystore.jks')
+            storePassword = keystoreProperties['storePassword'] ?: System.getenv('KEY_STORE_PASSWORD') ?: ''
+        }
+    }
+
+    defaultConfig {
+        applicationId = "studio.eidolon.eidolon"
+        minSdk = 21
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+        multiDexEnabled true
+    }
+
+    buildTypes {
+        debug {
+            signingConfig = signingConfigs.debug
+        }
+        release {
+            signingConfig = signingConfigs.release.storeFile != null
+                ? signingConfigs.release
+                : signingConfigs.debug
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
