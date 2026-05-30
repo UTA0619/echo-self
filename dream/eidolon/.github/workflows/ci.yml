@@ -1,0 +1,152 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: "3.27.4"
+  NODE_VERSION: "20"
+
+jobs:
+  # ─── Dart / Flutter ─────────────────────────────────────────────
+  flutter-analyze:
+    name: Flutter Analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap
+        run: melos bootstrap
+
+      - name: Analyze
+        run: melos run analyze
+
+      - name: Format check
+        run: melos run format
+
+  flutter-test:
+    name: Flutter Test
+    runs-on: ubuntu-latest
+    needs: flutter-analyze
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap
+        run: melos bootstrap
+
+      - name: Run tests
+        run: melos run test
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: apps/mobile/coverage/lcov.info
+          flags: flutter
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # ─── TypeScript / Backend ────────────────────────────────────────
+  backend-lint:
+    name: Backend Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: backend/functions/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend/functions
+        run: npm ci
+
+      - name: Type check
+        working-directory: backend/functions
+        run: npm run type-check
+
+      - name: Lint
+        working-directory: backend/functions
+        run: npm run lint
+
+  backend-test:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    needs: backend-lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: backend/functions/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend/functions
+        run: npm ci
+
+      - name: Run tests
+        working-directory: backend/functions
+        run: npm test -- --coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: backend/functions/coverage/lcov.info
+          flags: backend
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # ─── Security ────────────────────────────────────────────────────
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─── Summary ────────────────────────────────────────────────────
+  ci-pass:
+    name: CI Pass
+    runs-on: ubuntu-latest
+    needs: [flutter-test, backend-test, secret-scan]
+    if: always()
+    steps:
+      - name: Check all jobs passed
+        run: |
+          if [[ "${{ needs.flutter-test.result }}" != "success" || \
+                "${{ needs.backend-test.result }}" != "success" || \
+                "${{ needs.secret-scan.result }}" != "success" ]]; then
+            echo "One or more CI jobs failed"
+            exit 1
+          fi
+          echo "All CI checks passed"

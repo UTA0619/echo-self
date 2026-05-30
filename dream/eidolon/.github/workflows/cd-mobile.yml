@@ -1,0 +1,106 @@
+name: CD — Mobile (EAS Build)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/mobile/**"
+      - "packages/**"
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Platform to build"
+        required: true
+        default: "all"
+        type: choice
+        options: [all, ios, android]
+      profile:
+        description: "Build profile"
+        required: true
+        default: "preview"
+        type: choice
+        options: [development, preview, production]
+
+env:
+  FLUTTER_VERSION: "3.27.4"
+
+jobs:
+  build-ios:
+    name: Build iOS
+    runs-on: macos-14
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios' || github.event_name == 'push' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap
+        run: melos bootstrap
+
+      - name: Setup Fastlane
+        working-directory: apps/mobile/ios
+        run: bundle install
+
+      - name: Build & Upload to TestFlight
+        working-directory: apps/mobile/ios
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_GIT_USER: ${{ secrets.MATCH_GIT_USER }}
+          MATCH_GIT_TOKEN: ${{ secrets.MATCH_GIT_TOKEN }}
+        run: bundle exec fastlane beta
+
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android' || github.event_name == 'push' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap
+        run: melos bootstrap
+
+      - name: Decode keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > apps/mobile/android/app/keystore.jks
+
+      - name: Build AAB
+        working-directory: apps/mobile
+        env:
+          KEY_STORE_PASSWORD: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          flutter build appbundle --release \
+            --dart-define-from-file=.env.production
+
+      - name: Upload to Play Store (Internal Track)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: studio.eidolon.eidolon
+          releaseFiles: apps/mobile/build/app/outputs/bundle/release/app-release.aab
+          track: internal
