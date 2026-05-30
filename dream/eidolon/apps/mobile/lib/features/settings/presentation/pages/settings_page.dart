@@ -1,11 +1,11 @@
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/auth/domain/entities/auth_user.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
+import 'package:eidolon/features/settings/presentation/pages/legal_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 part 'settings_page.g.dart';
 
@@ -67,13 +67,23 @@ class SettingsPage extends ConsumerWidget {
             icon: Icons.privacy_tip_outlined,
             label: 'Privacy Policy',
             showArrow: true,
-            onTap: () => _launch('https://eidolon.app/privacy'),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) =>
+                    const LegalPage(type: LegalPageType.privacy),
+              ),
+            ),
           ),
           _SettingsTile(
             icon: Icons.article_outlined,
             label: 'Terms of Service',
             showArrow: true,
-            onTap: () => _launch('https://eidolon.app/terms'),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) =>
+                    const LegalPage(type: LegalPageType.terms),
+              ),
+            ),
           ),
           const SizedBox(height: 32),
         ],
@@ -117,10 +127,6 @@ class SettingsPage extends ConsumerWidget {
     }
   }
 
-  Future<void> _launch(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) await launchUrl(uri);
-  }
 }
 
 // ── Profile header ────────────────────────────────────────────────────────────

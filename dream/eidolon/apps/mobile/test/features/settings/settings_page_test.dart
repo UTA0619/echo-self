@@ -1,6 +1,7 @@
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/auth/domain/entities/auth_user.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
+import 'package:eidolon/features/settings/presentation/pages/legal_page.dart';
 import 'package:eidolon/features/settings/presentation/pages/settings_page.dart' show SettingsPage, settingsAppVersionProvider;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -106,6 +107,28 @@ void main() {
 
       expect(find.text('Privacy Policy'), findsOneWidget);
       expect(find.text('Terms of Service'), findsOneWidget);
+    });
+
+    testWidgets('tapping Privacy Policy opens in-app legal page', (tester) async {
+      await tester.pumpWidget(_wrap(const SettingsPage()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Privacy Policy'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LegalPage), findsOneWidget);
+      expect(find.text('Information We Collect'), findsOneWidget);
+    });
+
+    testWidgets('tapping Terms of Service opens in-app legal page', (tester) async {
+      await tester.pumpWidget(_wrap(const SettingsPage()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Terms of Service'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LegalPage), findsOneWidget);
+      expect(find.text('1. Acceptance'), findsOneWidget);
     });
 
     testWidgets('tapping Sign Out shows confirmation dialog', (tester) async {
