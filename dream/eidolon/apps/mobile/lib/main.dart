@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:eidolon/core/env/app_env.dart';
 import 'package:eidolon/core/firebase/firebase_service.dart';
 import 'package:eidolon/core/router/app_router.dart';
@@ -34,6 +35,14 @@ Future<void> main() async {
   );
 
   await _initServices();
+
+  // Request ATT permission on iOS 14+ (required for IDFA used by Mixpanel)
+  if (!kIsWeb && Platform.isIOS) {
+    final status = await AppTrackingTransparency.trackingAuthorizationStatus;
+    if (status == TrackingStatus.notDetermined) {
+      await AppTrackingTransparency.requestTrackingAuthorization();
+    }
+  }
 
   runApp(
     const ProviderScope(
