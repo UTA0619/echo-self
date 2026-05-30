@@ -11,7 +11,7 @@ class HomeShell extends StatelessWidget {
         NavigationDestination(
           icon: const Icon(Icons.home_outlined),
           selectedIcon: const Icon(Icons.home),
-          label: 'Home',
+          label: context.l10n.homeTabHome,
         ),
         NavigationDestination(
           icon: const Icon(Icons.person_outline),
@@ -26,12 +26,12 @@ class HomeShell extends StatelessWidget {
         NavigationDestination(
           icon: const Icon(Icons.diamond_outlined),
           selectedIcon: const Icon(Icons.diamond),
-          label: 'Gacha',
+          label: context.l10n.homeTabGacha,
         ),
         NavigationDestination(
           icon: const Icon(Icons.settings_outlined),
           selectedIcon: const Icon(Icons.settings),
-          label: 'Settings',
+          label: context.l10n.homeTabSettings,
         ),
       ];
 
