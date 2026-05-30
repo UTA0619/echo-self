@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/onboarding/domain/entities/big_five_question.dart';
 import 'package:eidolon/features/onboarding/presentation/providers/onboarding_provider.dart';
@@ -60,12 +61,12 @@ class _PersonalityPageState extends ConsumerState<PersonalityPage> {
             children: [
               const SizedBox(height: 8),
               Text(
-                'Who are you?',
+                context.l10n.onboardingPersonalityTitle,
                 style: Theme.of(context).textTheme.displayMedium,
               ).animate().fadeIn(duration: 400.ms),
               const SizedBox(height: 4),
               Text(
-                'Your answers shape your Eidolon\'s soul.',
+                context.l10n.onboardingPersonalitySubtitle,
                 style: Theme.of(context).textTheme.bodyMedium,
               ).animate(delay: 100.ms).fadeIn(),
               const SizedBox(height: 20),
@@ -143,7 +144,7 @@ class _PersonalityPageState extends ConsumerState<PersonalityPage> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: canProceed ? _proceed : null,
-              child: const Text('Continue'),
+              child: Text(context.l10n.buttonContinue),
             ),
           ),
         ),

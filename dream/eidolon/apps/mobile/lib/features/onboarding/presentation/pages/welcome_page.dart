@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:eidolon/features/onboarding/presentation/widgets/eidolon_orb.dart';
@@ -44,7 +45,7 @@ class WelcomePage extends ConsumerWidget {
 
           // Tagline
           Text(
-            'Your AI soul-twin keeps adventuring\nwhile you sleep.',
+            context.l10n.soulTwinTagline,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.7),
           )
@@ -70,7 +71,7 @@ class WelcomePage extends ConsumerWidget {
                 ),
               ),
               child: Text(
-                'Awaken',
+                context.l10n.buttonGetStarted,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Colors.white,
                   letterSpacing: 2,
@@ -87,7 +88,7 @@ class WelcomePage extends ConsumerWidget {
           TextButton(
             onPressed: () => context.go('/onboarding/1'),
             child: Text(
-              'Skip intro',
+              context.l10n.buttonSkip,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ).animate(delay: 1200.ms).fadeIn(duration: 400.ms),

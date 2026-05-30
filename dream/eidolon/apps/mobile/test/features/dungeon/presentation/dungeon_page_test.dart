@@ -10,6 +10,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_types/shared_types.dart';
 
+import '../../../helpers/test_app.dart';
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 Widget _wrap({
@@ -35,6 +37,8 @@ Widget _wrap({
     ],
     child: MaterialApp.router(
       theme: buildEidolonTheme(),
+      localizationsDelegates: testLocalizationsDelegates,
+      supportedLocales: const [Locale('en')],
       routerConfig: router,
     ),
   );
@@ -54,6 +58,8 @@ Widget _wrapWithNotifier(_FakeDungeonNotifier notifier) {
     ],
     child: MaterialApp.router(
       theme: buildEidolonTheme(),
+      localizationsDelegates: testLocalizationsDelegates,
+      supportedLocales: const [Locale('en')],
       routerConfig: router,
     ),
   );

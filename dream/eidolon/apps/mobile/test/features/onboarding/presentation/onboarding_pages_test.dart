@@ -12,6 +12,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../helpers/test_app.dart';
+
 // Stub router that does nothing on context.go()
 GoRouter _testRouter(Widget home) => GoRouter(
       initialLocation: '/',
@@ -23,6 +25,8 @@ Widget _wrap(Widget child, {List<Override> overrides = const []}) {
     overrides: overrides,
     child: MaterialApp.router(
       theme: buildEidolonTheme(),
+      localizationsDelegates: testLocalizationsDelegates,
+      supportedLocales: const [Locale('en')],
       routerConfig: _testRouter(
         Scaffold(
           backgroundColor: const Color(0xFF09090F),
@@ -46,7 +50,7 @@ void main() {
 
       expect(find.text('EIDOLON'), findsOneWidget);
       expect(find.text('Awaken'), findsOneWidget);
-      expect(find.text('Skip intro'), findsOneWidget);
+      expect(find.text('Skip'), findsOneWidget);
     });
 
     testWidgets('Awaken button is tappable', (tester) async {

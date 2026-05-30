@@ -11,6 +11,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../helpers/test_app.dart';
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 Widget _wrap(Widget child, {GachaState? gachaState, AuthState? authState}) {
@@ -37,6 +39,8 @@ Widget _wrap(Widget child, {GachaState? gachaState, AuthState? authState}) {
     ],
     child: MaterialApp.router(
       theme: buildEidolonTheme(),
+      localizationsDelegates: testLocalizationsDelegates,
+      supportedLocales: const [Locale('en')],
       routerConfig: router,
     ),
   );
@@ -61,6 +65,8 @@ Widget _wrapWithNotifier(_FakeGachaNotifier notifier) {
     ],
     child: MaterialApp.router(
       theme: buildEidolonTheme(),
+      localizationsDelegates: testLocalizationsDelegates,
+      supportedLocales: const [Locale('en')],
       routerConfig: router,
     ),
   );

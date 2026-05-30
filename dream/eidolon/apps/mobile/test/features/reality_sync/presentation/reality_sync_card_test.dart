@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../helpers/test_app.dart';
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 Widget _wrap(RealitySyncState state) {
@@ -19,6 +21,8 @@ Widget _wrap(RealitySyncState state) {
     ],
     child: MaterialApp(
       theme: buildEidolonTheme(),
+      localizationsDelegates: testLocalizationsDelegates,
+      supportedLocales: const [Locale('en')],
       home: const Scaffold(body: RealitySyncCard()),
     ),
   );
@@ -82,6 +86,8 @@ void main() {
           ],
           child: MaterialApp(
             theme: buildEidolonTheme(),
+            localizationsDelegates: testLocalizationsDelegates,
+            supportedLocales: const [Locale('en')],
             home: const Scaffold(body: RealitySyncCard()),
           ),
         ),
