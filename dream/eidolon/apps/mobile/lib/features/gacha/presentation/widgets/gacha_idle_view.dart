@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/gacha/domain/entities/gacha_pull_result.dart';
 import 'package:eidolon/features/gacha/presentation/providers/gacha_provider.dart';
@@ -220,11 +221,11 @@ Future<void> _confirmPull(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Cancel'),
+          child: Text(ctx.l10n.buttonCancel),
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('Summon'),
+          child: Text(ctx.l10n.buttonSummon),
         ),
       ],
     ),

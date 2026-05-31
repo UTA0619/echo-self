@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/features/gacha/domain/entities/gacha_pull_result.dart';
 import 'package:eidolon/features/gacha/presentation/widgets/gacha_card.dart';
 import 'package:flutter/material.dart';
@@ -78,7 +79,7 @@ class GachaRevealView extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: onDone,
-              child: const Text('Continue'),
+              child: Text(context.l10n.buttonContinue),
             ),
           )
               .animate(

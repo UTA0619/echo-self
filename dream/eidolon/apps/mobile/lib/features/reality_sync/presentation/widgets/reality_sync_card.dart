@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/reality_sync/domain/entities/reality_sync_bonus.dart';
 import 'package:eidolon/features/reality_sync/presentation/providers/reality_sync_provider.dart';
@@ -99,7 +100,7 @@ class _PermissionBody extends StatelessWidget {
             width: double.infinity,
             child: OutlinedButton(
               onPressed: onConnect,
-              child: const Text('Connect Health'),
+              child: Text(context.l10n.buttonConnectHealth),
             ),
           ),
         ],

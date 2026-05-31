@@ -22,6 +22,15 @@
   "buttonBack": "Back",
   "buttonGetStarted": "Awaken",
   "buttonSkip": "Skip",
+  "buttonCancel": "Cancel",
+  "buttonRetry": "Retry",
+  "buttonSummon": "Summon",
+  "buttonReturnToHub": "Return to Hub",
+  "buttonConnectHealth": "Connect Health",
+  "buttonReturnHome": "Return Home",
+
+  "gachaTitle": "Summon",
+  "homeTalkWithEidolon": "Talk with Eidolon",
 
   "errorGeneric": "Something went wrong. Please try again.",
   "errorNetwork": "Connection failed. Check your internet.",

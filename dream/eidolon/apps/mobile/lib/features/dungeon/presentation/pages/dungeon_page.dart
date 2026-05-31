@@ -417,7 +417,7 @@ class _ResultView extends ConsumerWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: notifier.backToHub,
-                child: const Text('Return to Hub'),
+                child: Text(context.l10n.buttonReturnToHub),
               ),
             ).animate(delay: 500.ms).fadeIn().slideY(begin: 0.3, end: 0),
           ],

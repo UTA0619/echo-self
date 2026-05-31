@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/gacha/domain/repositories/gacha_repository.dart';
 import 'package:eidolon/features/gacha/presentation/providers/gacha_provider.dart';
@@ -35,7 +36,7 @@ class GachaPage extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Summon', style: Theme.of(context).textTheme.titleMedium),
+        title: Text(context.l10n.gachaTitle, style: Theme.of(context).textTheme.titleMedium),
         centerTitle: true,
         actions: [
           Padding(

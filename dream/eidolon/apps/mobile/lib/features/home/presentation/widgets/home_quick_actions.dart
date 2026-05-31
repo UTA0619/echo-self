@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -26,7 +27,7 @@ class HomeQuickActions extends StatelessWidget {
               Expanded(
                 child: HomeActionCard(
                   icon: Icons.castle_outlined,
-                  label: 'Enter Dungeon',
+                  label: context.l10n.dungeonEnter,
                   gradientColors: const [
                     Color(0xFF4A1A7A),
                     Color(0xFF2D0D5A),
@@ -39,7 +40,7 @@ class HomeQuickActions extends StatelessWidget {
               Expanded(
                 child: HomeActionCard(
                   icon: Icons.chat_bubble_outline,
-                  label: 'Talk with Eidolon',
+                  label: context.l10n.homeTalkWithEidolon,
                   gradientColors: const [
                     Color(0xFF1A3A4A),
                     Color(0xFF0D2535),

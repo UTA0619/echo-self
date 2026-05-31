@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:flutter/material.dart';
@@ -113,7 +114,7 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: canProceed && _validationError == null ? _proceed : null,
-              child: const Text('Continue'),
+              child: Text(context.l10n.buttonContinue),
             ),
           ).animate(delay: 500.ms).fadeIn(duration: 400.ms).slideY(begin: 0.3, end: 0),
 
