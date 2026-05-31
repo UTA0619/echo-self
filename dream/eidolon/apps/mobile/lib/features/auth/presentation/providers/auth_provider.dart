@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:eidolon/core/error/app_error.dart';
 import 'package:eidolon/core/firebase/firebase_service.dart';
 import 'package:eidolon/features/auth/data/repositories/auth_repository_impl.dart';
@@ -69,12 +71,18 @@ class AuthNotifier extends _$AuthNotifier {
     final hasProfile =
         await ref.read(authRepositoryProvider).hasCompletedOnboarding(user.uid);
 
+    final newStatus =
+        hasProfile ? AuthStatus.authenticated : AuthStatus.onboardingRequired;
     state = state.copyWith(
-      status:
-          hasProfile ? AuthStatus.authenticated : AuthStatus.onboardingRequired,
+      status: newStatus,
       user: authUser,
       errorMessage: null,
     );
+
+    // Log login event on first transition to authenticated
+    if (newStatus == AuthStatus.authenticated) {
+      unawaited(ref.read(firebaseAnalyticsProvider).logLogin());
+    }
   }
 
   // ── Public actions ────────────────────────────────────────────────────────
