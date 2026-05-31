@@ -130,9 +130,88 @@ class SettingsPage extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed == true) {
-      await ref.read(authNotifierProvider.notifier).deleteAccount();
+    if (confirmed != true) return;
+
+    await ref.read(authNotifierProvider.notifier).deleteAccount();
+
+    if (!context.mounted) return;
+    // If Firebase requires re-authentication, prompt for password
+    final needsReAuth = ref.read(authNotifierProvider).needsReAuth;
+    if (needsReAuth) {
+      await _reauthAndDelete(context, ref);
     }
+  }
+
+  Future<void> _reauthAndDelete(BuildContext context, WidgetRef ref) async {
+    final user = ref.read(authNotifierProvider).user;
+    final email = user?.email ?? '';
+    final controller = TextEditingController();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: EidolonColors.surface,
+        title: Text(
+          'Confirm Identity',
+          style: Theme.of(ctx).textTheme.titleMedium,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'For security, enter your password to permanently delete '
+              'your account.',
+              style: Theme.of(ctx).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              obscureText: true,
+              autofocus: true,
+              style: const TextStyle(color: EidolonColors.textPrimary),
+              decoration: InputDecoration(
+                labelText: 'Password',
+                labelStyle:
+                    const TextStyle(color: EidolonColors.textSecondary),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: EidolonColors.border),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: EidolonColors.accent),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: EidolonColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Delete',
+              style: TextStyle(color: EidolonColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    controller.dispose();
+    if (confirmed != true || !context.mounted) return;
+
+    await ref.read(authNotifierProvider.notifier).reauthenticateAndDelete(
+          email: email,
+          password: controller.text,
+        );
   }
 
   Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {

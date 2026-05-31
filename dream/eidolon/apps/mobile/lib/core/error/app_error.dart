@@ -30,6 +30,10 @@ class AppError with _$AppError {
     required Object error,
     StackTrace? stackTrace,
   }) = UnknownError;
+
+  /// Firebase requires a recent sign-in before sensitive operations like
+  /// account deletion. The UI should prompt the user to re-authenticate.
+  const factory AppError.requiresRecentLogin() = RequiresRecentLoginError;
 }
 
 enum AiFallbackLevel { claude, gpt4oMini, localTemplate }

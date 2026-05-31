@@ -154,10 +154,12 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final uid = _auth.currentUser?.uid;
       if (uid != null) {
-        // Delete all user data via Supabase cascade delete
+        // Delete all user data via Supabase cascade (RLS DELETE policy required)
         await _supabase.from('users').delete().eq('auth_uid', uid);
       }
-      // Delete Firebase Auth user (must be recent sign-in; prompt re-auth if needed)
+      // Delete Firebase Auth user — requires a recent sign-in.
+      // If the session is stale, FirebaseAuthException(requires-recent-login)
+      // is thrown; the caller must trigger re-authentication first.
       await _auth.currentUser?.delete();
       // Sign out any remaining sessions
       await Future.wait([
@@ -165,6 +167,32 @@ class AuthRepositoryImpl implements AuthRepository {
         GoogleSignIn.instance.signOut(),
       ]);
       return ok(null);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        return err(const AppError.requiresRecentLogin());
+      }
+      return err(AppError.auth(message: _friendlyMessage(e.code)));
+    } catch (e, st) {
+      return err(AppError.unknown(error: e, stackTrace: st));
+    }
+  }
+
+  // ── Re-authentication ─────────────────────────────────────────────────────
+
+  @override
+  Future<Result<void>> reauthenticateWithPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: email,
+        password: password,
+      );
+      await _auth.currentUser?.reauthenticateWithCredential(credential);
+      return ok(null);
+    } on FirebaseAuthException catch (e) {
+      return err(AppError.auth(message: _friendlyMessage(e.code)));
     } catch (e, st) {
       return err(AppError.unknown(error: e, stackTrace: st));
     }
