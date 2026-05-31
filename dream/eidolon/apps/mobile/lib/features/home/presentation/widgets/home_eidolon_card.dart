@@ -136,15 +136,19 @@ class HomeEidolonCardContent extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 4),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: eidolon.levelProgress.clamp(0.0, 1.0),
-            backgroundColor: EidolonColors.background,
-            valueColor: const AlwaysStoppedAnimation<Color>(
-              EidolonColors.accent,
+        Semantics(
+          label: 'XP progress: ${eidolon.xp} of ${eidolon.xpToNext}',
+          value: '${(eidolon.levelProgress * 100).toStringAsFixed(0)}%',
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: eidolon.levelProgress.clamp(0.0, 1.0),
+              backgroundColor: EidolonColors.background,
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                EidolonColors.accent,
+              ),
+              minHeight: 6,
             ),
-            minHeight: 6,
           ),
         ),
       ],

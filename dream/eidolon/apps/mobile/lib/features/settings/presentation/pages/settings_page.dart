@@ -373,7 +373,11 @@ class _SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = isDestructive ? EidolonColors.error : EidolonColors.textPrimary;
 
-    return Material(
+    return Semantics(
+      button: onTap != null,
+      label: label,
+      hint: isDestructive ? 'Destructive action' : null,
+      child: Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
@@ -408,6 +412,7 @@ class _SettingsTile extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }

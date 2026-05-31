@@ -10,7 +10,9 @@ class CrystalCounter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Semantics(
+      label: isLoading ? 'Soul Crystals loading' : 'Soul Crystals: $count',
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: EidolonColors.surfaceElevated,
@@ -42,6 +44,8 @@ class CrystalCounter extends StatelessWidget {
                 ).animate(key: ValueKey(count)).fadeIn(duration: 250.ms),
         ],
       ),
+    ),
     );
   }
 }
+

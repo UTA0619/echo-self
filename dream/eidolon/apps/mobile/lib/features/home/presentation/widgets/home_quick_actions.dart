@@ -76,7 +76,10 @@ class HomeActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Semantics(
+      label: label,
+      button: true,
+      child: GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
@@ -107,6 +110,7 @@ class HomeActionCard extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }
