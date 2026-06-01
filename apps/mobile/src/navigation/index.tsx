@@ -18,7 +18,7 @@ const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 // Deep-link config for magic-link and OAuth callbacks
 const linking: LinkingOptions<RootStackParamList> = {
-  prefixes: ['echoself://', 'https://echoself.app'],
+  prefixes: ['echoself://', 'https://echo-self.app'],
   config: {
     screens: {
       Auth: {
