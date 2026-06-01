@@ -103,7 +103,7 @@ export function PaywallScreen({ navigation: _navigation }: Props) {
             <View style={styles.planHeader}>
               <Text style={styles.planName}>Echo Premium</Text>
               <View style={styles.priceRow}>
-                <Text style={styles.price}>$9</Text>
+                <Text style={styles.price}>$12</Text>
                 <Text style={styles.pricePer}>/month</Text>
               </View>
               <Text style={styles.priceSub}>Cancel anytime</Text>
@@ -134,7 +134,7 @@ export function PaywallScreen({ navigation: _navigation }: Props) {
           {/* CTAs */}
           <Animated.View style={[styles.ctaContainer, contentStyle]}>
             <OnboardingButton
-              label="Start Premium — $9/mo"
+              label="Start Premium — $12/mo"
               onPress={handleUpgrade}
               style={styles.cta}
             />

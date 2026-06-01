@@ -210,6 +210,9 @@ export function LoginScreen() {
               onPress={handleMagicLink}
               disabled={!email.includes('@') || isLoading}
               activeOpacity={0.8}
+              accessibilityLabel="Send magic link"
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !email.includes('@') || isLoading }}
             >
               {isLoading ? (
                 <ActivityIndicator color="#fff" size="small" />
@@ -249,6 +252,8 @@ export function LoginScreen() {
             style={styles.googleBtn}
             onPress={handleGoogleSignIn}
             activeOpacity={0.8}
+            accessibilityLabel="Continue with Google"
+            accessibilityRole="button"
           >
             <Text style={styles.googleIcon}>G</Text>
             <Text style={styles.googleText}>Continue with Google</Text>
@@ -265,6 +270,8 @@ export function LoginScreen() {
             style={styles.magicLinkBtn}
             onPress={() => setStep('magic-link')}
             activeOpacity={0.8}
+            accessibilityLabel="Continue with Email"
+            accessibilityRole="button"
           >
             <Text style={styles.magicLinkText}>✉️  Continue with Email</Text>
           </TouchableOpacity>

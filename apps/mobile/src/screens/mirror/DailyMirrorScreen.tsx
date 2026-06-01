@@ -57,17 +57,20 @@ export function DailyMirrorScreen() {
 
   useEffect(() => {
     loadEntries();
-  }, []);
+  }, [loadEntries]);
 
   useEffect(() => {
     inputBorderOpacity.value = withTiming(isFocused ? 1 : 0, { duration: 200 });
-  }, [isFocused]);
+  }, [isFocused, inputBorderOpacity]);
 
-  // Scroll to echo response when it arrives
+  // Scroll to echo response when it arrives — cancel timer on cleanup
   useEffect(() => {
-    if (streamState === 'streaming' || streamState === 'complete') {
-      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 300);
-    }
+    if (streamState !== 'streaming' && streamState !== 'complete') return;
+    const timer = setTimeout(
+      () => scrollRef.current?.scrollToEnd({ animated: true }),
+      300,
+    );
+    return () => clearTimeout(timer);
   }, [streamState]);
 
   const wordCount = inputText.trim().split(/\s+/).filter(Boolean).length;
@@ -131,7 +134,7 @@ export function DailyMirrorScreen() {
                 <View>
                   <Text style={styles.greeting}>{greeting()}</Text>
                   <Text style={styles.dateText}>
-                    {new Date().toLocaleDateString('en-US', {
+                    {new Date().toLocaleDateString(undefined, {
                       weekday: 'long',
                       month: 'long',
                       day: 'numeric',
@@ -174,6 +177,8 @@ export function DailyMirrorScreen() {
                   selectionColor={Colors.indigo}
                   maxLength={MAX_CHARS}
                   editable={!isStreaming}
+                  accessibilityLabel="Journal entry text field"
+                  accessibilityHint="Write at least 10 words then tap Echo to submit"
                 />
 
                 {/* Footer row */}
@@ -191,6 +196,9 @@ export function DailyMirrorScreen() {
                       onPress={handlePressSubmit}
                       disabled={!isReady || isStreaming}
                       style={styles.submitBtn}
+                      accessibilityLabel={isStreaming ? 'Echoing your entry' : 'Submit journal entry'}
+                      accessibilityRole="button"
+                      accessibilityState={{ disabled: !isReady || isStreaming }}
                     >
                       <Text style={styles.submitBtnText}>
                         {isStreaming ? '✦ echoing…' : 'Echo ✦'}

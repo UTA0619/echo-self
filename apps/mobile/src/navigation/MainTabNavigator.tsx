@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
+import { Ionicons } from '@expo/vector-icons';
 import { DailyMirrorScreen } from '../screens/mirror/DailyMirrorScreen';
 import { TimelineScreen } from '../screens/timeline/TimelineScreen';
 import { FutureSelfScreen } from '../screens/future/FutureSelfScreen';
@@ -17,80 +18,66 @@ export type MainTabParamList = {
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-interface TabIconProps {
-  emoji: string;
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+
+interface TabIconConfig {
+  active: IoniconsName;
+  inactive: IoniconsName;
   label: string;
-  focused: boolean;
 }
 
-function TabIcon({ emoji, label, focused }: TabIconProps) {
-  return (
-    <View style={{ alignItems: 'center', gap: 2 }}>
-      <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.45 }}>{emoji}</Text>
-      <Text
-        style={{
-          fontSize: 10,
-          fontWeight: focused ? '700' : '400',
-          color: focused ? Colors.indigo : Colors.silver,
-          opacity: focused ? 1 : 0.6,
-        }}
-      >
-        {label}
-      </Text>
-    </View>
-  );
-}
+const TAB_ICONS: Record<keyof MainTabParamList, TabIconConfig> = {
+  Mirror: { active: 'moon', inactive: 'moon-outline', label: 'Mirror' },
+  Timeline: { active: 'time', inactive: 'time-outline', label: 'Timeline' },
+  FutureSelf: { active: 'telescope', inactive: 'telescope-outline', label: 'Future' },
+  Profile: { active: 'person', inactive: 'person-outline', label: 'Profile' },
+};
 
 export function MainTabNavigator() {
   return (
     <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          position: 'absolute',
-          backgroundColor: 'transparent',
-          borderTopWidth: 0,
-          elevation: 0,
-          height: 80,
-        },
-        tabBarBackground: () => (
-          <BlurView
-            intensity={40}
-            tint="dark"
-            style={StyleSheet.absoluteFillObject}
-          />
-        ),
+      screenOptions={({ route }) => {
+        const config = TAB_ICONS[route.name as keyof MainTabParamList];
+        return {
+          headerShown: false,
+          tabBarShowLabel: true,
+          tabBarLabelStyle: {
+            fontSize: 10,
+            fontWeight: '600',
+            marginBottom: 4,
+          },
+          tabBarActiveTintColor: Colors.indigo,
+          tabBarInactiveTintColor: Colors.silver,
+          tabBarStyle: {
+            position: 'absolute',
+            backgroundColor: 'transparent',
+            borderTopWidth: 0,
+            elevation: 0,
+            height: 80,
+          },
+          tabBarBackground: () => (
+            <BlurView
+              intensity={40}
+              tint="dark"
+              style={StyleSheet.absoluteFillObject}
+            />
+          ),
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons
+              name={focused ? config.active : config.inactive}
+              size={size ?? 22}
+              color={color}
+              accessibilityLabel={config.label}
+            />
+          ),
+          tabBarAccessibilityLabel: config?.label,
+        };
       }}
     >
-      <Tab.Screen
-        name="Mirror"
-        component={DailyMirrorScreen}
-        options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🪞" label="Mirror" focused={focused} />,
-        }}
-      />
-      <Tab.Screen
-        name="Timeline"
-        component={TimelineScreen}
-        options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📊" label="Timeline" focused={focused} />,
-        }}
-      />
-      <Tab.Screen
-        name="FutureSelf"
-        component={FutureSelfScreen}
-        options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🔮" label="Future" focused={focused} />,
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="👤" label="Profile" focused={focused} />,
-        }}
-      />
+      <Tab.Screen name="Mirror" component={DailyMirrorScreen} options={{ title: 'Mirror' }} />
+      <Tab.Screen name="Timeline" component={TimelineScreen} options={{ title: 'Timeline' }} />
+      <Tab.Screen name="FutureSelf" component={FutureSelfScreen} options={{ title: 'Future' }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
     </Tab.Navigator>
   );
 }

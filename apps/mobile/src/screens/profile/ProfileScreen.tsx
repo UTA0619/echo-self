@@ -49,6 +49,9 @@ function Row({
       onPress={onPress}
       style={({ pressed }) => [styles.row, pressed && onPress && styles.rowPressed]}
       disabled={!onPress && !right}
+      accessibilityLabel={value ? `${label}: ${value}` : label}
+      accessibilityRole={onPress ? 'button' : 'text'}
+      accessibilityHint={destructive ? 'This action cannot be undone' : undefined}
     >
       <Text style={[styles.rowLabel, destructive && styles.rowDestructive]}>{label}</Text>
       {right ?? (value ? <Text style={styles.rowValue}>{value}</Text> : <Text style={styles.rowChevron}>›</Text>)}
