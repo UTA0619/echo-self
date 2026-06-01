@@ -13,8 +13,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
+import Purchases from 'react-native-purchases';
 import { useAuthStore } from '../../store/auth';
 import { useOnboardingStore } from '../../store/onboarding';
+import { useIAPStore } from '../../store/iap';
 import { supabase } from '../../services/supabase';
 import { Colors, Spacing } from '../../theme/tokens';
 
@@ -61,12 +63,16 @@ function Row({
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export function ProfileScreen() {
-  const { user, signOut } = useAuthStore();
+  const { user, signOut, loadProfile } = useAuthStore();
   const { reset: resetOnboarding } = useOnboardingStore();
+  const { packages, isPurchasing, purchasePackage, restorePurchases } = useIAPStore();
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
-  const isPremium = user?.subscriptionTier === 'premium';
+  // (rerender-derived-state-no-effect) derive during render
+  const isPremium = useIAPStore((s) => s.isPremium) || user?.subscriptionTier === 'premium';
+  // Monthly package for the quick-upgrade CTA; may be undefined before offerings load
+  const monthlyPkg = packages.find((p) => p.period === 'monthly');
 
   // Check notification status on mount
   React.useEffect(() => {
@@ -92,12 +98,37 @@ export function ProfileScreen() {
   }
 
   async function handleUpgrade() {
+    if (!monthlyPkg) {
+      // Fallback: no offerings loaded yet (e.g. Simulator)
+      Linking.openURL(`${APP_URL}/upgrade`);
+      return;
+    }
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Linking.openURL(`${APP_URL}/settings`);
+    const success = await purchasePackage(monthlyPkg);
+    if (success && user?.id) {
+      await loadProfile(user.id);
+    }
   }
 
   async function handleManageBilling() {
-    Linking.openURL(`${APP_URL}/settings`);
+    // Opens the native subscription management sheet (iOS 15+)
+    try {
+      await Purchases.showManageSubscriptions();
+    } catch {
+      // Fallback for older OS versions
+      Linking.openURL('https://apps.apple.com/account/subscriptions');
+    }
+  }
+
+  async function handleRestorePurchases() {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const restored = await restorePurchases();
+    if (restored) {
+      if (user?.id) await loadProfile(user.id);
+      Alert.alert('Purchases restored', 'Your ECHO Pro subscription is active.');
+    } else {
+      Alert.alert('Nothing to restore', 'No active subscription found for your Apple ID.');
+    }
   }
 
   async function handleSignOut() {
@@ -180,10 +211,27 @@ export function ProfileScreen() {
             ) : (
               <>
                 <Row label="Plan" value="Free" />
-                <Pressable style={styles.upgradeBtn} onPress={handleUpgrade}>
-                  <Text style={styles.upgradeBtnTitle}>Upgrade to Pro</Text>
-                  <Text style={styles.upgradeBtnSub}>Unlimited entries · AI responses · Future Self · $12/mo</Text>
+                <Pressable
+                  style={[styles.upgradeBtn, isPurchasing && styles.upgradeBtnDisabled]}
+                  onPress={handleUpgrade}
+                  disabled={isPurchasing}
+                  accessibilityLabel={
+                    monthlyPkg
+                      ? `Upgrade to Pro for ${monthlyPkg.priceString} per month`
+                      : 'Upgrade to Pro'
+                  }
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.upgradeBtnTitle}>
+                    {isPurchasing ? 'Processing…' : 'Upgrade to Pro'}
+                  </Text>
+                  <Text style={styles.upgradeBtnSub}>
+                    {monthlyPkg
+                      ? `${monthlyPkg.priceString}/mo · Unlimited entries · AI responses · Future Self`
+                      : 'Unlimited entries · AI responses · Future Self · $12/mo'}
+                  </Text>
                 </Pressable>
+                <Row label="Restore purchases" onPress={handleRestorePurchases} />
               </>
             )}
           </Section>
@@ -336,6 +384,7 @@ const styles = StyleSheet.create({
   },
   upgradeBtnTitle: { fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 4 },
   upgradeBtnSub: { fontSize: 12, color: 'rgba(255,255,255,0.75)', lineHeight: 18 },
+  upgradeBtnDisabled: { opacity: 0.5 },
 
   footer: {
     textAlign: 'center',
