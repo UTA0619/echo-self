@@ -117,8 +117,28 @@ export interface IdentityNode {
   last_seen: string;
 }
 
+// Prediction timeframe
+export type PredictionTimeframe = '30d' | '90d' | '1yr';
+
+// Future self simulation (on-demand, mobile-facing)
+export interface FutureSelfSimulation {
+  id: string;
+  user_id: string;
+  horizon_months: 1 | 3 | 12 | 36;
+  narrative: string;
+  letter_text: string | null;
+  trajectory_score: number | null;   // 1–10
+  created_at: string;
+}
+
 // Onboarding data stored in profile
 export interface OnboardingData {
+  // Core identity (set during onboarding)
+  identityTags: string[];          // e.g. ['ambitious', 'analytical', 'creative']
+  aspirations: string;             // free-text life aspirations
+  streakCommitment: number;        // days per week committed to reflecting
+
+  // Legacy / additional fields
   selectedEmotions?: EmotionType[];
   goals?: string[];
   displayName?: string;
