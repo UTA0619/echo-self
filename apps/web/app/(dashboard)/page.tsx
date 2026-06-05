@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { fetchEntries, countTodayEntries } from '@/lib/entries.server'
 import { fetchIdentityNodes, fetchBehavioralPatterns } from '@/lib/identity'
 import { fetchEmotionHistory } from '@/lib/emotions'
 import { getSubscriptionStatus } from '@/lib/subscription'
 import { DashboardClient } from './DashboardClient'
+import { LandingPage } from '@/components/echo/LandingPage'
 
 async function fetchReferralCode(userId: string): Promise<string | null> {
   const supabase = await createClient()
@@ -16,10 +16,12 @@ async function fetchReferralCode(userId: string): Promise<string | null> {
   return data?.referral_code ?? null
 }
 
-export default async function DashboardPage() {
+export default async function RootPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth')
+
+  // Show marketing landing for unauthenticated visitors
+  if (!user) return <LandingPage />
 
   const [entries, identityNodes, emotionHistory, behavioralPatterns, subscription, referralCode, todayCount] = await Promise.all([
     fetchEntries(20).catch(() => []),
