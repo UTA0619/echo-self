@@ -8,7 +8,7 @@ import Animated, {
   withDelay,
 } from 'react-native-reanimated'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
-import type { OnboardingStackParamList } from '../../navigation/OnboardingNavigator'
+import type { OnboardingParamList } from '../../navigation/OnboardingNavigator'
 import { AnimatedBackground } from '../../components/onboarding/AnimatedBackground'
 import { OnboardingButton } from '../../components/onboarding/OnboardingButton'
 import { OnboardingProgress } from '../../components/onboarding/OnboardingProgress'
@@ -17,7 +17,7 @@ import { useOnboardingStore } from '../../store/onboarding'
 import { Colors, Spacing, Typography } from '../../theme/tokens'
 import type { EmotionType } from '@echo-self/shared-types'
 
-type Props = NativeStackScreenProps<OnboardingStackParamList, 'EmotionalBaseline'>
+type Props = NativeStackScreenProps<OnboardingParamList, 'EmotionalBaseline'>
 
 // Emotions rendered in grid — hoisted to avoid re-creation (rendering-hoist-jsx)
 const EMOTIONS: EmotionType[] = [
@@ -100,7 +100,7 @@ export function EmotionalBaselineScreen({ navigation }: Props) {
         <View style={styles.ctaContainer}>
           <OnboardingButton
             label="Continue →"
-            onPress={() => navigation.navigate('Notifications')}
+            onPress={() => navigation.navigate('Identity')}
             disabled={!canContinue}
             style={styles.cta}
           />

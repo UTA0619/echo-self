@@ -11,6 +11,14 @@ interface OnboardingState {
   goals: string[];
   notificationsEnabled: boolean;
 
+  // Identity profile fields (used by AI prompts)
+  identityTags: string[];         // self-selected personality descriptors
+  aspirations: string;            // free-text life aspiration
+  streakCommitment: number;       // days/week they commit to reflecting (1–7)
+
+  // Convenience alias (used in some UI)
+  get name(): string;
+
   // Actions
   setStep: (step: number) => void;
   nextStep: () => void;
@@ -18,6 +26,9 @@ interface OnboardingState {
   toggleEmotion: (emotion: EmotionType) => void;
   setGoals: (goals: string[]) => void;
   setNotificationsEnabled: (enabled: boolean) => void;
+  setIdentityTags: (tags: string[]) => void;
+  setAspirations: (text: string) => void;
+  setStreakCommitment: (days: number) => void;
   complete: () => void;
   reset: () => void;
 }
@@ -29,12 +40,18 @@ const initialState = {
   selectedEmotions: [] as EmotionType[],
   goals: [] as string[],
   notificationsEnabled: false,
+  identityTags: [] as string[],
+  aspirations: '',
+  streakCommitment: 5,
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
   persist(
     (set, get) => ({
       ...initialState,
+
+      // Convenience alias so components can use `name` instead of `displayName`
+      get name() { return get().displayName },
 
       setStep: (step) => set({ currentStep: step }),
 
@@ -55,6 +72,12 @@ export const useOnboardingStore = create<OnboardingState>()(
       setGoals: (goals) => set({ goals }),
 
       setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
+
+      setIdentityTags: (tags) => set({ identityTags: tags }),
+
+      setAspirations: (text) => set({ aspirations: text }),
+
+      setStreakCommitment: (days) => set({ streakCommitment: days }),
 
       complete: () => set({ isComplete: true }),
 
