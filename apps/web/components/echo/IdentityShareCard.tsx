@@ -34,7 +34,7 @@ export function IdentityShareCard({ nodes }: IdentityShareCardProps) {
       setShared(true)
       await navigator.clipboard.writeText(url)
     } catch {
-      const fallback = `${window.location.origin}/identity/preview`
+      const fallback = `${window.location.origin}/`
       setShareUrl(fallback)
       setShared(true)
     } finally {
