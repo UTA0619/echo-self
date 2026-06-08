@@ -5,15 +5,16 @@
  * and Claude pattern analysis. Returns safety assessment + intervention copy.
  *
  * Called by echo-ai before generating responses to entries.
- * Input: { user_id, content, recent_emotion_scores? }
+ * Input: { user_id, entry_id?, content, recent_emotion_scores? }
  * Output: { safe: boolean, risk_level: 'none'|'low'|'moderate'|'high'|'crisis', intervention?: string }
  */
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts'
 import { getServiceClient } from '../_shared/supabase.ts'
 
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')!
-const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')!
+const OPENAI_API_KEY    = Deno.env.get('OPENAI_API_KEY')!
+// Reserved for future Claude-based analysis
+const _ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')
 
 // Crisis keywords — fast pre-check before API calls
 const CRISIS_SIGNALS = [
@@ -36,28 +37,48 @@ Remember: what you're feeling is valid, and difficult moments do pass. If things
 
 Crisis Text Line: Text HOME to 741741`
 
+// ── Logging helper ────────────────────────────────────────────────────────────
+
+type Severity = 'critical' | 'high' | 'medium' | 'low'
+
+async function logCrisisEvent(
+  userId: string,
+  entryId: string | null,
+  severity: Severity,
+  triggerPhrase: string | null,
+  detectedTags: string[],
+): Promise<void> {
+  try {
+    const supabase = getServiceClient()
+    await supabase.rpc('upsert_crisis_event', {
+      p_user_id:        userId,
+      p_entry_id:       entryId,
+      p_severity:       severity,
+      p_trigger_phrase: triggerPhrase,
+      p_detected_tags:  detectedTags,
+    })
+  } catch (err) {
+    // Logging must never crash the main safety flow
+    console.error('[safety-check] failed to log crisis event:', err)
+  }
+}
+
+// ── Main handler ──────────────────────────────────────────────────────────────
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return handleCors()
 
   try {
-    const { user_id, content, recent_emotion_scores } = await req.json()
+    const { user_id, entry_id = null, content, recent_emotion_scores } = await req.json()
     if (!content) return errorResponse('content required', 400)
 
     const contentLower = content.toLowerCase()
 
     // 1. Fast keyword check for obvious crisis signals
-    const hasCrisisKeyword = CRISIS_SIGNALS.some(signal => contentLower.includes(signal))
-
-    if (hasCrisisKeyword) {
-      // Log the safety event
+    const matchedSignal = CRISIS_SIGNALS.find(signal => contentLower.includes(signal)) ?? null
+    if (matchedSignal) {
       if (user_id) {
-        const supabase = getServiceClient()
-        await supabase.from('safety_events').insert({
-          user_id,
-          risk_level: 'crisis',
-          trigger: 'keyword',
-          content_snippet: content.slice(0, 100),
-        }).then(() => null)
+        await logCrisisEvent(user_id, entry_id, 'critical', matchedSignal, ['keyword_match'])
       }
 
       return jsonResponse({
@@ -85,7 +106,6 @@ serve(async (req) => {
       const result = modData.results?.[0]
       if (result?.flagged) {
         moderationFlagged = true
-        // Find which category was flagged
         const categories = result.categories ?? {}
         moderationCategory = Object.entries(categories)
           .filter(([, v]) => v)
@@ -98,13 +118,10 @@ serve(async (req) => {
           categories['self-harm/instructions']
         ) {
           if (user_id) {
-            const supabase = getServiceClient()
-            await supabase.from('safety_events').insert({
-              user_id,
-              risk_level: 'crisis',
-              trigger: 'moderation_api',
-              content_snippet: content.slice(0, 100),
-            }).then(() => null)
+            await logCrisisEvent(
+              user_id, entry_id, 'critical',
+              null, ['openai_moderation', moderationCategory],
+            )
           }
 
           return jsonResponse({
@@ -112,6 +129,14 @@ serve(async (req) => {
             risk_level: 'crisis',
             intervention: CRISIS_RESOURCES,
           })
+        }
+
+        // Other moderation flags → high risk
+        if (user_id) {
+          await logCrisisEvent(
+            user_id, entry_id, 'high',
+            null, ['openai_moderation', moderationCategory],
+          )
         }
       }
     }
@@ -126,13 +151,10 @@ serve(async (req) => {
     // 4. Return risk assessment
     if (moderationFlagged || hasNegativeTrajectory) {
       if (user_id && hasNegativeTrajectory) {
-        const supabase = getServiceClient()
-        await supabase.from('safety_events').insert({
-          user_id,
-          risk_level: 'moderate',
-          trigger: 'negative_trajectory',
-          content_snippet: content.slice(0, 100),
-        }).then(() => null)
+        await logCrisisEvent(
+          user_id, entry_id, 'medium',
+          null, ['negative_emotion_trajectory'],
+        )
       }
 
       return jsonResponse({
@@ -143,13 +165,10 @@ serve(async (req) => {
       })
     }
 
-    return jsonResponse({
-      safe: true,
-      risk_level: 'none',
-    })
+    return jsonResponse({ safe: true, risk_level: 'none' })
   } catch (err) {
     // Safety checks must never crash the main flow — fail open with low risk
-    console.error('safety-check error:', err)
+    console.error('[safety-check] error:', err)
     return jsonResponse({ safe: true, risk_level: 'none', error: String(err) })
   }
 })

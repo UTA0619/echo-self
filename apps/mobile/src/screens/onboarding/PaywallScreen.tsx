@@ -19,7 +19,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
-import type { OnboardingStackParamList } from '../../navigation/OnboardingNavigator'
+import type { OnboardingParamList } from '../../navigation/OnboardingNavigator'
 import { AnimatedBackground } from '../../components/onboarding/AnimatedBackground'
 import { OnboardingButton } from '../../components/onboarding/OnboardingButton'
 import { OnboardingProgress } from '../../components/onboarding/OnboardingProgress'
@@ -29,7 +29,7 @@ import { useAuthStore } from '../../store/auth'
 import { Colors, Spacing, Typography } from '../../theme/tokens'
 import { HapticPatterns } from '../../theme/haptics'
 
-type Props = NativeStackScreenProps<OnboardingStackParamList, 'Paywall'>
+type Props = NativeStackScreenProps<OnboardingParamList, 'Paywall'>
 
 // ─── Static content ───────────────────────────────────────────────────────────
 
@@ -74,7 +74,7 @@ function savingsLabel(packages: IAPPackage[]): string | null {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function PaywallScreen({ navigation: _navigation }: Props) {
-  const { completeOnboarding } = useOnboardingStore()
+  const { completeOnboarding, complete } = useOnboardingStore()
   const { user, loadProfile } = useAuthStore()
   const {
     packages,
@@ -121,6 +121,15 @@ export function PaywallScreen({ navigation: _navigation }: Props) {
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
+  const finishOnboarding = async () => {
+    if (user?.id) {
+      await completeOnboarding(user.id)
+    } else {
+      // Fallback: no user id yet (edge case) — just mark complete locally
+      complete()
+    }
+  }
+
   const handlePurchase = async () => {
     if (!selectedPkg || isPurchasing) return
     await HapticPatterns.light()
@@ -130,7 +139,7 @@ export function PaywallScreen({ navigation: _navigation }: Props) {
       await HapticPatterns.success()
       // Refresh auth profile so isPremium flag updates everywhere
       if (user?.id) await loadProfile(user.id)
-      completeOnboarding()
+      await finishOnboarding()
     } else if (error) {
       Alert.alert('Purchase failed', error)
     }
@@ -144,7 +153,7 @@ export function PaywallScreen({ navigation: _navigation }: Props) {
       await HapticPatterns.success()
       if (user?.id) await loadProfile(user.id)
       Alert.alert('Purchases restored!', 'Your ECHO Pro subscription is active.', [
-        { text: 'Continue', onPress: completeOnboarding },
+        { text: 'Continue', onPress: finishOnboarding },
       ])
     } else {
       Alert.alert(
@@ -154,8 +163,8 @@ export function PaywallScreen({ navigation: _navigation }: Props) {
     }
   }
 
-  const handleFreePlan = () => {
-    completeOnboarding()
+  const handleFreePlan = async () => {
+    await finishOnboarding()
   }
 
   const savings = savingsLabel(packages)
