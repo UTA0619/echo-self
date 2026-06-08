@@ -27,6 +27,42 @@ const FEATURES = [
   },
 ]
 
+const PRICING = [
+  {
+    name: 'Free',
+    price: '$0',
+    period: 'forever',
+    description: 'Start building your memory layer.',
+    features: [
+      '3 journal entries per day',
+      'Emotion tracking',
+      'Basic identity nodes',
+      '30-day memory window',
+    ],
+    cta: 'Start free',
+    href: '/auth',
+    highlight: false,
+  },
+  {
+    name: 'Pro',
+    price: '$9',
+    period: 'per month',
+    description: 'Full self-awareness, unlimited depth.',
+    features: [
+      'Unlimited journal entries',
+      'Semantic memory search',
+      'Full identity web',
+      'Behavioral pattern detection',
+      'Future self simulations',
+      'Daily AI insight push notifications',
+      '365-day memory window',
+    ],
+    cta: 'Start Pro →',
+    href: '/auth?upgrade=true',
+    highlight: true,
+  },
+]
+
 const TESTIMONIALS = [
   {
     quote: 'It noticed I was in a creative low before I did. Then it found the pattern — every November.',
@@ -169,6 +205,59 @@ export function LandingPage() {
               <div className="text-echo-accent font-mono text-xs">{s.step}</div>
               <div className="font-semibold text-echo-text">{s.title}</div>
               <div className="text-echo-muted text-xs leading-relaxed">{s.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Pricing ── */}
+      <section className="max-w-4xl mx-auto px-4 pb-24 text-center">
+        <h2 className="text-3xl font-bold tracking-tight mb-3 font-display">Simple pricing</h2>
+        <p className="text-echo-muted text-sm mb-12">Start free. Upgrade when ECHO becomes indispensable.</p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+          {PRICING.map(plan => (
+            <div
+              key={plan.name}
+              className={`rounded-2xl border p-8 text-left space-y-5 transition-colors ${
+                plan.highlight
+                  ? 'bg-echo-surface border-echo-accent/50 ring-1 ring-echo-accent/20'
+                  : 'bg-echo-surface border-echo-border'
+              }`}
+            >
+              {plan.highlight && (
+                <div className="text-[10px] font-semibold tracking-widest text-echo-accent uppercase mb-1">
+                  Most popular
+                </div>
+              )}
+              <div>
+                <div className="text-lg font-semibold text-echo-text">{plan.name}</div>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-3xl font-bold text-echo-text">{plan.price}</span>
+                  <span className="text-xs text-echo-muted">/{plan.period}</span>
+                </div>
+                <p className="text-xs text-echo-muted mt-2">{plan.description}</p>
+              </div>
+
+              <ul className="space-y-2">
+                {plan.features.map(f => (
+                  <li key={f} className="flex items-start gap-2 text-xs text-echo-muted">
+                    <span className="text-echo-accent mt-0.5 shrink-0">✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href={plan.href}
+                className={`block w-full text-center py-3 rounded-xl text-sm font-semibold transition-colors ${
+                  plan.highlight
+                    ? 'bg-echo-accent text-white hover:bg-echo-accent/90'
+                    : 'bg-[#1E2030] text-echo-text hover:bg-[#252840]'
+                }`}
+              >
+                {plan.cta}
+              </Link>
             </div>
           ))}
         </div>

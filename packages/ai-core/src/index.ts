@@ -1,3 +1,6 @@
+// ── Prompt registry (version manifest) ───────────────────────────────────────
+export * from './prompts/registry.js'
+
 // ── Prompt builders ───────────────────────────────────────────────────────────
 export * from './prompts/echo.js'
 export * from './prompts/emotion.js'

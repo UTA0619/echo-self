@@ -47,6 +47,17 @@ export default async function RootPage() {
             <span className="text-xs text-[#7B6CF6] font-medium">Pro</span>
           )}
           <a
+            href="/search"
+            className="text-[#8B8FA8] hover:text-[#7B6CF6] transition-colors"
+            aria-label="Search memories"
+            title="Search memories"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="6.5" cy="6.5" r="4.5" />
+              <path d="M11 11l3 3" strokeLinecap="round" />
+            </svg>
+          </a>
+          <a
             href="/wrapped"
             className="text-xs text-[#8B8FA8] hover:text-[#7B6CF6] transition-colors"
           >
