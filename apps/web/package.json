@@ -11,6 +11,7 @@
     "clean": "rm -rf .next"
   },
   "dependencies": {
+    "@echo-self/design-system": "workspace:*",
     "@echo-self/shared-types": "workspace:*",
     "@echoself/auth": "workspace:*",
     "@echoself/supabase": "workspace:*",
