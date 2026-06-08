@@ -38,3 +38,7 @@ export {
   motionVariants,
   cssAnimations,
 } from './animation.js'
+
+// Composed theme object + semantic token aliases
+export { theme, tokens } from './themes.js'
+export type { Theme, Tokens } from './themes.js'
