@@ -76,6 +76,12 @@ export default async function AdminPage() {
               All users
             </a>
             <a
+              href="/admin/crisis"
+              className="text-[#8B8FA8] hover:text-[#EF4444] transition-colors"
+            >
+              Crisis events
+            </a>
+            <a
               href="https://supabase.com/dashboard"
               target="_blank"
               rel="noopener noreferrer"

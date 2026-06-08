@@ -42,3 +42,6 @@ export {
 // Composed theme object + semantic token aliases
 export { theme, tokens } from './themes.js'
 export type { Theme, Tokens } from './themes.js'
+
+// Tailwind preset
+export { echoTailwindPreset } from './tailwind-preset.js'
