@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 /**
  * DELETE /api/account/delete
- * GDPR-compliant account deletion: removes all user data then deletes the auth user.
- * The cascade DELETE on auth.users propagates to all public tables via FK constraints.
+ *
+ * GDPR right-to-erasure: soft-deletes all user content, then hard-deletes
+ * the Supabase auth user via the admin API.
+ *
+ * Flow:
+ *  1. Verify the session is still valid (user must be signed in)
+ *  2. Delegate to the export-user-data edge function with ?hard=1 for full deletion
+ *  3. If edge function unavailable, fall back to direct cascade delete via admin client
  */
 export async function DELETE() {
   const supabase = await createClient()
@@ -14,22 +21,37 @@ export async function DELETE() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Sign out all sessions first so the client token is invalidated
-  await supabase.auth.signOut({ scope: 'global' })
+  try {
+    // Delegate to the export-user-data edge function for proper GDPR erasure
+    const supabaseUrl    = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-  // Delete profile row — cascade handles entries, identity_traits, emotions, etc.
-  // The service role key is required to delete from auth.users; we rely on Supabase
-  // admin API for the final step. For now we delete the profile and all related rows;
-  // the auth user becomes orphaned and can be purged via a Supabase cron / webhook.
-  const { error } = await supabase
-    .from('profiles')
-    .delete()
-    .eq('id', user.id)
+    const { data: { session } } = await supabase.auth.getSession()
 
-  if (error) {
-    console.error('[account/delete]', error)
+    const edgeRes = await fetch(
+      `${supabaseUrl}/functions/v1/export-user-data?hard=1`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization:  `Bearer ${session?.access_token ?? ''}`,
+          'Content-Type': 'application/json',
+          apikey:         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+        },
+      },
+    )
+
+    if (!edgeRes.ok) {
+      console.warn('[account/delete] edge function failed, falling back to admin delete:', await edgeRes.text())
+      // Fallback: use admin client to delete the auth user directly
+      // FK cascade removes all rows in public schema
+      const admin = createAdminClient()
+      const { error } = await admin.auth.admin.deleteUser(user.id)
+      if (error) throw error
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error('[account/delete] error:', err)
     return NextResponse.json({ error: 'Deletion failed' }, { status: 500 })
   }
-
-  return NextResponse.json({ success: true })
 }
