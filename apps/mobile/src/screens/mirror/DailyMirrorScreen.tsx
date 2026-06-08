@@ -11,6 +11,9 @@ import {
   KeyboardAvoidingView,
   SafeAreaView,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { MainStackParamList } from '../../navigation/MainStackNavigator';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -35,6 +38,7 @@ const MIN_WORDS = 10;
 const MAX_CHARS = 2000;
 
 export function DailyMirrorScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const { user } = useAuthStore();
   const { name } = useOnboardingStore();
   const {
@@ -178,9 +182,20 @@ export function DailyMirrorScreen() {
                     })}
                   </Text>
                 </View>
-                {user?.currentStreak != null && (
-                  <StreakBadge streak={user.currentStreak} />
-                )}
+                <View style={styles.headerActions}>
+                  {/* Morning Report button */}
+                  <Pressable
+                    style={styles.morningBtn}
+                    onPress={() => navigation.navigate('MorningReport')}
+                    accessibilityLabel="Open morning report"
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.morningBtnText}>☀︎</Text>
+                  </Pressable>
+                  {user?.currentStreak != null && (
+                    <StreakBadge streak={user.currentStreak} />
+                  )}
+                </View>
               </View>
             </Animated.View>
 
@@ -378,6 +393,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  morningBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(251,191,36,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(251,191,36,0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  morningBtnText: {
+    fontSize: 18,
+    color: '#FBBF24',
   },
   greeting: {
     fontSize: 26,
