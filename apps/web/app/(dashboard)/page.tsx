@@ -58,6 +58,28 @@ export default async function RootPage() {
             </svg>
           </a>
           <a
+            href="/identity"
+            className="text-[#8B8FA8] hover:text-[#7B6CF6] transition-colors"
+            aria-label="Identity web"
+            title="Identity web"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="8" cy="8" r="3" />
+              <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M11.4 11.4l1.4 1.4M3.2 12.8l1.4-1.4M11.4 4.6l1.4-1.4" strokeLinecap="round"/>
+            </svg>
+          </a>
+          <a
+            href="/future-self"
+            className="text-[#8B8FA8] hover:text-[#7B6CF6] transition-colors"
+            aria-label="Future self"
+            title="Future self"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M8 2c0 0 4 2 4 6s-4 6-4 6S4 12 4 8s4-6 4-6z" />
+              <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/>
+            </svg>
+          </a>
+          <a
             href="/wrapped"
             className="text-xs text-[#8B8FA8] hover:text-[#7B6CF6] transition-colors"
           >

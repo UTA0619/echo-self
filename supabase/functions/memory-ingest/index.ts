@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { corsHeaders, handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts'
 import { getServiceClient } from '../_shared/supabase.ts'
-import { chunkText, generateEmbeddings, calculateImportanceScore } from '../../packages/ai-core/src/index.ts'
+import { chunkText, generateEmbeddings, calculateImportanceScore, serializeVector } from '../_shared/embeddings.ts'
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')!
 
@@ -37,7 +37,7 @@ serve(async (req: Request) => {
       user_id,
       entry_id,
       content_chunk: chunk,
-      embedding: `[${embeddings[i]!.join(',')}]`,
+      embedding: embeddings[i] ? serializeVector(embeddings[i]!) : null,
       emotion: entry?.emotion ?? null,
       emotion_score: entry?.emotion_score ?? null,
       tags: entry?.tags ?? [],
