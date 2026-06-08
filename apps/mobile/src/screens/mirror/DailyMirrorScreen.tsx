@@ -183,6 +183,15 @@ export function DailyMirrorScreen() {
                   </Text>
                 </View>
                 <View style={styles.headerActions}>
+                  {/* Voice Conversation button */}
+                  <Pressable
+                    style={styles.morningBtn}
+                    onPress={() => navigation.navigate('VoiceConversation')}
+                    accessibilityLabel="Open voice conversation with ECHO"
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.morningBtnText}>✦</Text>
+                  </Pressable>
                   {/* Morning Report button */}
                   <Pressable
                     style={styles.morningBtn}

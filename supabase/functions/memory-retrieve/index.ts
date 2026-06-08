@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts'
 import { getServiceClient } from '../_shared/supabase.ts'
-import { generateEmbedding } from '../../packages/ai-core/src/index.ts'
+import { generateEmbedding } from '../_shared/embeddings.ts'
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')!
 

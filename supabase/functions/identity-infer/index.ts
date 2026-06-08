@@ -13,7 +13,7 @@ import {
   buildIdentityInferSystemPrompt,
   buildIdentityInferPrompt,
   IDENTITY_TAXONOMY,
-} from '../../packages/ai-core/src/prompts/identity-infer.ts'
+} from '../_shared/prompts/identity-infer.ts'
 
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')!
 const MODEL             = 'claude-haiku-4-5-20251001'

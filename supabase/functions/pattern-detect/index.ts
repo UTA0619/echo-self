@@ -14,7 +14,7 @@ import { getServiceClient } from '../_shared/supabase.ts'
 import {
   buildPatternDetectSystemPrompt,
   buildPatternDetectPrompt,
-} from '../../packages/ai-core/src/prompts/pattern-detect.ts'
+} from '../_shared/prompts/pattern-detect.ts'
 
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')!
 const MODEL             = 'claude-sonnet-4-6'
@@ -33,7 +33,8 @@ interface DetectedPattern {
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') return handleCors()
+  const corsRes = handleCors(req)
+  if (corsRes) return corsRes
 
   try {
     const { user_id } = await req.json()

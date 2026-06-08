@@ -16,7 +16,7 @@
  */
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { getServiceClient } from '../_shared/supabase.ts'
-import { buildDailyInsightPrompt, buildDailyInsightSystemPrompt } from '../../packages/ai-core/src/index.ts'
+import { buildDailyInsightPrompt, buildDailyInsightSystemPrompt } from '../_shared/prompts/daily-insight.ts'
 
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')!
 const CRON_SECRET       = Deno.env.get('CRON_SECRET')!

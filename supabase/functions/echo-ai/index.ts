@@ -15,10 +15,12 @@ import {
   buildEchoSystemPrompt,
   buildEmotionalArcSummary,
   selectRecentEntries,
+} from '../_shared/prompts/echo.ts'
+import {
   buildSafetyResponseSystemPrompt,
   buildSafetyResponsePrompt,
   CRISIS_RESOURCES_STATIC,
-} from '../../packages/ai-core/src/index.ts'
+} from '../_shared/prompts/safety.ts'
 
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')!
 const MODEL_SONNET      = 'claude-sonnet-4-6'
