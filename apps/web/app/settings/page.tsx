@@ -19,8 +19,8 @@ export default async function SettingsPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('display_name, timezone, created_at')
-    .eq('id', user.id)
+    .select('display_name, timezone, notification_time, notification_enabled, created_at')
+    .eq('auth_id', user.id)
     .maybeSingle()
 
   const { data: referral } = await supabase
