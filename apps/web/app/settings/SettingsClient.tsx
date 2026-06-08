@@ -65,7 +65,7 @@ function ProfileSection({ user, profile }: { user: { id: string; email: string }
     await supabase
       .from('profiles')
       .update({ display_name: name.trim() })
-      .eq('id', user.id)
+      .eq('auth_id', user.id)
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)

@@ -63,8 +63,8 @@ async function runFutureSelf(
   // Fetch user profile
   const { data: profile } = await supabase
     .from('profiles')
-    .select('display_name, onboarding_data, current_streak, total_entries')
-    .eq('id', user.id)
+    .select('display_name, onboarding_data')
+    .eq('auth_id', user.id)
     .single()
 
   const userName = profile?.display_name ?? 'you'
