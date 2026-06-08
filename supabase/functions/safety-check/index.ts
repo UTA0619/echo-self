@@ -1,10 +1,14 @@
 /**
  * safety-check: Emotional safety guardrails for ECHO.
  *
- * Checks for crisis signals in user content using OpenAI Moderation API
- * and Claude pattern analysis. Returns safety assessment + intervention copy.
+ * Checks for crisis signals in user content using:
+ *  1. Fast keyword pre-check (no API cost)
+ *  2. Claude Haiku safety classification
+ *  3. Sustained negative emotion trajectory heuristic
  *
+ * Returns safety assessment + intervention copy.
  * Called by echo-ai before generating responses to entries.
+ *
  * Input: { user_id, entry_id?, content, recent_emotion_scores? }
  * Output: { safe: boolean, risk_level: 'none'|'low'|'moderate'|'high'|'crisis', intervention?: string }
  */
@@ -12,9 +16,7 @@ import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts'
 import { getServiceClient } from '../_shared/supabase.ts'
 
-const OPENAI_API_KEY    = Deno.env.get('OPENAI_API_KEY')!
-// Reserved for future Claude-based analysis
-const _ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')
+const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')!
 
 // Crisis keywords — fast pre-check before API calls
 const CRISIS_SIGNALS = [
@@ -63,6 +65,49 @@ async function logCrisisEvent(
   }
 }
 
+// ── Claude Haiku safety classification ───────────────────────────────────────
+
+type SafetyClass = 'safe' | 'low_risk' | 'moderate_risk' | 'high_risk' | 'self_harm'
+
+async function claudeSafetyCheck(content: string): Promise<SafetyClass> {
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key':         ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type':      'application/json',
+      },
+      body: JSON.stringify({
+        model:      'claude-haiku-4-5-20251001',
+        max_tokens: 30,
+        system: `You are a mental health safety classifier. Classify the emotional safety risk in user-written text.
+Output ONLY one of these labels (no other text):
+- safe           (no emotional distress or minor everyday stress)
+- low_risk       (mild sadness, frustration, or worry — normal human emotions)
+- moderate_risk  (significant distress, hopelessness, or talk of severe worthlessness)
+- high_risk      (thoughts of self-harm without explicit plans, or severe despair)
+- self_harm      (explicit mention of self-harm, suicide plans, or intent to hurt oneself)`,
+        messages: [{
+          role:    'user',
+          content: `Classify this text:\n\n${content.slice(0, 1000)}`,
+        }],
+      }),
+    })
+
+    if (!res.ok) throw new Error(`Claude error: ${res.status}`)
+
+    const json = await res.json() as { content: Array<{ text: string }> }
+    const label = json.content?.[0]?.text?.trim().toLowerCase() ?? 'safe'
+
+    const VALID: SafetyClass[] = ['safe', 'low_risk', 'moderate_risk', 'high_risk', 'self_harm']
+    return VALID.includes(label as SafetyClass) ? (label as SafetyClass) : 'safe'
+  } catch (err) {
+    console.error('[safety-check] Claude classify error:', err)
+    return 'safe'  // fail open — never block user
+  }
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -74,100 +119,60 @@ serve(async (req) => {
 
     const contentLower = content.toLowerCase()
 
-    // 1. Fast keyword check for obvious crisis signals
+    // 1. Fast keyword check — no API cost, catches obvious signals
     const matchedSignal = CRISIS_SIGNALS.find(signal => contentLower.includes(signal)) ?? null
     if (matchedSignal) {
       if (user_id) {
         await logCrisisEvent(user_id, entry_id, 'critical', matchedSignal, ['keyword_match'])
       }
+      return jsonResponse({ safe: false, risk_level: 'crisis', intervention: CRISIS_RESOURCES })
+    }
 
+    // 2. Claude Haiku safety classification
+    const safetyClass = await claudeSafetyCheck(content)
+
+    if (safetyClass === 'self_harm') {
+      if (user_id) {
+        await logCrisisEvent(user_id, entry_id, 'critical', null, ['claude_self_harm'])
+      }
+      return jsonResponse({ safe: false, risk_level: 'crisis', intervention: CRISIS_RESOURCES })
+    }
+
+    if (safetyClass === 'high_risk') {
+      if (user_id) {
+        await logCrisisEvent(user_id, entry_id, 'high', null, ['claude_high_risk'])
+      }
       return jsonResponse({
-        safe: false,
-        risk_level: 'crisis',
-        intervention: CRISIS_RESOURCES,
+        safe:           true,
+        risk_level:     'high',
+        intervention:   MODERATE_INTERVENTION,
+        show_resources: true,
       })
     }
 
-    // 2. OpenAI Moderation API
-    const modRes = await fetch('https://api.openai.com/v1/moderations', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ input: content }),
-    })
-
-    let moderationFlagged = false
-    let moderationCategory = ''
-
-    if (modRes.ok) {
-      const modData = await modRes.json()
-      const result = modData.results?.[0]
-      if (result?.flagged) {
-        moderationFlagged = true
-        const categories = result.categories ?? {}
-        moderationCategory = Object.entries(categories)
-          .filter(([, v]) => v)
-          .map(([k]) => k)[0] ?? 'unknown'
-
-        // Self-harm categories → treat as crisis
-        if (
-          categories['self-harm'] ||
-          categories['self-harm/intent'] ||
-          categories['self-harm/instructions']
-        ) {
-          if (user_id) {
-            await logCrisisEvent(
-              user_id, entry_id, 'critical',
-              null, ['openai_moderation', moderationCategory],
-            )
-          }
-
-          return jsonResponse({
-            safe: false,
-            risk_level: 'crisis',
-            intervention: CRISIS_RESOURCES,
-          })
-        }
-
-        // Other moderation flags → high risk
-        if (user_id) {
-          await logCrisisEvent(
-            user_id, entry_id, 'high',
-            null, ['openai_moderation', moderationCategory],
-          )
-        }
-      }
-    }
-
-    // 3. Check sustained negative emotion trajectory (3+ consecutive low scores)
+    // 3. Sustained negative emotion trajectory (3+ consecutive low scores)
     let hasNegativeTrajectory = false
     if (recent_emotion_scores && Array.isArray(recent_emotion_scores) && recent_emotion_scores.length >= 3) {
       const last3 = recent_emotion_scores.slice(-3)
       hasNegativeTrajectory = last3.every((s: number) => s < -0.6)
     }
 
-    // 4. Return risk assessment
-    if (moderationFlagged || hasNegativeTrajectory) {
+    if (safetyClass === 'moderate_risk' || hasNegativeTrajectory) {
       if (user_id && hasNegativeTrajectory) {
-        await logCrisisEvent(
-          user_id, entry_id, 'medium',
-          null, ['negative_emotion_trajectory'],
-        )
+        await logCrisisEvent(user_id, entry_id, 'medium', null, ['negative_emotion_trajectory'])
       }
-
       return jsonResponse({
-        safe: true,
-        risk_level: 'moderate',
-        intervention: MODERATE_INTERVENTION,
+        safe:           true,
+        risk_level:     'moderate',
+        intervention:   MODERATE_INTERVENTION,
         show_resources: true,
       })
     }
 
-    return jsonResponse({ safe: true, risk_level: 'none' })
+    // 4. Safe — optionally note low_risk for future tracking
+    return jsonResponse({ safe: true, risk_level: safetyClass === 'low_risk' ? 'low' : 'none' })
   } catch (err) {
-    // Safety checks must never crash the main flow — fail open with low risk
+    // Safety checks must never crash the main flow — fail open
     console.error('[safety-check] error:', err)
     return jsonResponse({ safe: true, risk_level: 'none', error: String(err) })
   }

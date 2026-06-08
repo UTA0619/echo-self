@@ -3,7 +3,7 @@ import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts'
 import { getServiceClient } from '../_shared/supabase.ts'
 import { analyzeEmotion } from '../../packages/ai-core/src/index.ts'
 
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')!
+const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')!
 
 serve(async (req: Request) => {
   const corsRes = handleCors(req)
@@ -16,7 +16,7 @@ serve(async (req: Request) => {
     const { content, entry_id } = await req.json()
     if (!content) return errorResponse('content required', 400)
 
-    const emotionData = await analyzeEmotion(OPENAI_API_KEY, content)
+    const emotionData = await analyzeEmotion(ANTHROPIC_API_KEY, content)
 
     if (entry_id) {
       const supabase = getServiceClient()
