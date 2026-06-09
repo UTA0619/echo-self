@@ -10,13 +10,14 @@
 //
 // Configuration (env vars):
 //
-//	PORT                  HTTP listen port (default: 8080)
-//	SUPABASE_URL          Supabase project URL
-//	SUPABASE_ANON_KEY     Supabase anon key (for downstream forwarding)
-//	SUPABASE_JWT_SECRET   HS256 secret used by Supabase Auth
-//	REDIS_URL             Redis connection string (rate-limit state)
-//	RATE_LIMIT_RPM        Requests per minute per user (default: 60)
-//	CRON_SECRET           Secret for internal cron endpoints
+//	PORT                     HTTP listen port (default: 8080)
+//	SUPABASE_URL             Supabase project URL
+//	SUPABASE_ANON_KEY        Supabase anon key (for downstream forwarding)
+//	SUPABASE_SERVICE_ROLE_KEY Service role key (for API key lookups)
+//	SUPABASE_JWT_SECRET      HS256 secret used by Supabase Auth
+//	REDIS_URL                Redis connection string (rate-limit state)
+//	RATE_LIMIT_RPM           Requests per minute per user (default: 60)
+//	CRON_SECRET              Secret for internal cron endpoints
 package main
 
 import (
@@ -29,6 +30,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/UTA0619/echo-self/services/api-gateway/internal/auth"
 	"github.com/UTA0619/echo-self/services/api-gateway/internal/health"
 	"github.com/UTA0619/echo-self/services/api-gateway/internal/middleware"
 	"github.com/UTA0619/echo-self/services/api-gateway/internal/proxy"
@@ -75,6 +77,9 @@ func main() {
 	// ── JWT validator ────────────────────────────────────────────────────────
 	jwtValidator := middleware.NewJWTValidator(cfg.JWTSecret, log)
 
+	// ── API key validator (machine-to-machine auth) ───────────────────────────
+	apiKeyValidator := auth.NewValidator(cfg.SupabaseURL, cfg.SupabaseServiceRoleKey, log)
+
 	// ── Mux ──────────────────────────────────────────────────────────────────
 	mux := http.NewServeMux()
 
@@ -85,10 +90,14 @@ func main() {
 	// Internal cron endpoints (cron-secret auth, no JWT)
 	mux.Handle("POST /internal/", middleware.CronAuth(cfg.CronSecret, log)(edgeProxy))
 
-	// Public API routes — JWT + rate limit
+	// Public API routes — API key OR JWT, then rate limit.
+	// apiKeyValidator runs first: if X-Api-Key is absent it passes through to
+	// jwtValidator; if X-Api-Key is present and valid, jwtValidator is a no-op
+	// because X-User-Id is already set in the context.
 	apiHandler := middleware.Chain(
 		middleware.RequestID,
 		middleware.Logger(log),
+		apiKeyValidator.Middleware,
 		jwtValidator.Middleware,
 		limiter.Middleware,
 		middleware.CORS(cfg.AllowedOrigins),

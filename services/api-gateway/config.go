@@ -8,14 +8,15 @@ import (
 )
 
 type Config struct {
-	Port            string
-	SupabaseURL     string
-	SupabaseAnonKey string
-	JWTSecret       string
-	RedisURL        string
-	RateLimitRPM    int
-	CronSecret      string
-	AllowedOrigins  []string
+	Port                   string
+	SupabaseURL            string
+	SupabaseAnonKey        string
+	SupabaseServiceRoleKey string
+	JWTSecret              string
+	RedisURL               string
+	RateLimitRPM           int
+	CronSecret             string
+	AllowedOrigins         []string
 }
 
 func loadConfig(log *zap.Logger) Config {
@@ -44,14 +45,15 @@ func loadConfig(log *zap.Logger) Config {
 	}
 
 	return Config{
-		Port:            port,
-		SupabaseURL:     supabaseURL,
-		SupabaseAnonKey: os.Getenv("SUPABASE_ANON_KEY"),
-		JWTSecret:       jwtSecret,
-		RedisURL:        os.Getenv("REDIS_URL"),
-		RateLimitRPM:    rpm,
-		CronSecret:      os.Getenv("CRON_SECRET"),
-		AllowedOrigins:  origins,
+		Port:                   port,
+		SupabaseURL:            supabaseURL,
+		SupabaseAnonKey:        os.Getenv("SUPABASE_ANON_KEY"),
+		SupabaseServiceRoleKey: os.Getenv("SUPABASE_SERVICE_ROLE_KEY"),
+		JWTSecret:              jwtSecret,
+		RedisURL:               os.Getenv("REDIS_URL"),
+		RateLimitRPM:           rpm,
+		CronSecret:             os.Getenv("CRON_SECRET"),
+		AllowedOrigins:         origins,
 	}
 }
 

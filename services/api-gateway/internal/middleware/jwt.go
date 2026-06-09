@@ -30,8 +30,16 @@ func NewJWTValidator(secret string, log *zap.Logger) *JWTValidator {
 
 // Middleware rejects requests without a valid Bearer JWT.
 // The validated user ID (sub claim) is stored in context under CtxUserID.
+// If the request was already authenticated by the API key middleware
+// (X-User-Id is pre-set), this middleware is a no-op to avoid double-auth.
 func (v *JWTValidator) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Already authenticated upstream (e.g. by API key middleware)
+		if r.Header.Get("X-User-Id") != "" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		raw := r.Header.Get("Authorization")
 		if raw == "" || !strings.HasPrefix(raw, "Bearer ") {
 			http.Error(w, `{"error":"missing authorization token"}`, http.StatusUnauthorized)

@@ -4,6 +4,7 @@ package middleware
 import (
 	"context"
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"net/http"
@@ -11,8 +12,6 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-
-	"github.com/google/uuid"
 )
 
 // contextKey avoids collisions in request contexts.
@@ -33,12 +32,19 @@ func Chain(mws ...func(http.Handler) http.Handler) func(http.Handler) http.Handl
 	}
 }
 
-// RequestID injects a UUID into every request context and response header.
+// newRequestID generates a random 16-byte hex ID (no external dependencies).
+func newRequestID() string {
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
+}
+
+// RequestID injects a random ID into every request context and response header.
 func RequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := r.Header.Get("X-Request-Id")
 		if id == "" {
-			id = uuid.New().String()
+			id = newRequestID()
 		}
 		ctx := context.WithValue(r.Context(), CtxRequestID, id)
 		w.Header().Set("X-Request-Id", id)
