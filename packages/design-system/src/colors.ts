@@ -130,9 +130,34 @@ export function emotionColor(emotion: string): string {
   return (emotions[emotion as EmotionKey] ?? emotions.mixed).primary
 }
 
-/** Returns the tint overlay for a given emotion */
-export function emotionTint(emotion: string): string {
-  return (emotions[emotion as EmotionKey] ?? emotions.mixed).tint
+/**
+ * Returns the tint overlay for a given emotion at the given opacity (0–1).
+ * When opacity is omitted, returns the pre-baked 0.15 tint string.
+ */
+export function emotionTint(emotion: string, opacity?: number): string {
+  const primary = emotionColor(emotion)
+  if (opacity === undefined) {
+    return (emotions[emotion as EmotionKey] ?? emotions.mixed).tint
+  }
+  return hexToRgba(primary, opacity)
+}
+
+/**
+ * Converts a hex color (#RRGGBB or #RGB) to an rgba() CSS string.
+ * Returns transparent as a safe fallback for malformed input.
+ */
+export function hexToRgba(hex: string, alpha: number): string {
+  const clean = hex.replace('#', '')
+  const full  = clean.length === 3
+    ? clean.split('').map(c => c + c).join('')
+    : clean
+
+  if (full.length !== 6) return `rgba(0,0,0,${alpha})`
+
+  const r = parseInt(full.slice(0, 2), 16)
+  const g = parseInt(full.slice(2, 4), 16)
+  const b = parseInt(full.slice(4, 6), 16)
+  return `rgba(${r},${g},${b},${alpha})`
 }
 
 // ── Gradient presets ──────────────────────────────────────────────────────────
