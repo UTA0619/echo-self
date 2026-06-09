@@ -10,8 +10,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { supabase } from '../../services/supabase';
 import { Colors, Spacing } from '../../theme/tokens';
+import type { MainStackParamList } from '../../navigation/MainStackNavigator';
 import type { Entry } from '@echo-self/shared-types';
 
 // ─── Emotion dot color map ────────────────────────────────────────────────────
@@ -96,6 +99,7 @@ function EntryRow({ entry, index }: { entry: Entry; index: number }) {
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export function TimelineScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -154,8 +158,18 @@ export function TimelineScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Timeline</Text>
-          <Text style={styles.headerSub}>{entries.length} memories recorded</Text>
+          <View>
+            <Text style={styles.headerTitle}>Timeline</Text>
+            <Text style={styles.headerSub}>{entries.length} memories recorded</Text>
+          </View>
+          <Pressable
+            onPress={() => navigation.navigate('MemorySearch')}
+            style={styles.searchBtn}
+            accessibilityLabel="Search memories"
+            accessibilityRole="button"
+          >
+            <Text style={styles.searchBtnIcon}>✦</Text>
+          </Pressable>
         </View>
 
         {/* Stats row */}
@@ -214,7 +228,19 @@ const styles = StyleSheet.create({
   center: { flex: 1, backgroundColor: Colors.black, alignItems: 'center', justifyContent: 'center' },
   scroll: { padding: Spacing[4], paddingBottom: 120 },
 
-  header: { marginBottom: Spacing[4] },
+  header: { marginBottom: Spacing.md, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  searchBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  searchBtnIcon: { color: '#4F46E5', fontSize: 14 },
   headerTitle: { fontSize: 28, fontWeight: '700', color: Colors.textPrimary, letterSpacing: -0.5 },
   headerSub: { fontSize: 14, color: Colors.textSecondary, marginTop: 4 },
 
