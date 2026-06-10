@@ -19,6 +19,7 @@ import Purchases, {
   PURCHASES_ERROR_CODE,
 } from 'react-native-purchases';
 import { supabase } from '../services/supabase';
+import { Analytics, Events } from '../lib/analytics';
 
 // ─── RevenueCat API keys ──────────────────────────────────────────────────────
 // Set these in your .env / EAS secrets
@@ -151,6 +152,10 @@ export const useIAPStore = create<IAPState>((set, get) => ({
       const { customerInfo } = await Purchases.purchasePackage(pkg.raw);
       await get().syncPremiumStatus(customerInfo);
       set({ isPurchasing: false, customerInfo });
+      Analytics.track(Events.SUBSCRIPTION_ACTIVATED, {
+        package: pkg.identifier,
+        period: pkg.period,
+      });
       return true;
     } catch (err) {
       set({ isPurchasing: false });

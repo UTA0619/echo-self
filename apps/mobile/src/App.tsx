@@ -1,8 +1,9 @@
-import React, { Component, type ErrorInfo, type ReactNode } from 'react';
+import React, { Component, useEffect, type ErrorInfo, type ReactNode } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { RootNavigator } from './navigation';
+import { Analytics, initAnalytics } from './lib/analytics';
 
 // ─── Global Error Boundary ────────────────────────────────────────────────────
 // Catches unexpected JS errors so the app never shows a white crash screen.
@@ -24,8 +25,8 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // TODO: forward to Sentry when wired up
-    console.error('[AppErrorBoundary]', error, info.componentStack);
+    // Forward to Sentry (and breadcrumb context) via the analytics layer.
+    Analytics.error(error, { componentStack: info.componentStack ?? 'unknown' });
   }
 
   handleReset = () => this.setState({ error: null });
@@ -94,6 +95,11 @@ const styles = StyleSheet.create({
 // ─── App root ─────────────────────────────────────────────────────────────────
 
 export default function App() {
+  // Initialise Sentry + PostHog once, before the navigator mounts.
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
   return (
     <AppErrorBoundary>
       <GestureHandlerRootView style={{ flex: 1 }}>
