@@ -268,7 +268,7 @@ export function MorningReportScreen({ navigation }: Props) {
             <Pressable
               style={({ pressed }) => [styles.ctaButton, pressed && styles.ctaButtonPressed]}
               onPress={handleStartEntry}
-              accessibilityLabel={data?.hasEntryToday ? 'Continue today's entry' : 'Start today's entry'}
+              accessibilityLabel={data?.hasEntryToday ? 'Continue today\'s entry' : 'Start today\'s entry'}
               accessibilityRole="button"
             >
               <Text style={styles.ctaText}>

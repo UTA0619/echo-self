@@ -356,7 +356,7 @@ describe('buildSafetyResponsePrompt', () => {
   })
 
   it('handles missing emotionArc gracefully', () => {
-    const { emotionArc: _, ...withoutArc } = baseParams
+    const withoutArc = { content: baseParams.content, riskLevel: baseParams.riskLevel, userName: baseParams.userName }
     const prompt = buildSafetyResponsePrompt(withoutArc)
     expect(typeof prompt).toBe('string')
   })

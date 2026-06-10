@@ -1,4 +1,4 @@
-import type { Entry, Memory, EmotionHistoryPoint } from '@echo-self/shared-types'
+import type { Entry, EmotionHistoryPoint } from '@echo-self/shared-types'
 
 const TOKEN_BUDGET = {
   systemBase: 800,
