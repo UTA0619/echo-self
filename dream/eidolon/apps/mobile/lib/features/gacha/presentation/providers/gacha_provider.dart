@@ -90,13 +90,17 @@ class GachaNotifier extends _$GachaNotifier {
         crystals: state.crystals - pullResult.crystalsSpent,
         history: [...pullResult.items, ...state.history].take(30).toList(),
       );
-      unawaited(ref.read(firebaseAnalyticsProvider).logEvent(
-        name: 'gacha_pull',
-        parameters: {
-          'count': count,
-          'crystals_spent': pullResult.crystalsSpent,
-        },
-      ));
+      // Guarded: analytics must never break the pull flow (e.g. Firebase not
+      // initialized in unit tests).
+      try {
+        unawaited(ref.read(firebaseAnalyticsProvider).logEvent(
+          name: 'gacha_pull',
+          parameters: {
+            'count': count,
+            'crystals_spent': pullResult.crystalsSpent,
+          },
+        ));
+      } catch (_) {/* analytics unavailable — non-fatal */}
     } else {
       state = state.copyWith(
         phase: GachaPhase.idle,

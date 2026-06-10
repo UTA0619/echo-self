@@ -152,13 +152,17 @@ class DungeonNotifier extends _$DungeonNotifier {
     );
 
     if (status == RunStatus.completed) {
-      unawaited(ref.read(firebaseAnalyticsProvider).logEvent(
-        name: 'dungeon_complete',
-        parameters: {
-          'run_id': run.id,
-          'difficulty': state.selectedDifficulty,
-        },
-      ));
+      // Guarded: analytics must never break the run flow (e.g. Firebase not
+      // initialized in unit tests).
+      try {
+        unawaited(ref.read(firebaseAnalyticsProvider).logEvent(
+          name: 'dungeon_complete',
+          parameters: {
+            'run_id': run.id,
+            'difficulty': state.selectedDifficulty,
+          },
+        ));
+      } catch (_) {/* analytics unavailable — non-fatal */}
     }
   }
 

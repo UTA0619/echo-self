@@ -192,6 +192,8 @@ void main() {
           ],
           child: MaterialApp.router(
             theme: buildEidolonTheme(),
+            localizationsDelegates: testLocalizationsDelegates,
+            supportedLocales: const [Locale('en')],
             routerConfig: router,
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:eidolon/core/i18n/l10n.dart';
+import 'package:eidolon/features/gacha/domain/entities/gacha_item.dart';
 import 'package:eidolon/features/gacha/domain/entities/gacha_pull_result.dart';
 import 'package:eidolon/features/gacha/presentation/widgets/gacha_card.dart';
 import 'package:flutter/material.dart';

@@ -227,7 +227,6 @@ void main() {
           phase: DungeonPhase.result,
           run: DungeonRun(
             id: 'r1',
-            userId: 'uid-1',
             dungeonId: 'd1',
             eidolonId: 'e1',
             startedAt: now,

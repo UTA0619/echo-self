@@ -1,6 +1,5 @@
 import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
-import 'package:eidolon/features/gacha/domain/repositories/gacha_repository.dart';
 import 'package:eidolon/features/gacha/presentation/providers/gacha_provider.dart';
 import 'package:eidolon/features/gacha/presentation/widgets/crystal_counter.dart';
 import 'package:eidolon/features/gacha/presentation/widgets/gacha_idle_view.dart';

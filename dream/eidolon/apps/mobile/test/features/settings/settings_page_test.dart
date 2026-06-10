@@ -122,7 +122,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LegalPage), findsOneWidget);
-      expect(find.text('Information We Collect'), findsOneWidget);
+      // Heading is numbered ("1. Information We Collect") — match the substring.
+      expect(find.textContaining('Information We Collect'), findsOneWidget);
     });
 
     testWidgets('tapping Terms of Service opens in-app legal page', (tester) async {

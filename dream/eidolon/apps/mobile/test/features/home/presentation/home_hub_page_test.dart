@@ -106,7 +106,9 @@ void main() {
       ));
       await tester.pump();
 
-      expect(find.text('14'), findsOneWidget);
+      // The streak value appears in two places: the greeting streak badge
+      // and the "Day Streak" tile in Today's Stats.
+      expect(find.text('14'), findsNWidgets(2));
 
       await _settle(tester);
     });
@@ -184,6 +186,12 @@ void main() {
         _wrap(homeState: const HomeState(errorMessage: 'Network error')),
       );
       await tester.pump();
+
+      // The error banner is the last sliver — scroll it into view first.
+      await tester.scrollUntilVisible(
+        find.text('Network error'),
+        200,
+      );
 
       expect(find.text('Network error'), findsOneWidget);
 

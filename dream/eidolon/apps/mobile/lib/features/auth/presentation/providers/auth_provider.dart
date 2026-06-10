@@ -79,9 +79,13 @@ class AuthNotifier extends _$AuthNotifier {
       errorMessage: null,
     );
 
-    // Log login event on first transition to authenticated
+    // Log login event on first transition to authenticated.
+    // Guarded: analytics must never break auth flow (e.g. Firebase not
+    // initialized in unit tests).
     if (newStatus == AuthStatus.authenticated) {
-      unawaited(ref.read(firebaseAnalyticsProvider).logLogin());
+      try {
+        unawaited(ref.read(firebaseAnalyticsProvider).logLogin());
+      } catch (_) {/* analytics unavailable — non-fatal */}
     }
   }
 
@@ -138,8 +142,11 @@ class AuthNotifier extends _$AuthNotifier {
         needsReAuth: isReAuth,
         errorMessage: isReAuth ? null : _errorMsg(result.error!),
       );
+    } else {
+      // Clear loading on success; the Firebase stream will then transition
+      // state to unauthenticated once sign-out propagates.
+      state = state.copyWith(isLoading: false);
     }
-    // On success, Firebase stream will transition state to unauthenticated
   }
 
   /// Re-authenticates the current user with their password, then immediately
