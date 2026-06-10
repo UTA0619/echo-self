@@ -14,13 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-      - run: npm ci
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
       - name: Audit dependencies
-        run: npm audit --audit-level=high --json | tee audit-results.json || true
+        run: pnpm audit --audit-level high --json | tee audit-results.json || true
       - name: Check critical vulnerabilities
         run: |
           CRITICAL=$(cat audit-results.json | jq '.metadata.vulnerabilities.critical // 0')
