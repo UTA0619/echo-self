@@ -1,0 +1,1 @@
+Eidolon is a soul-bound RPG. Sign in with the demo account, complete the short onboarding (personality quiz + name your Eidolon), then tap Enter Dungeon. Reality Sync (HealthKit) is optional and can be skipped. In-app purchases use the StoreKit sandbox.
