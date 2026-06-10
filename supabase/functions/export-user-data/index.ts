@@ -81,26 +81,26 @@ async function handleExport(supabase: ReturnType<typeof createClient>, userId: s
       .single(),
 
     supabase
-      .from('journal_entries')
-      .select('id, content, word_count, emotion_analysis, echo_response, created_at')
+      .from('entries')
+      .select('id, content, word_count, emotion, emotion_data, ai_response, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false }),
 
     supabase
       .from('memories')
-      .select('id, content, memory_type, importance, emotion_tags, themes, created_at')
+      .select('id, content_chunk, importance, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false }),
 
     supabase
-      .from('future_self_predictions')
-      .select('id, timeframe, persona_name, persona_description, archetype, confidence_score, core_traits, generated_at')
+      .from('future_self_simulations')
+      .select('id, horizon_months, narrative, letter_text, trajectory_score, created_at')
       .eq('user_id', userId)
-      .order('generated_at', { ascending: false }),
+      .order('created_at', { ascending: false }),
 
     supabase
       .from('identity_nodes')
-      .select('id, node_type, label, description, polarity, confidence, first_seen, last_seen')
+      .select('id, type, label, description, polarity, confidence, active, evidence, created_at, updated_at')
       .eq('user_id', userId),
 
     supabase
@@ -118,9 +118,9 @@ async function handleExport(supabase: ReturnType<typeof createClient>, userId: s
       gdpr_compliant: true,
     },
     profile: profileResult.data ?? null,
-    journal_entries: entriesResult.data ?? [],
+    entries: entriesResult.data ?? [],
     memories: memoriesResult.data ?? [],
-    future_self_predictions: predictionsResult.data ?? [],
+    future_self_simulations: predictionsResult.data ?? [],
     identity_nodes: identityResult.data ?? [],
     subscription: subscriptionResult.data ?? null,
   };
@@ -178,8 +178,8 @@ async function handleErasure(
 
     // Wipe journal entry content
     supabase
-      .from('journal_entries')
-      .update({ content: '[content deleted by user request]', echo_response: null, emotion_analysis: null })
+      .from('entries')
+      .update({ content: '[content deleted by user request]', ai_response: null, emotion_data: null })
       .eq('user_id', userId)
       .then(r => r.error),
 

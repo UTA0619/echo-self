@@ -6,16 +6,17 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Colors, Spacing } from '../../theme/tokens';
 
-const TOTAL_STEPS = 5;
+const DEFAULT_TOTAL_STEPS = 5;
 
 interface Props {
   currentStep: number;
+  totalSteps?: number;
 }
 
-export function OnboardingProgress({ currentStep }: Props) {
+export function OnboardingProgress({ currentStep, totalSteps = DEFAULT_TOTAL_STEPS }: Props) {
   return (
     <View style={styles.container}>
-      {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+      {Array.from({ length: totalSteps }).map((_, i) => (
         <DotIndicator key={i} isActive={i === currentStep} isPast={i < currentStep} />
       ))}
     </View>

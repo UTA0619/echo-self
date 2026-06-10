@@ -1,9 +1,68 @@
+/**
+ * echo-ai: Core AI journaling response generator.
+ *
+ * Generates a personalised, memory-grounded response to a journal entry
+ * using Claude Sonnet. Runs a safety check first; for crisis-level signals
+ * the static resource message is returned without generation.
+ *
+ * Input:  Authorization header (Bearer <user JWT>) + { entry_id, content, emotion?, emotion_score? }
+ * Output: { response: string, success: boolean, crisis?: boolean }
+ */
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
-import { corsHeaders, handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts'
+import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts'
 import { getServiceClient } from '../_shared/supabase.ts'
-import { buildEchoSystemPrompt, buildEmotionalArcSummary, selectRecentEntries } from '../../packages/ai-core/src/index.ts'
+import {
+  buildEchoSystemPrompt,
+  buildEmotionalArcSummary,
+  selectRecentEntries,
+} from '../_shared/prompts/echo.ts'
+import {
+  buildSafetyResponseSystemPrompt,
+  buildSafetyResponsePrompt,
+  CRISIS_RESOURCES_STATIC,
+} from '../_shared/prompts/safety.ts'
 
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')!
+const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')!
+const MODEL_SONNET      = 'claude-sonnet-4-6'
+const MODEL_HAIKU       = 'claude-haiku-4-5-20251001'
+
+// ── Claude call helper ────────────────────────────────────────────────────────
+
+async function callClaude(
+  model:   string,
+  system:  string,
+  userMsg: string,
+  maxTokens = 600,
+): Promise<string> {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key':         ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'content-type':      'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: maxTokens,
+      system,
+      messages: [{ role: 'user', content: userMsg }],
+    }),
+  })
+
+  if (!res.ok) {
+    const errText = await res.text()
+    throw new Error(`Claude API error ${res.status}: ${errText.slice(0, 200)}`)
+  }
+
+  const data = await res.json() as {
+    content: Array<{ text: string }>
+    usage:   { input_tokens: number; output_tokens: number }
+  }
+
+  return data.content[0]?.text ?? ''
+}
+
+// ── Handler ───────────────────────────────────────────────────────────────────
 
 serve(async (req: Request) => {
   const corsRes = handleCors(req)
@@ -18,8 +77,10 @@ serve(async (req: Request) => {
 
     const supabase = getServiceClient()
 
-    // Get user from auth token
-    const { data: { user }, error: authError } = await supabase.auth.getUser(auth.replace('Bearer ', ''))
+    // Authenticate user from JWT
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      auth.replace('Bearer ', ''),
+    )
     if (authError || !user) return errorResponse('Unauthorized', 401)
 
     const { data: userData } = await supabase
@@ -30,7 +91,7 @@ serve(async (req: Request) => {
 
     if (!userData) return errorResponse('User not found', 404)
 
-    // Parallel data fetch for context
+    // 1. Parallel context fetch
     const [entriesResult, memoriesResult, emotionHistoryResult] = await Promise.all([
       supabase
         .from('entries')
@@ -38,124 +99,103 @@ serve(async (req: Request) => {
         .eq('user_id', userData.id)
         .order('created_at', { ascending: false })
         .limit(10),
-      // Memory retrieval via edge function invoke
       supabase.functions.invoke('memory-retrieve', {
         body: { query_text: content, limit: 5, user_id: userData.id },
       }),
       supabase
-        .from('emotion_history')
-        .select('date, emotion_counts, avg_valence, entry_count')
+        .from('emotion_history_7d')
+        .select('date, dominant_emotion, avg_valence')
         .eq('user_id', userData.id)
         .order('date', { ascending: false })
-        .limit(30),
+        .limit(7),
     ])
 
-    const recentEntries = selectRecentEntries(entriesResult.data ?? [])
-    const retrievedMemories = memoriesResult.data?.memories ?? []
+    const recentEntries      = selectRecentEntries(entriesResult.data ?? [])
+    const retrievedMemories  = memoriesResult.data?.memories ?? []
     const emotionalArcSummary = buildEmotionalArcSummary(emotionHistoryResult.data ?? [])
 
+    // 2. Safety check (pass entry_id so crisis events are linked)
+    const safetyRes = await supabase.functions.invoke('safety-check', {
+      body: { user_id: userData.id, entry_id, content },
+    })
+    const safety = safetyRes.data ?? { safe: true, risk_level: 'none' }
+
+    // 3. Handle crisis — return static resources, no generation
+    if (!safety.safe || safety.risk_level === 'crisis') {
+      await supabase
+        .from('entries')
+        .update({ ai_response: CRISIS_RESOURCES_STATIC })
+        .eq('id', entry_id)
+
+      return jsonResponse({ response: CRISIS_RESOURCES_STATIC, success: true, crisis: true })
+    }
+
+    // 4. Build main Echo system prompt
     const systemPrompt = buildEchoSystemPrompt({
-      userName: userData.display_name ?? 'you',
-      onboardingData: userData.onboarding_data,
-      currentEntry: content,
+      userName:         userData.display_name ?? 'you',
+      onboardingData:   userData.onboarding_data,
+      currentEntry:     content,
       emotion,
-      emotionScore: emotion_score,
+      emotionScore:     emotion_score,
       recentEntries,
       retrievedMemories,
       emotionalArcSummary,
     })
 
-    // Safety check before generating response
-    const safetyRes = await supabase.functions.invoke('safety-check', {
-      body: { user_id: userData.id, content },
-    })
-    const safety = safetyRes.data ?? { safe: true, risk_level: 'none' }
+    // 5. Generate response with Claude Sonnet
+    let echoResponse = await callClaude(MODEL_SONNET, systemPrompt, content, 600)
 
-    if (!safety.safe || safety.risk_level === 'crisis') {
-      // For crisis: return the intervention directly, do not generate AI response
-      await supabase.from('entries').update({
-        ai_response: safety.intervention,
-      }).eq('id', entry_id)
-      return jsonResponse({ response: safety.intervention, success: true, crisis: true })
-    }
-
-    // Stream from OpenAI
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-2024-08-06',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: content },
-        ],
-        temperature: 0.85,
-        top_p: 0.95,
-        max_tokens: 600,
-        stream: true,
-      }),
-    })
-
-    if (!openAIResponse.ok) {
-      const err = await openAIResponse.text()
-      throw new Error(`OpenAI error: ${err}`)
-    }
-
-    // Collect full response for storage
-    let fullResponse = ''
-    let promptTokens = 0
-    let completionTokens = 0
-
-    const reader = openAIResponse.body!.getReader()
-    const decoder = new TextDecoder()
-
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      const chunk = decoder.decode(value)
-      const lines = chunk.split('\n').filter(l => l.startsWith('data: ') && l !== 'data: [DONE]')
-      for (const line of lines) {
-        try {
-          const data = JSON.parse(line.replace('data: ', ''))
-          const delta = data.choices?.[0]?.delta?.content ?? ''
-          fullResponse += delta
-          if (data.usage) {
-            promptTokens = data.usage.prompt_tokens ?? 0
-            completionTokens = data.usage.completion_tokens ?? 0
-          }
-        } catch { /* skip malformed chunks */ }
+    // 6. For moderate/high risk — append a compassionate safety note
+    if (safety.risk_level === 'moderate' || safety.risk_level === 'high') {
+      try {
+        const safetyNote = await callClaude(
+          MODEL_HAIKU,
+          buildSafetyResponseSystemPrompt(),
+          buildSafetyResponsePrompt({
+            userName:   userData.display_name ?? 'you',
+            content,
+            riskLevel:  safety.risk_level as 'moderate' | 'high',
+            emotionArc: emotionalArcSummary,
+          }),
+          200,
+        )
+        if (safetyNote.trim()) {
+          echoResponse = `${echoResponse}\n\n---\n\n${safetyNote}`
+        }
+      } catch (safetyErr) {
+        // Fall back to static intervention if Claude call fails
+        const staticNote = safety.intervention ?? ''
+        if (staticNote) echoResponse = `${echoResponse}\n\n---\n\n${staticNote}`
+        console.warn('[echo-ai] safety note generation failed:', safetyErr)
       }
     }
 
-    // Log usage and trigger async pipelines
+    // 7. Persist response and fire async pipelines
     await Promise.all([
-      supabase.from('ai_usage').insert({
-        user_id: userData.id,
-        edge_function: 'echo-ai',
-        model: 'gpt-4o-2024-08-06',
-        prompt_tokens: promptTokens,
-        completion_tokens: completionTokens,
-        total_cost_usd: ((promptTokens * 2.5 + completionTokens * 10) / 1_000_000),
-      }),
-      // Async memory ingestion (fire and forget)
+      supabase
+        .from('entries')
+        .update({ ai_response: echoResponse })
+        .eq('id', entry_id),
+
+      // Memory ingestion (fire-and-forget)
       supabase.functions.invoke('memory-ingest', {
+        body: { entry_id, user_id: userData.id, content },
+      }),
+
+      // Behavioral tagging (fire-and-forget)
+      supabase.functions.invoke('behavioral-tag', {
+        body: { entry_id, user_id: userData.id, content },
+      }),
+
+      // Identity node extraction (fire-and-forget)
+      supabase.functions.invoke('identity-infer', {
         body: { entry_id, user_id: userData.id, content },
       }),
     ])
 
-    // Append safety resources for moderate-risk entries (below AI response)
-    const finalResponse = safety.risk_level === 'moderate' && safety.intervention
-      ? `${fullResponse}\n\n---\n\n${safety.intervention}`
-      : fullResponse
-
-    await supabase.from('entries').update({ ai_response: finalResponse }).eq('id', entry_id)
-
-    return jsonResponse({ response: finalResponse, success: true })
+    return jsonResponse({ response: echoResponse, success: true })
   } catch (err) {
-    console.error('[echo-ai] Error:', err)
+    console.error('[echo-ai] error:', err)
     return errorResponse(err instanceof Error ? err.message : 'Internal server error')
   }
 })

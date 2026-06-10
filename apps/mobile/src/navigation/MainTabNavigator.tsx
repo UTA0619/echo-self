@@ -81,5 +81,3 @@ export function MainTabNavigator() {
     </Tab.Navigator>
   );
 }
-
-const styles = StyleSheet.create({});

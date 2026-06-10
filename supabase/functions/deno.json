@@ -1,0 +1,31 @@
+{
+  "$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json",
+  "compilerOptions": {
+    "strict": true,
+    "lib": ["deno.window"]
+  },
+  "imports": {
+    "https://deno.land/std@0.224.0/assert/mod.ts": "https://deno.land/std@0.224.0/assert/mod.ts"
+  },
+  "test": {
+    "include": ["./_tests/**/*.test.ts"],
+    "exclude": []
+  },
+  "tasks": {
+    "test": "deno test --allow-net --allow-env --no-check _tests/",
+    "test:coverage": "deno test --allow-net --allow-env --no-check --coverage=coverage _tests/",
+    "test:one": "deno test --allow-net --allow-env --no-check"
+  },
+  "lint": {
+    "include": ["_shared/", "_tests/"],
+    "rules": {
+      "tags": ["recommended"],
+      "exclude": ["no-explicit-any"]
+    }
+  },
+  "fmt": {
+    "include": ["_shared/", "_tests/"],
+    "lineWidth": 100,
+    "singleQuote": true
+  }
+}

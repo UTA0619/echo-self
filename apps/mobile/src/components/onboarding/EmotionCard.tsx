@@ -4,14 +4,13 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
   interpolateColor,
 } from 'react-native-reanimated';
 import { HapticPatterns } from '../../theme/haptics';
-import { Colors, Spacing } from '../../theme/tokens';
+import { Colors } from '../../theme/tokens';
 import type { EmotionType } from '@echo-self/shared-types';
 
-const EMOTION_CONFIG: Record<EmotionType, { emoji: string; label: string; color: string }> = {
+const EMOTION_CONFIG: Partial<Record<EmotionType, { emoji: string; label: string; color: string }>> = {
   joy:          { emoji: '✨', label: 'Joy',          color: '#FBBF24' },
   sadness:      { emoji: '💧', label: 'Sadness',      color: '#6366F1' },
   anger:        { emoji: '🔥', label: 'Anger',        color: '#EF4444' },
@@ -33,7 +32,7 @@ interface Props {
 }
 
 export function EmotionCard({ emotion, selected, disabled, onToggle }: Props) {
-  const config = EMOTION_CONFIG[emotion];
+  const config = EMOTION_CONFIG[emotion] ?? { emoji: '•', label: emotion, color: '#8B8FA8' };
   const progress = useSharedValue(selected ? 1 : 0);
   const scale = useSharedValue(1);
 

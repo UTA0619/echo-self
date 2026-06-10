@@ -1,220 +1,228 @@
 /**
  * generate-share-card — AI Identity Share Card Generator
  *
- * Generates a shareable PNG identity card for a user's Future Self prediction.
- * Returns a data URL (base64 PNG) that can be saved to Supabase Storage and
- * shared natively via the React Native Share API.
+ * Generates a shareable SVG identity card for a user's Future Self simulation.
+ * Returns SVG + a public Storage URL.
+ *
+ * Uses Claude Sonnet to generate unique, personality-aware SVG layouts.
+ * Falls back to a static template if Claude is unavailable.
  *
  * POST /generate-share-card
- * Body: { userId: string, predictionId: string }
+ * Body: { simulationId: string }
  *
  * The card displays:
- *  - User's archetype + persona name
- *  - Top 3 core traits as styled pills
- *  - Confidence score as a ring indicator
- *  - Timeframe label (30d / 90d / 1 year)
- *  - ECHO//SELF branding + QR-style referral code
- *
- * Rendering: SVG → PNG via Resvg (Deno-native, no headless Chrome).
- * SVG is generated with GPT-4o to produce unique, personality-aware layouts.
+ *  - User's horizon label (1 month / 3 months / 1 year)
+ *  - Narrative excerpt + trajectory score as a ring
+ *  - ECHO branding
  */
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import OpenAI from 'https://esm.sh/openai@4';
+import { getServiceClient } from '../_shared/supabase.ts'
 
-const SUPABASE_URL             = Deno.env.get('SUPABASE_URL')!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const OPENAI_API_KEY           = Deno.env.get('OPENAI_API_KEY')!;
+const ANTHROPIC_API_KEY     = Deno.env.get('ANTHROPIC_API_KEY')!
+const SUPABASE_URL          = Deno.env.get('SUPABASE_URL')!
+const SUPABASE_SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { persistSession: false },
-});
-const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
-
-const corsHeaders = {
+const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
 
-// Archetype → gradient pair (from, to)
-const ARCHETYPE_GRADIENTS: Record<string, [string, string]> = {
-  explorer:  ['#06B6D4', '#4F46E5'],
-  sage:      ['#7C3AED', '#4F46E5'],
-  creator:   ['#EC4899', '#8B5CF6'],
-  hero:      ['#EF4444', '#F59E0B'],
-  caregiver: ['#10B981', '#06B6D4'],
-  rebel:     ['#F59E0B', '#EF4444'],
-  lover:     ['#EC4899', '#8B5CF6'],
-  jester:    ['#FBBF24', '#F59E0B'],
-};
+function ok(body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+  })
+}
+function err(msg: string, status: number): Response {
+  return new Response(JSON.stringify({ error: msg }), {
+    status,
+    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+  })
+}
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-  if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
-  }
+// ── Claude Sonnet SVG generation ──────────────────────────────────────────────
 
-  // ── Auth ────────────────────────────────────────────────────────────────
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader) return error('Missing Authorization', 401);
+async function generateSvg(opts: {
+  displayName: string
+  horizonLabel: string
+  narrativeExcerpt: string
+  trajectoryScore: number
+}): Promise<string> {
+  const { displayName, horizonLabel, narrativeExcerpt, trajectoryScore } = opts
+  const pct = Math.round(trajectoryScore)
 
-  const { data: { user }, error: authErr } = await supabase.auth.getUser(
-    authHeader.replace('Bearer ', '')
-  );
-  if (authErr || !user) return error('Unauthorized', 401);
-
-  // ── Parse body ──────────────────────────────────────────────────────────
-  const { predictionId } = await req.json().catch(() => ({}));
-  if (!predictionId) return error('predictionId required', 400);
-
-  // ── Load prediction ─────────────────────────────────────────────────────
-  const { data: pred, error: predErr } = await supabase
-    .from('future_self_predictions')
-    .select('*')
-    .eq('id', predictionId)
-    .eq('user_id', user.id)
-    .single();
-
-  if (predErr || !pred) return error('Prediction not found', 404);
-
-  // ── Load user profile ────────────────────────────────────────────────────
-  const { data: profile } = await supabase
-    .from('users')
-    .select('display_name')
-    .eq('id', user.id)
-    .single();
-
-  const displayName = profile?.display_name ?? 'You';
-  const [gradFrom, gradTo] = ARCHETYPE_GRADIENTS[pred.archetype] ?? ['#4F46E5', '#7C3AED'];
-  const timeframeLabel = pred.timeframe === '30d'
-    ? '30 days from now'
-    : pred.timeframe === '90d'
-      ? '90 days from now'
-      : '1 year from now';
-  const confidencePct = Math.round(pred.confidence_score * 100);
-
-  // ── Generate SVG via GPT-4o ─────────────────────────────────────────────
-  const svgPrompt = `Generate a 1080x1080 SVG share card for a journaling app.
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key':         ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'content-type':      'application/json',
+    },
+    body: JSON.stringify({
+      model:      'claude-sonnet-4-6',
+      max_tokens: 4096,
+      system:     'You are an expert SVG designer. Output ONLY valid, self-contained SVG markup — no explanation, no markdown fences.',
+      messages: [{
+        role:    'user',
+        content: `Generate a 1080x1080 SVG share card for ECHO, an AI journaling app.
 
 Data:
 - Name: ${displayName}
-- Archetype: ${pred.archetype}
-- Persona: ${pred.persona_name}
-- Tagline: "${pred.share_snippet}"
-- Top traits: ${(pred.core_traits ?? []).slice(0, 3).join(', ')}
-- Confidence: ${confidencePct}%
-- Timeframe: ${timeframeLabel}
-- Gradient from: ${gradFrom} to ${gradTo}
+- Future horizon: ${horizonLabel}
+- Narrative excerpt: "${narrativeExcerpt.slice(0, 120)}"
+- Trajectory score: ${pct}/100
 
-Design requirements:
-- Dark background (#0A0A0F)
-- Gradient accent from ${gradFrom} to ${gradTo} used sparingly for highlights
-- ECHO//SELF wordmark top-left in white, small (font-size 24)
-- Large archetype emoji or symbol centered
-- Persona name bold and large
-- Share snippet as italic subtext
-- 3 trait pills (rounded rects with gradient border)
-- Confidence ring (circular progress, ${confidencePct}% filled)
-- Timeframe label bottom center
-- Clean, minimal, premium feel — no clutter
-- Must be valid SVG with no external resources (only inline styles/paths)
-- Use viewBox="0 0 1080 1080"
+Design:
+- Background: #0A0B0F (very dark blue-black)
+- Accent: #7B6CF6 (indigo/violet)
+- Warm highlight: #F6A26C (soft orange)
+- ECHO wordmark top-left (white, font-weight 800, font-size 26, letter-spacing -1)
+- Large centered trajectory ring (SVG circle progress, ${pct}% filled, accent color)
+- ${pct} score number centered inside the ring (bold, large, white)
+- Horizon label below the ring (${horizonLabel}, muted white, italic)
+- Narrative excerpt as italic quote text below (wrap at 50 chars, muted white)
+- Name bottom-right (small, warm orange)
+- "echo-self.app" bottom-center (very muted)
+- Premium, minimal, dark aesthetic — no clutter
+- Self-contained SVG, no external resources
+- viewBox="0 0 1080 1080"
 
-Return ONLY the SVG XML, no explanation, no markdown.`;
-
-  let svg: string;
-  try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      max_tokens: 4096,
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert SVG designer. You output only valid, self-contained SVG markup.',
-        },
-        { role: 'user', content: svgPrompt },
-      ],
-    });
-    svg = completion.choices[0]?.message?.content ?? '';
-    // Strip any markdown code fences if present
-    svg = svg.replace(/^```[\w]*\n?/, '').replace(/\n?```$/, '').trim();
-  } catch (err) {
-    console.error('[share-card] OpenAI error:', err);
-    // Fallback: minimal static SVG
-    svg = buildFallbackSvg({ displayName, personaName: pred.persona_name, shareSnippet: pred.share_snippet, gradFrom, gradTo, confidencePct, timeframeLabel, traits: pred.core_traits ?? [] });
-  }
-
-  // ── Store SVG in Supabase Storage ────────────────────────────────────────
-  const filename = `share-cards/${user.id}/${predictionId}.svg`;
-  const { error: uploadErr } = await supabase.storage
-    .from('public-assets')
-    .upload(filename, svg, {
-      contentType: 'image/svg+xml',
-      upsert: true,
-    });
-
-  if (uploadErr) {
-    console.warn('[share-card] Storage upload failed:', uploadErr.message);
-  }
-
-  // ── Get public URL ───────────────────────────────────────────────────────
-  const { data: publicUrl } = supabase.storage
-    .from('public-assets')
-    .getPublicUrl(filename);
-
-  return new Response(
-    JSON.stringify({
-      svg,
-      publicUrl: publicUrl?.publicUrl ?? null,
-      predictionId,
+Output ONLY the SVG.`,
+      }],
     }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-});
+  })
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Fallback SVG when OpenAI is unavailable
-// ─────────────────────────────────────────────────────────────────────────────
+  if (!res.ok) throw new Error(`Claude error: ${res.status}`)
+  const json = await res.json() as { content: Array<{ text: string }> }
+  let svg = json.content?.[0]?.text ?? ''
+
+  // Strip markdown fences if Claude wraps in code block
+  svg = svg.replace(/^```[\w]*\n?/, '').replace(/\n?```$/, '').trim()
+  if (!svg.startsWith('<svg')) throw new Error('Not valid SVG')
+  return svg
+}
+
+// ── Fallback static SVG ───────────────────────────────────────────────────────
+
 function buildFallbackSvg(opts: {
-  displayName: string;
-  personaName: string;
-  shareSnippet: string;
-  gradFrom: string;
-  gradTo: string;
-  confidencePct: number;
-  timeframeLabel: string;
-  traits: string[];
+  displayName: string
+  horizonLabel: string
+  narrativeExcerpt: string
+  trajectoryScore: number
 }): string {
-  const { displayName, personaName, shareSnippet, gradFrom, gradTo, confidencePct, timeframeLabel, traits } = opts;
-  const traitPills = traits.slice(0, 3).map((t, i) =>
-    `<rect x="${200 + i * 230}" y="700" width="200" height="40" rx="20" fill="none" stroke="${gradFrom}" stroke-width="1.5"/>
-     <text x="${300 + i * 230}" y="725" text-anchor="middle" fill="${gradFrom}" font-size="14" font-family="system-ui">${t}</text>`
-  ).join('\n');
+  const { displayName, horizonLabel, narrativeExcerpt, trajectoryScore } = opts
+  const pct   = Math.round(trajectoryScore)
+  const r     = 140
+  const circ  = 2 * Math.PI * r
+  const dash  = (pct / 100) * circ
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${gradFrom}"/>
-      <stop offset="100%" stop-color="${gradTo}"/>
+      <stop offset="0%" stop-color="#7B6CF6"/>
+      <stop offset="100%" stop-color="#F6A26C"/>
     </linearGradient>
   </defs>
-  <rect width="1080" height="1080" fill="#0A0A0F"/>
-  <rect x="40" y="40" width="1000" height="1000" rx="40" fill="none" stroke="url(#g)" stroke-width="1" opacity="0.3"/>
-  <text x="60" y="90" fill="white" font-size="24" font-family="system-ui" font-weight="800" letter-spacing="-1">ECHO//SELF</text>
-  <text x="540" y="440" text-anchor="middle" fill="url(#g)" font-size="80">✨</text>
-  <text x="540" y="540" text-anchor="middle" fill="white" font-size="48" font-family="system-ui" font-weight="700">${personaName}</text>
-  <text x="540" y="600" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="22" font-family="system-ui" font-style="italic">"${shareSnippet.slice(0, 60)}"</text>
-  ${traitPills}
-  <text x="540" y="820" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="18" font-family="system-ui">${timeframeLabel} · ${confidencePct}% confidence</text>
-  <text x="540" y="1010" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="16" font-family="system-ui">echoself.app</text>
-</svg>`;
+  <rect width="1080" height="1080" fill="#0A0B0F"/>
+  <rect x="40" y="40" width="1000" height="1000" rx="48" fill="none" stroke="#7B6CF6" stroke-width="1" opacity="0.2"/>
+
+  <!-- ECHO wordmark -->
+  <text x="60" y="95" fill="white" font-size="26" font-family="system-ui,sans-serif" font-weight="800" letter-spacing="-1">ECHO</text>
+
+  <!-- Trajectory ring -->
+  <circle cx="540" cy="440" r="${r}" fill="none" stroke="#1E2030" stroke-width="18"/>
+  <circle cx="540" cy="440" r="${r}" fill="none" stroke="url(#g)" stroke-width="18"
+    stroke-dasharray="${dash.toFixed(1)} ${(circ - dash).toFixed(1)}"
+    stroke-dashoffset="${(circ * 0.25).toFixed(1)}"
+    stroke-linecap="round"/>
+
+  <!-- Score text -->
+  <text x="540" y="455" text-anchor="middle" fill="white" font-size="64" font-family="system-ui,sans-serif" font-weight="800">${pct}</text>
+  <text x="540" y="495" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="16" font-family="system-ui,sans-serif">trajectory score</text>
+
+  <!-- Horizon -->
+  <text x="540" y="630" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="24" font-family="system-ui,sans-serif" font-style="italic">${horizonLabel}</text>
+
+  <!-- Narrative excerpt -->
+  <text x="540" y="700" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-size="20" font-family="system-ui,sans-serif" font-style="italic">"${narrativeExcerpt.slice(0, 80).replace(/"/g, '&quot;')}"</text>
+
+  <!-- Name + branding -->
+  <text x="1020" y="1040" text-anchor="end" fill="#F6A26C" font-size="18" font-family="system-ui,sans-serif">${displayName}</text>
+  <text x="540" y="1040" text-anchor="middle" fill="rgba(255,255,255,0.2)" font-size="16" font-family="system-ui,sans-serif">echo-self.app</text>
+</svg>`
 }
 
-function error(message: string, status: number): Response {
-  return new Response(JSON.stringify({ error: message }), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
-}
+// ── Main handler ──────────────────────────────────────────────────────────────
+
+Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS })
+  if (req.method !== 'POST') return err('Method not allowed', 405)
+
+  const authHeader = req.headers.get('Authorization')
+  if (!authHeader) return err('Missing Authorization', 401)
+
+  const supabase = getServiceClient()
+
+  // Verify user
+  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+  const userClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE, { auth: { persistSession: false } })
+  const { data: { user }, error: authErr } = await userClient.auth.getUser(
+    authHeader.replace('Bearer ', ''),
+  )
+  if (authErr || !user) return err('Unauthorized', 401)
+
+  const { simulationId } = await req.json().catch(() => ({}))
+  if (!simulationId) return err('simulationId required', 400)
+
+  // Load simulation
+  const { data: sim, error: simErr } = await supabase
+    .from('future_self_simulations')
+    .select('*')
+    .eq('id', simulationId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (simErr || !sim) return err('Simulation not found', 404)
+
+  // Load profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('display_name')
+    .eq('auth_id', user.id)
+    .maybeSingle()
+
+  const displayName  = profile?.display_name ?? 'You'
+  const horizonLabel = sim.horizon_months === 1 ? '1 month from now'
+    : sim.horizon_months === 3 ? '3 months from now'
+    : '1 year from now'
+
+  // Generate SVG
+  let svg: string
+  try {
+    svg = await generateSvg({
+      displayName,
+      horizonLabel,
+      narrativeExcerpt: sim.narrative ?? '',
+      trajectoryScore:  sim.trajectory_score ?? 50,
+    })
+  } catch (e) {
+    console.warn('[share-card] Claude SVG failed, using fallback:', e)
+    svg = buildFallbackSvg({
+      displayName,
+      horizonLabel,
+      narrativeExcerpt: sim.narrative ?? '',
+      trajectoryScore:  sim.trajectory_score ?? 50,
+    })
+  }
+
+  // Upload to Storage
+  const filename = `share-cards/${user.id}/${simulationId}.svg`
+  const { error: uploadErr } = await supabase.storage
+    .from('public-assets')
+    .upload(filename, svg, { contentType: 'image/svg+xml', upsert: true })
+
+  if (uploadErr) console.warn('[share-card] Storage upload failed:', uploadErr.message)
+
+  const { data: publicUrlData } = supabase.storage.from('public-assets').getPublicUrl(filename)
+
+  return ok({ svg, publicUrl: publicUrlData?.publicUrl ?? null, simulationId })
+})

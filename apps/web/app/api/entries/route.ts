@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { countTodayEntries } from '@/lib/entries.server'
-import { getSubscriptionStatus, FREE_LIMITS } from '@/lib/subscription'
+import { getSubscriptionStatus } from '@/lib/subscription-server'
+import { FREE_LIMITS } from '@/lib/subscription'
 
 export async function POST(req: Request) {
   const supabase = await createClient()

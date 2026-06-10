@@ -6,7 +6,7 @@ import { useAuthStore } from '../store/auth';
 import { useIAPStore } from '../store/iap';
 import { supabase } from '../services/supabase';
 import { OnboardingNavigator } from './OnboardingNavigator';
-import { MainTabNavigator } from './MainTabNavigator';
+import { MainStackNavigator } from './MainStackNavigator';
 import { AuthNavigator } from './AuthNavigator';
 
 export type RootStackParamList = {
@@ -68,7 +68,7 @@ export function RootNavigator() {
         ) : !isComplete ? (
           <RootStack.Screen name="Onboarding" component={OnboardingNavigator} />
         ) : (
-          <RootStack.Screen name="Main" component={MainTabNavigator} />
+          <RootStack.Screen name="Main" component={MainStackNavigator} />
         )}
       </RootStack.Navigator>
     </NavigationContainer>

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { EmotionType } from '@echo-self/shared-types';
+import { syncOnboardingToSupabase } from '../services/onboarding-sync';
 
 interface OnboardingState {
   isComplete: boolean;
@@ -11,6 +12,18 @@ interface OnboardingState {
   goals: string[];
   notificationsEnabled: boolean;
 
+  // Identity profile fields (used by AI prompts)
+  identityTags: string[];         // self-selected personality descriptors
+  aspirations: string;            // free-text life aspiration
+  streakCommitment: number;       // days/week they commit to reflecting (1–7)
+
+  // Expo push token (captured in NotificationScreen, synced on completion)
+  expoPushToken?: string;
+  platform?: 'ios' | 'android';
+
+  // Convenience alias (used in some UI)
+  get name(): string;
+
   // Actions
   setStep: (step: number) => void;
   nextStep: () => void;
@@ -18,6 +31,12 @@ interface OnboardingState {
   toggleEmotion: (emotion: EmotionType) => void;
   setGoals: (goals: string[]) => void;
   setNotificationsEnabled: (enabled: boolean) => void;
+  setIdentityTags: (tags: string[]) => void;
+  setAspirations: (text: string) => void;
+  setStreakCommitment: (days: number) => void;
+  setExpoPushToken: (token: string, platform: 'ios' | 'android') => void;
+  /** Syncs all onboarding data to Supabase then marks onboarding as complete. */
+  completeOnboarding: (userId: string) => Promise<void>;
   complete: () => void;
   reset: () => void;
 }
@@ -29,12 +48,20 @@ const initialState = {
   selectedEmotions: [] as EmotionType[],
   goals: [] as string[],
   notificationsEnabled: false,
+  identityTags: [] as string[],
+  aspirations: '',
+  streakCommitment: 5,
+  expoPushToken: undefined as string | undefined,
+  platform: undefined as ('ios' | 'android') | undefined,
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
   persist(
     (set, get) => ({
       ...initialState,
+
+      // Convenience alias so components can use `name` instead of `displayName`
+      get name() { return get().displayName },
 
       setStep: (step) => set({ currentStep: step }),
 
@@ -55,6 +82,46 @@ export const useOnboardingStore = create<OnboardingState>()(
       setGoals: (goals) => set({ goals }),
 
       setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
+
+      setIdentityTags: (tags) => set({ identityTags: tags }),
+
+      setAspirations: (text) => set({ aspirations: text }),
+
+      setStreakCommitment: (days) => set({ streakCommitment: days }),
+
+      setExpoPushToken: (token, platform) => set({ expoPushToken: token, platform }),
+
+      completeOnboarding: async (userId: string) => {
+        const {
+          displayName,
+          selectedEmotions,
+          identityTags,
+          aspirations,
+          streakCommitment,
+          notificationsEnabled,
+          expoPushToken,
+          platform,
+        } = get()
+
+        // Sync to Supabase (best-effort — don't block the user if it fails)
+        const { ok, error } = await syncOnboardingToSupabase({
+          userId,
+          displayName,
+          selectedEmotions: selectedEmotions as string[],
+          identityTags,
+          aspirations,
+          streakCommitment,
+          notificationsEnabled,
+          expoPushToken,
+          platform,
+        })
+
+        if (!ok) {
+          console.error('[onboarding] Supabase sync failed (non-fatal):', error)
+        }
+
+        set({ isComplete: true })
+      },
 
       complete: () => set({ isComplete: true }),
 

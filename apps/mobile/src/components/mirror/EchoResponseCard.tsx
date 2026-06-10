@@ -1,12 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSpring,
-  FadeIn,
-} from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { useTypewriter } from '../../hooks/useTypewriter';
 import { EmotionBadge } from './EmotionBadge';

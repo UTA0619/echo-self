@@ -57,6 +57,17 @@ export const Spacing = {
   xxxl: 64,
 } as const;
 
+// Flat font-size scale (points). Used by the EchoText primitive.
+export const FontSize = {
+  xs: 12,
+  sm: 14,
+  base: 16,
+  lg: 18,
+  xl: 20,
+  xxl: 24,
+  display: 32,
+} as const;
+
 export const Typography = {
   displayXl: {
     fontSize: 40,

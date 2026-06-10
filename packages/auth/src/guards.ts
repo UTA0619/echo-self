@@ -3,7 +3,7 @@
 
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import type { Database } from '@echoself/supabase'
 
 const PUBLIC_ROUTES = [
@@ -51,7 +51,7 @@ export async function authMiddleware(request: NextRequest) {
   const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll: () => request.cookies.getAll(),
-      setAll: (cookiesToSet) => {
+      setAll: (cookiesToSet: { name: string; value: string; options: CookieOptions }[]) => {
         cookiesToSet.forEach(({ name, value, options }) => {
           request.cookies.set(name, value)
           response.cookies.set(name, value, options)
@@ -72,11 +72,13 @@ export async function authMiddleware(request: NextRequest) {
 
   // Authenticated but onboarding not done → redirect to onboarding
   if (!pathname.startsWith(ONBOARDING_ROUTE)) {
-    const { data: profile } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .select('onboarding_completed')
       .eq('id', user.id)
       .single()
+    // Generated Database types lag the live schema; cast the projected row.
+    const profile = data as { onboarding_completed: boolean } | null
 
     if (profile && !profile.onboarding_completed) {
       const redirectUrl = request.nextUrl.clone()

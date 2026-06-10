@@ -10,9 +10,15 @@
   },
   "dependencies": {
     "@echoself/supabase": "workspace:*",
+    "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10"
   },
+  "peerDependencies": {
+    "next": ">=15.0.0"
+  },
   "devDependencies": {
+    "@types/node": "^22.0.0",
+    "next": "^15.3.0",
     "typescript": "^5.7.2"
   }
 }

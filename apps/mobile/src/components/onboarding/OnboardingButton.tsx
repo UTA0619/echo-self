@@ -14,9 +14,10 @@ interface Props {
   variant?: 'primary' | 'secondary' | 'ghost';
   disabled?: boolean;
   style?: ViewStyle;
+  accessibilityLabel?: string;
 }
 
-export function OnboardingButton({ label, onPress, variant = 'primary', disabled, style }: Props) {
+export function OnboardingButton({ label, onPress, variant = 'primary', disabled, style, accessibilityLabel }: Props) {
   const scale = useSharedValue(1);
 
   const animStyle = useAnimatedStyle(() => ({
@@ -55,6 +56,8 @@ export function OnboardingButton({ label, onPress, variant = 'primary', disabled
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={disabled}
+        accessibilityLabel={accessibilityLabel ?? label}
+        accessibilityRole="button"
         style={[styles.base, btnStyle, disabled && styles.disabled]}
       >
         <Text style={[styles.text, textStyle]}>{label}</Text>

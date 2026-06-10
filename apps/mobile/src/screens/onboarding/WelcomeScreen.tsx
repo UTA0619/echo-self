@@ -10,14 +10,14 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
-import type { OnboardingStackParamList } from '../../navigation/OnboardingNavigator'
+import type { OnboardingParamList } from '../../navigation/OnboardingNavigator'
 import { AnimatedBackground } from '../../components/onboarding/AnimatedBackground'
 import { OnboardingButton } from '../../components/onboarding/OnboardingButton'
 import { Colors, Spacing, Typography } from '../../theme/tokens'
 
 const { width } = Dimensions.get('window')
 
-type Props = NativeStackScreenProps<OnboardingStackParamList, 'Welcome'>
+type Props = NativeStackScreenProps<OnboardingParamList, 'Welcome'>
 
 export function WelcomeScreen({ navigation }: Props) {
   const logoOpacity   = useSharedValue(0)
@@ -175,6 +175,6 @@ const styles = StyleSheet.create({
   },
   disclaimer: {
     ...Typography.caption,
-    color: Colors.textMuted,
+    color: Colors.textTertiary,
   },
 })

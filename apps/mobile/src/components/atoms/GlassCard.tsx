@@ -24,7 +24,7 @@ export function GlassCard({ children, style, intensity = 20 }: GlassCardProps) {
 const styles = StyleSheet.create({
   card: {
     borderRadius: BorderRadius.lg,
-    padding: Spacing.base,
+    padding: Spacing.md,
     borderWidth: 1,
     borderColor: `${Colors.white}15`,
     overflow: 'hidden',

@@ -15,8 +15,13 @@ alter table public.identity_shares enable row level security;
 create policy "public can read identity shares" on public.identity_shares for select using (true);
 create policy "users manage own identity shares" on public.identity_shares for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- referrals: viral referral tracking
-create table if not exists public.referrals (
+-- referrals: viral referral tracking.
+-- 004_identity_monetization created an earlier referrer/referred-pair model
+-- (referrer_id/referred_id) that the application never adopted — it reads the
+-- per-user referral-code model below (referrals.user_id + referral_code). Drop
+-- the superseded table so this authoritative definition applies cleanly.
+drop table if exists public.referrals cascade;
+create table public.referrals (
   id                   uuid primary key default gen_random_uuid(),
   user_id              uuid not null references auth.users(id) on delete cascade,
   referral_code        text not null,

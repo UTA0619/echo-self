@@ -8,7 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import type { EmotionType } from '@echo-self/shared-types';
 
-const EMOTION_CONFIG: Record<EmotionType, { emoji: string; color: string; label: string }> = {
+const EMOTION_CONFIG: Partial<Record<EmotionType, { emoji: string; color: string; label: string }>> = {
   joy:          { emoji: '✨', color: '#FBBF24', label: 'Joy' },
   sadness:      { emoji: '💧', color: '#6366F1', label: 'Sadness' },
   anger:        { emoji: '🔥', color: '#EF4444', label: 'Anger' },
@@ -29,7 +29,7 @@ interface Props {
 }
 
 export function EmotionBadge({ emotion, intensity, themes }: Props) {
-  const config = EMOTION_CONFIG[emotion];
+  const config = EMOTION_CONFIG[emotion] ?? { emoji: '•', color: '#8B8FA8', label: emotion };
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
 
