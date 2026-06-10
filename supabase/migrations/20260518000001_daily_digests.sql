@@ -23,15 +23,23 @@ create index on public.daily_digests (user_id, digest_date desc);
 
 -- Schedule daily-digest edge function to run at 2am UTC every day
 -- Requires pg_cron extension (enabled in Supabase Dashboard > Extensions)
-select
-  cron.schedule(
-    'daily-digest-2am',
-    '0 2 * * *',
-    $$
-      select net.http_post(
-        url := (select decrypted_secret from vault.decrypted_secrets where name = 'supabase_function_url') || '/daily-digest',
-        headers := '{"Content-Type":"application/json","Authorization":"Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'supabase_anon_key') || '"}',
-        body := '{}'::jsonb
-      );
-    $$
-  );
+-- pg_cron is enabled in the Supabase Dashboard (Extensions) in production but
+-- is unavailable in the local/CI Postgres, so guard on the cron schema's
+-- existence — the table + RLS above still apply in every environment.
+do $do$
+begin
+  if exists (select 1 from pg_namespace where nspname = 'cron') then
+    perform cron.schedule(
+      'daily-digest-2am',
+      '0 2 * * *',
+      $cron$
+        select net.http_post(
+          url := (select decrypted_secret from vault.decrypted_secrets where name = 'supabase_function_url') || '/daily-digest',
+          headers := '{"Content-Type":"application/json","Authorization":"Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'supabase_anon_key') || '"}',
+          body := '{}'::jsonb
+        );
+      $cron$
+    );
+  end if;
+end
+$do$;
