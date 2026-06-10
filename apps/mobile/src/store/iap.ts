@@ -132,7 +132,7 @@ export const useIAPStore = create<IAPState>((set, get) => ({
         })
         .filter((p): p is IAPPackage => p !== null)
         // monthly first, annual second
-        .sort((a, b) => (a.period === 'monthly' ? -1 : 1));
+        .sort((a, _b) => (a.period === 'monthly' ? -1 : 1));
 
       set({ packages: mapped, isLoading: false });
     } catch (err) {
@@ -152,17 +152,17 @@ export const useIAPStore = create<IAPState>((set, get) => ({
       await get().syncPremiumStatus(customerInfo);
       set({ isPurchasing: false, customerInfo });
       return true;
-    } catch (err: any) {
+    } catch (err) {
       set({ isPurchasing: false });
 
       // User cancelled — not an error, just silent
-      if (err?.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
+      if ((err as { code?: string })?.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
         return false;
       }
 
       // Payment declined / network issues
       const msg =
-        err?.message ??
+        (err instanceof Error ? err.message : null) ??
         'Purchase failed. Please check your payment method and try again.';
       set({ error: msg });
       console.error('[IAP] purchasePackage error:', err);
@@ -183,8 +183,9 @@ export const useIAPStore = create<IAPState>((set, get) => ({
       const restored =
         info.entitlements.active[ENTITLEMENT_PREMIUM] !== undefined;
       return restored;
-    } catch (err: any) {
-      set({ isPurchasing: false, error: err?.message ?? 'Could not restore purchases.' });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not restore purchases.';
+      set({ isPurchasing: false, error: message });
       console.error('[IAP] restorePurchases error:', err);
       return false;
     }

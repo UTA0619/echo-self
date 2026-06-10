@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
 
   // Loading
   loadingCard: {
-    backgroundColor: Colors.card,
+    backgroundColor: Colors.surface1,
     borderRadius: 20,
     padding: Spacing.xxxl,
     alignItems: 'center',
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
 
   // Packages card
   packagesCard: {
-    backgroundColor: Colors.card,
+    backgroundColor: Colors.surface1,
     borderRadius: 20,
     borderWidth: 1.5,
     borderColor: Colors.indigo,
@@ -420,10 +420,10 @@ const styles = StyleSheet.create({
   pkgOption: {
     flex: 1,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.border0,
     borderRadius: 14,
     padding: Spacing.md,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surface0,
     alignItems: 'center',
     gap: 2,
   },
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   pkgPeriodSelected: { color: Colors.indigo },
   pkgPrice: { fontSize: 20, fontWeight: '800', color: Colors.textSecondary, letterSpacing: -0.5 },
   pkgPriceSelected: { color: Colors.white },
-  pkgPer: { ...Typography.caption, color: Colors.textMuted },
+  pkgPer: { ...Typography.caption, color: Colors.textTertiary },
   pkgPerSelected: { color: Colors.textSecondary },
 
   // Savings badge
@@ -450,15 +450,15 @@ const styles = StyleSheet.create({
 
   // Free plan
   freeCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surface0,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.border0,
     padding: Spacing.xl,
     gap: Spacing.md,
   },
   freePlanName: { ...Typography.headingMd, color: Colors.textSecondary },
-  bullet: { color: Colors.textMuted, fontSize: 18, width: 16, marginTop: -2 },
+  bullet: { color: Colors.textTertiary, fontSize: 18, width: 16, marginTop: -2 },
   freeFeatureText: { ...Typography.bodyMd, color: Colors.textSecondary, flex: 1, lineHeight: 22 },
 
   // CTAs
@@ -468,13 +468,13 @@ const styles = StyleSheet.create({
   restoreBtn: { paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md },
   restoreText: {
     ...Typography.caption,
-    color: Colors.textMuted,
+    color: Colors.textTertiary,
     textDecorationLine: 'underline',
   },
 
   legalText: {
     ...Typography.caption,
-    color: Colors.textMuted,
+    color: Colors.textTertiary,
     textAlign: 'center',
     lineHeight: 18,
     marginTop: Spacing.xs,

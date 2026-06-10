@@ -3,6 +3,12 @@ import type { Database, Tables } from '../types/database.js'
 
 type MemoryRow = Tables<'memories'>
 
+// Permissive signature for custom Postgres RPCs that aren't represented in the
+// generated Database types. Cast the strongly-typed client's `.rpc` to this
+// until `supabase gen types` is re-run against the live schema.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type RpcFn = (fn: string, args: Record<string, unknown>) => Promise<{ data: any; error: { message: string } | null }>
+
 export interface RetrievedMemory {
   id: string
   content: string
@@ -30,10 +36,12 @@ export async function retrieveMemories(
     queryEmbedding: number[]
     topK?: number
     minSimilarity?: number
-    types?: MemoryRow['type'][]
+    types?: string[]
   }
 ): Promise<RetrievedMemory[]> {
-  const { data, error } = await supabase.rpc('retrieve_memories', {
+  // retrieve_memories is a custom Postgres RPC not present in the generated
+  // Database types; cast to call it until types are regenerated.
+  const { data, error } = await (supabase.rpc as unknown as RpcFn)('retrieve_memories', {
     p_user_id: userId,
     p_query_embedding: JSON.stringify(queryEmbedding),
     p_top_k: topK,
@@ -61,7 +69,7 @@ export async function isDuplicateMemory(
     threshold?: number
   }
 ): Promise<boolean> {
-  const { data, error } = await supabase.rpc('find_similar_memories', {
+  const { data, error } = await (supabase.rpc as unknown as RpcFn)('find_similar_memories', {
     p_user_id: userId,
     p_content_embedding: JSON.stringify(contentEmbedding),
     p_threshold: threshold,

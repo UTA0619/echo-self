@@ -92,12 +92,14 @@ describe('chunkText', () => {
 // ── calculateImportanceScore ──────────────────────────────────────────────────
 
 describe('calculateImportanceScore', () => {
+  // userRating is a thumbs signal (1 = up, -1 = down, null = none),
+  // not a 1–5 star scale. Annotate so { ...base } spreads keep the union type.
   const base = {
     emotionScore:    0.5,
     wordCount:       200,
     daysSinceEntry:  0,
     accessFrequency: 1,
-    userRating:      3,
+    userRating:      1 as 1 | -1 | null,
   }
 
   it('returns a value between 0 and 1 (inclusive)', () => {
@@ -131,8 +133,9 @@ describe('calculateImportanceScore', () => {
   })
 
   it('highly rated entry scores higher than poorly rated', () => {
-    const loved   = calculateImportanceScore({ ...base, userRating: 5 })
-    const disliked = calculateImportanceScore({ ...base, userRating: 1 })
+    // The score awards a bonus only for an explicit thumbs-up (1).
+    const loved    = calculateImportanceScore({ ...base, userRating: 1 })
+    const disliked = calculateImportanceScore({ ...base, userRating: -1 })
     expect(loved).toBeGreaterThan(disliked)
   })
 
@@ -155,7 +158,7 @@ describe('calculateImportanceScore', () => {
       wordCount:       99999,
       daysSinceEntry:  -100,
       accessFrequency: 9999,
-      userRating:      100,
+      userRating:      1,
     })
     expect(max).toBeLessThanOrEqual(1)
 
@@ -164,7 +167,7 @@ describe('calculateImportanceScore', () => {
       wordCount:       0,
       daysSinceEntry:  9999,
       accessFrequency: 0,
-      userRating:      0,
+      userRating:      null,
     })
     expect(min).toBeGreaterThanOrEqual(0)
   })

@@ -226,7 +226,7 @@ function StatChip({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.black },
   center: { flex: 1, backgroundColor: Colors.black, alignItems: 'center', justifyContent: 'center' },
-  scroll: { padding: Spacing[4], paddingBottom: 120 },
+  scroll: { padding: Spacing.md, paddingBottom: 120 },
 
   header: { marginBottom: Spacing.md, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   searchBtn: {
@@ -244,12 +244,12 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 28, fontWeight: '700', color: Colors.textPrimary, letterSpacing: -0.5 },
   headerSub: { fontSize: 14, color: Colors.textSecondary, marginTop: 4 },
 
-  statsRow: { flexDirection: 'row', gap: Spacing[2], marginBottom: Spacing[5] },
+  statsRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.lg },
   statChip: {
     flex: 1,
     backgroundColor: Colors.surface1,
     borderRadius: 12,
-    padding: Spacing[3],
+    padding: Spacing.md,
     borderWidth: 1,
     borderColor: Colors.border0,
     alignItems: 'center',
@@ -263,11 +263,11 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
-    marginBottom: Spacing[3],
+    marginBottom: Spacing.md,
   },
 
-  emotionSection: { marginBottom: Spacing[5] },
-  emotionBarRow: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing[2], gap: Spacing[2] },
+  emotionSection: { marginBottom: Spacing.lg },
+  emotionBarRow: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.sm, gap: Spacing.sm },
   emotionDot: { width: 8, height: 8, borderRadius: 4 },
   emotionLabel: { fontSize: 12, color: Colors.textSecondary, width: 80 },
   barTrack: { flex: 1, flexDirection: 'row', height: 4, borderRadius: 2, overflow: 'hidden', backgroundColor: Colors.surface1 },
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   emotionCount: { fontSize: 11, color: Colors.textTertiary, width: 24, textAlign: 'right' },
 
   entryList: {},
-  entryRow: { flexDirection: 'row', marginBottom: Spacing[4], gap: Spacing[2] },
+  entryRow: { flexDirection: 'row', marginBottom: Spacing.md, gap: Spacing.sm },
   entryDateCol: { width: 48, paddingTop: 2 },
   entryDate: { fontSize: 11, fontWeight: '600', color: Colors.textSecondary },
   entryTime: { fontSize: 10, color: Colors.textTertiary, marginTop: 2 },
@@ -285,10 +285,10 @@ const styles = StyleSheet.create({
   entryContent: { flex: 1 },
   entryText: { fontSize: 14, color: Colors.textPrimary, lineHeight: 22 },
   echoChip: {
-    marginTop: Spacing[2],
+    marginTop: Spacing.sm,
     backgroundColor: Colors.surface0,
     borderRadius: 8,
-    padding: Spacing[2],
+    padding: Spacing.sm,
     borderLeftWidth: 2,
     borderLeftColor: Colors.indigo,
   },
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: Spacing[2],
+    marginTop: Spacing.sm,
     alignSelf: 'flex-start',
     borderWidth: 1,
     borderRadius: 100,
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   emotionTagDot: { width: 6, height: 6, borderRadius: 3 },
   emotionTagText: { fontSize: 11, fontWeight: '600' },
 
-  empty: { alignItems: 'center', paddingVertical: 60, gap: Spacing[2] },
+  empty: { alignItems: 'center', paddingVertical: 60, gap: Spacing.sm },
   emptyIcon: { fontSize: 48 },
   emptyText: { fontSize: 16, fontWeight: '600', color: Colors.textPrimary },
   emptySub: { fontSize: 13, color: Colors.textSecondary, textAlign: 'center' },

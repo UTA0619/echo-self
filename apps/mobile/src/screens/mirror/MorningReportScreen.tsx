@@ -87,11 +87,6 @@ function todayLabel(): string {
   })
 }
 
-function shortDate(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
-}
-
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function StreakRing({ streak, longest }: { streak: number; longest: number }) {

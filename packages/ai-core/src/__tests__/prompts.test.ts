@@ -3,6 +3,7 @@
  * Pure TypeScript — no framework, no HTTP calls.
  */
 
+import { describe, it, expect } from 'vitest'
 import { buildBehavioralTagPrompt, BEHAVIORAL_TAG_TAXONOMY } from '../prompts/behavioral-tag'
 import { buildDailyInsightPrompt, buildDailyInsightSystemPrompt } from '../prompts/daily-insight'
 import { buildEchoSystemPrompt } from '../prompts/echo'
@@ -164,6 +165,7 @@ describe('buildEchoSystemPrompt', () => {
       identityTags: ['curious', 'creative', 'introverted'],
       aspirations: 'Build something meaningful and live with intentionality.',
       streakCommitment: 5,
+      stepCompleted: 5,
     },
     currentEntry: 'Today I felt unmotivated but still managed to journal.',
     emotion: 'sadness' as const,

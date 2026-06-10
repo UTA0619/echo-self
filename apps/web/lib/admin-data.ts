@@ -147,14 +147,17 @@ export async function fetchRecentEntries(limit = 15): Promise<RecentEntry[]> {
     return []
   }
 
-  return (data ?? []).map((row: {
-    id: string;
-    user_id: string;
-    content: string;
-    emotion: string | null;
-    created_at: string;
-    users: { display_name: string | null } | null;
-  }) => ({
+  // Supabase types embedded joins as arrays; the actual to-one shape is an
+  // object|null, so cast through unknown to the real row shape.
+  type EntryRow = {
+    id: string
+    user_id: string
+    content: string
+    emotion: string | null
+    created_at: string
+    users: { display_name: string | null } | null
+  }
+  return ((data ?? []) as unknown as EntryRow[]).map((row) => ({
     id: row.id,
     user_id: row.user_id,
     display_name: row.users?.display_name ?? null,
@@ -188,15 +191,16 @@ export async function fetchRecentCrisisEvents(limit = 10): Promise<CrisisEvent[]
     return []
   }
 
-  return (data ?? []).map((row: {
-    id: string;
-    user_id: string;
-    severity: string;
-    trigger_phrase: string | null;
-    created_at: string;
-    resolved: boolean;
-    users: { display_name: string | null } | null;
-  }) => ({
+  type CrisisRow = {
+    id: string
+    user_id: string
+    severity: string
+    trigger_phrase: string | null
+    created_at: string
+    resolved: boolean
+    users: { display_name: string | null } | null
+  }
+  return ((data ?? []) as unknown as CrisisRow[]).map((row) => ({
     id: row.id,
     user_id: row.user_id,
     display_name: row.users?.display_name ?? null,

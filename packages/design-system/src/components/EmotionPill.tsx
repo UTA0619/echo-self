@@ -19,6 +19,7 @@ const EMOTION_EMOJI: Record<EmotionKey, string> = {
   optimism:     '🌤',
   love:         '💜',
   awe:          '🌌',
+  mixed:        '🎭',
 }
 
 export interface EmotionPillProps extends React.HTMLAttributes<HTMLSpanElement> {

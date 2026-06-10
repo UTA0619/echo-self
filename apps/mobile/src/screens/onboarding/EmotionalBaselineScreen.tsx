@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.border,
+    backgroundColor: Colors.border0,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.15)',
   },
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   },
   counterText: {
     ...Typography.caption,
-    color: Colors.textMuted,
+    color: Colors.textTertiary,
     marginLeft: Spacing.xs,
   },
   scrollView: {

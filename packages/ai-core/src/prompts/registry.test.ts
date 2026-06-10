@@ -59,7 +59,8 @@ describe('PROMPT_REGISTRY', () => {
     PROMPT_REGISTRY.forEach(m => {
       const versions = m.changelog.map(c => parseFloat(c.version))
       for (let i = 1; i < versions.length; i++) {
-        expect(versions[i]).toBeGreaterThan(versions[i - 1])
+        // Loop bounds guarantee both indices exist; assert for noUncheckedIndexedAccess.
+        expect(versions[i]!).toBeGreaterThan(versions[i - 1]!)
       }
     })
   })

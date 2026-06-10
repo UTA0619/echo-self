@@ -26,8 +26,6 @@ import { useAuthStore } from '../../store/auth';
 import { Colors, Spacing, Typography } from '../../theme/tokens';
 import { HapticPatterns } from '../../theme/haptics';
 
-const APP_URL = process.env.EXPO_PUBLIC_APP_URL ?? 'https://echo-self.app';
-
 type Step = 'landing' | 'magic-link' | 'check-email';
 
 // Hoisted static styles to avoid re-creation on each render
@@ -76,9 +74,10 @@ export function LoginScreen() {
       if (error) throw error;
       setStep('check-email');
       HapticPatterns.success();
-    } catch (err: any) {
+    } catch (err) {
       HapticPatterns.error();
-      Alert.alert('Error', err?.message ?? 'Failed to send magic link. Please try again.');
+      const message = err instanceof Error ? err.message : 'Failed to send magic link. Please try again.';
+      Alert.alert('Error', message);
     } finally {
       setIsLoading(false);
     }
@@ -134,10 +133,11 @@ export function LoginScreen() {
         await loadProfile(data.user.id);
         HapticPatterns.success();
       }
-    } catch (err: any) {
-      if (err?.code === 'ERR_REQUEST_CANCELED') return; // user dismissed — no alert needed
+    } catch (err) {
+      if ((err as { code?: string })?.code === 'ERR_REQUEST_CANCELED') return; // user dismissed — no alert needed
       HapticPatterns.error();
-      Alert.alert('Apple Sign In Failed', err?.message ?? 'Please try again.');
+      const message = err instanceof Error ? err.message : 'Please try again.';
+      Alert.alert('Apple Sign In Failed', message);
     }
   };
 
@@ -155,9 +155,10 @@ export function LoginScreen() {
       if (data.url) {
         await Linking.openURL(data.url);
       }
-    } catch (err: any) {
+    } catch (err) {
       HapticPatterns.error();
-      Alert.alert('Google Sign In Failed', err?.message ?? 'Please try again.');
+      const message = err instanceof Error ? err.message : 'Please try again.';
+      Alert.alert('Google Sign In Failed', message);
     }
   };
 

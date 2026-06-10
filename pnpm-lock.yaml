@@ -239,10 +239,16 @@ importers:
       '@echoself/supabase':
         specifier: workspace:*
         version: link:../supabase
+      '@supabase/ssr':
+        specifier: ^0.5.2
+        version: 0.5.2(@supabase/supabase-js@2.105.4)
       '@supabase/supabase-js':
         specifier: ^2.47.10
         version: 2.105.4
     devDependencies:
+      next:
+        specifier: ^15.3.0
+        version: 15.5.18(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       typescript:
         specifier: ^5.7.2
         version: 5.9.3

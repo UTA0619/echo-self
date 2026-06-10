@@ -57,7 +57,6 @@ export function DailyMirrorScreen() {
     transcript,
     startRecording,
     stopRecording,
-    cancelRecording,
     clearTranscript,
   } = useVoiceRecorder();
 

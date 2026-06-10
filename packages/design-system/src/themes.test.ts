@@ -71,7 +71,7 @@ describe('tokens', () => {
   it('all hex color values are valid', () => {
     Object.entries(tokens).forEach(([key, value]) => {
       if (typeof value === 'string' && value.startsWith('#')) {
-        expect(value).toMatch(HEX_PATTERN, `${key}: ${value} is not a valid hex color`)
+        expect(value, `${key}: ${value} is not a valid hex color`).toMatch(HEX_PATTERN)
       }
     })
   })
@@ -82,7 +82,7 @@ describe('spacing scale (4pt grid)', () => {
     Object.entries(spacing).forEach(([key, value]) => {
       // Allow xxs=2 which is on 2pt grid (half step)
       if (key !== 'xxs') {
-        expect(value % 4).toBe(0, `spacing.${key}=${value} is not on 4pt grid`)
+        expect(value % 4, `spacing.${key}=${value} is not on 4pt grid`).toBe(0)
       }
     })
   })
@@ -106,7 +106,7 @@ describe('brand colors', () => {
 
   it('all brand colors are valid hex', () => {
     Object.entries(brand).forEach(([key, value]) => {
-      expect(value).toMatch(HEX_PATTERN, `brand.${key} is not valid hex`)
+      expect(value, `brand.${key} is not valid hex`).toMatch(HEX_PATTERN)
     })
   })
 })

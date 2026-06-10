@@ -109,7 +109,7 @@ function ProfileSection({ user, profile }: { user: { id: string; email: string }
 
 // ── Subscription ──────────────────────────────────────────────────────────────
 
-function SubscriptionSection({ subscription, userId }: { subscription: SubscriptionStatus; userId: string }) {
+function SubscriptionSection({ subscription, userId: _userId }: { subscription: SubscriptionStatus; userId: string }) {
   const [loading, setLoading] = useState<'monthly' | 'annual' | 'portal' | null>(null)
 
   async function checkout(plan: 'monthly' | 'annual') {
@@ -269,7 +269,7 @@ function NotificationSection({ userId, profile }: { userId: string; profile: Pro
               'relative w-11 h-6 rounded-full transition-colors duration-200',
               enabled ? 'bg-[#7B6CF6]' : 'bg-white/10',
             ].join(' ')}
-            accessibilityLabel={enabled ? 'Disable notifications' : 'Enable notifications'}
+            aria-label={enabled ? 'Disable notifications' : 'Enable notifications'}
             role="switch"
             aria-checked={enabled}
           >
@@ -321,7 +321,7 @@ function NotificationSection({ userId, profile }: { userId: string; profile: Pro
 
 // ── Data export ───────────────────────────────────────────────────────────────
 
-function DataSection({ userId }: { userId: string }) {
+function DataSection({ userId: _userId }: { userId: string }) {
   const [exporting, setExporting] = useState(false)
   const [exportDone, setExportDone] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
@@ -371,7 +371,7 @@ function DataSection({ userId }: { userId: string }) {
 
 // ── Danger zone ───────────────────────────────────────────────────────────────
 
-function DangerSection({ userId }: { userId: string }) {
+function DangerSection({ userId: _userId }: { userId: string }) {
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
 

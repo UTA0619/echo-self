@@ -48,18 +48,19 @@ async function fetchAllUsers(): Promise<FullUser[]> {
     return []
   }
 
-  return (data ?? []).map((u: {
-    id: string;
-    email: string | null;
-    display_name: string | null;
-    subscription_tier: string;
-    current_streak: number;
-    longest_streak: number;
-    total_entries: number;
-    created_at: string;
-    last_entry_date: string | null;
-    profiles: { onboarding_done: boolean } | null;
-  }) => ({
+  type UserRow = {
+    id: string
+    email: string | null
+    display_name: string | null
+    subscription_tier: string
+    current_streak: number
+    longest_streak: number
+    total_entries: number
+    created_at: string
+    last_entry_date: string | null
+    profiles: { onboarding_done: boolean } | null
+  }
+  return ((data ?? []) as unknown as UserRow[]).map((u) => ({
     id: u.id,
     email: u.email,
     display_name: u.display_name,

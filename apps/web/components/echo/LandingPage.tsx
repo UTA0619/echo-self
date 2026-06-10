@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import type { Route } from 'next'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -13,12 +14,12 @@ const FEATURES = [
   {
     icon: '🧠',
     title: 'Identity Layer',
-    body: 'Every entry builds a living map of your beliefs, values, fears, and strengths. You'll see yourself more clearly over time.',
+    body: 'Every entry builds a living map of your beliefs, values, fears, and strengths. You\'ll see yourself more clearly over time.',
   },
   {
     icon: '🔮',
     title: 'Future Self',
-    body: 'Simulate who you're becoming — 1 month, 3 months, 1 year out. Grounded in your real patterns, not optimistic guesses.',
+    body: 'Simulate who you\'re becoming — 1 month, 3 months, 1 year out. Grounded in your real patterns, not optimistic guesses.',
   },
   {
     icon: '📡',
@@ -70,12 +71,12 @@ const TESTIMONIALS = [
     role: 'Product designer',
   },
   {
-    quote: 'The future-self simulation made me realise I'd been optimising for the wrong thing for 2 years.',
+    quote: 'The future-self simulation made me realise I\'d been optimising for the wrong thing for 2 years.',
     name: 'James T.',
     role: 'Founder',
   },
   {
-    quote: 'I've tried every journaling app. This is the first one that actually knows me.',
+    quote: 'I\'ve tried every journaling app. This is the first one that actually knows me.',
     name: 'Priya N.',
     role: 'Researcher',
   },
@@ -249,7 +250,7 @@ export function LandingPage() {
               </ul>
 
               <Link
-                href={plan.href}
+                href={plan.href as Route}
                 className={`block w-full text-center py-3 rounded-xl text-sm font-semibold transition-colors ${
                   plan.highlight
                     ? 'bg-echo-accent text-white hover:bg-echo-accent/90'
@@ -304,8 +305,8 @@ export function LandingPage() {
         <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-echo-muted">
           <span>© {new Date().getFullYear()} ECHO. Built for self-aware humans.</span>
           <div className="flex gap-6">
-            <Link href="/privacy" className="hover:text-echo-text transition-colors">Privacy</Link>
-            <Link href="/terms" className="hover:text-echo-text transition-colors">Terms</Link>
+            <Link href={'/privacy' as Route} className="hover:text-echo-text transition-colors">Privacy</Link>
+            <Link href={'/terms' as Route} className="hover:text-echo-text transition-colors">Terms</Link>
             <Link href="/auth" className="hover:text-echo-text transition-colors">Sign in</Link>
           </div>
         </div>

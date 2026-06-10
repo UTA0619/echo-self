@@ -3,6 +3,10 @@ import type { Database, Tables } from '../types/database.js'
 
 type Subscription = Tables<'subscriptions'>
 
+// Permissive signature for custom Postgres RPCs absent from the generated types.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type RpcFn = (fn: string, args: Record<string, unknown>) => Promise<{ data: any; error: { message: string } | null }>
+
 export const FREE_TIER_LIMITS = {
   entries_per_month: 7,
   echo_sessions_per_month: 3,
@@ -34,7 +38,7 @@ export async function canCreateJournalEntry(
   supabase: SupabaseClient<Database>,
   userId: string
 ): Promise<boolean> {
-  const { data, error } = await supabase.rpc('can_create_journal_entry', {
+  const { data, error } = await (supabase.rpc as unknown as RpcFn)('can_create_journal_entry', {
     p_user_id: userId,
   })
 
@@ -48,7 +52,7 @@ export async function canCreateJournalEntry(
 export function isPro(subscription: Subscription | null): boolean {
   if (!subscription) return false
   return (
-    subscription.plan === 'pro' &&
+    (subscription.plan === 'premium_monthly' || subscription.plan === 'premium_annual') &&
     (subscription.status === 'active' || subscription.status === 'trialing')
   )
 }

@@ -27,11 +27,17 @@ export async function getServerUser(cookieStore: CookieStore): Promise<AuthUser 
   if (error || !user) return null
 
   // Fetch profile for display name
-  const { data: profile } = await supabase
+  const { data } = await supabase
     .from('profiles')
     .select('display_name, avatar_url, onboarding_completed')
     .eq('id', user.id)
     .single()
+  // Generated Database types lag the live schema; cast the projected row.
+  const profile = data as {
+    display_name: string | null
+    avatar_url: string | null
+    onboarding_completed: boolean
+  } | null
 
   return {
     id: user.id,
@@ -71,11 +77,17 @@ export async function verifyBearerToken(
 
   if (error || !user) return null
 
-  const { data: profile } = await supabase
+  const { data } = await supabase
     .from('profiles')
     .select('display_name, avatar_url, onboarding_completed')
     .eq('id', user.id)
     .single()
+  // Generated Database types lag the live schema; cast the projected row.
+  const profile = data as {
+    display_name: string | null
+    avatar_url: string | null
+    onboarding_completed: boolean
+  } | null
 
   return {
     id: user.id,

@@ -24,7 +24,6 @@ export async function DELETE() {
   try {
     // Delegate to the export-user-data edge function for proper GDPR erasure
     const supabaseUrl    = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
     const { data: { session } } = await supabase.auth.getSession()
 

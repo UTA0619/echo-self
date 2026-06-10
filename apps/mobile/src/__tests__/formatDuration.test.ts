@@ -2,6 +2,7 @@
  * Tests for the formatDuration utility used in VoiceInputButton.
  * Extracted here to keep tests framework-agnostic (no RN rendering needed).
  */
+import { describe, it, expect } from 'vitest'
 
 function formatDuration(ms: number): string {
   const s = Math.floor(ms / 1000)

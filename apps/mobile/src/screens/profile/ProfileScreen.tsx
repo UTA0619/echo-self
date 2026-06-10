@@ -297,9 +297,9 @@ function StatBlock({ label, value, suffix }: { label: string; value: number; suf
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.black },
-  scroll: { padding: Spacing[4], paddingBottom: 120 },
+  scroll: { padding: Spacing.md, paddingBottom: 120 },
 
-  profileHeader: { alignItems: 'center', paddingVertical: Spacing[5], gap: Spacing[1] },
+  profileHeader: { alignItems: 'center', paddingVertical: Spacing.lg, gap: Spacing.xs },
   avatar: {
     width: 80,
     height: 80,
@@ -309,13 +309,13 @@ const styles = StyleSheet.create({
     borderColor: `${Colors.indigo}60`,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing[2],
+    marginBottom: Spacing.sm,
   },
   avatarInitial: { fontSize: 32, fontWeight: '700', color: Colors.indigo },
   displayName: { fontSize: 22, fontWeight: '700', color: Colors.textPrimary },
   email: { fontSize: 13, color: Colors.textSecondary },
   proBadge: {
-    marginTop: Spacing[1],
+    marginTop: Spacing.xs,
     backgroundColor: `${Colors.indigo}20`,
     borderWidth: 1,
     borderColor: `${Colors.indigo}40`,
@@ -327,14 +327,14 @@ const styles = StyleSheet.create({
 
   statsRow: {
     flexDirection: 'row',
-    gap: Spacing[2],
-    marginBottom: Spacing[4],
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   statBlock: {
     flex: 1,
     backgroundColor: Colors.surface1,
     borderRadius: 12,
-    padding: Spacing[3],
+    padding: Spacing.md,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.border0,
@@ -343,15 +343,15 @@ const styles = StyleSheet.create({
   statSuffix: { fontSize: 12, fontWeight: '400', color: Colors.textSecondary },
   statLabel: { fontSize: 10, color: Colors.textTertiary, marginTop: 2 },
 
-  section: { marginBottom: Spacing[4] },
+  section: { marginBottom: Spacing.md },
   sectionTitle: {
     fontSize: 11,
     fontWeight: '600',
     color: Colors.textTertiary,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
-    marginBottom: Spacing[2],
-    paddingHorizontal: Spacing[1],
+    marginBottom: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
   },
   sectionBody: {
     backgroundColor: Colors.surface1,
@@ -365,8 +365,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing[4],
-    paddingVertical: Spacing[3],
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.border0,
   },
@@ -377,10 +377,10 @@ const styles = StyleSheet.create({
   rowChevron: { fontSize: 20, color: Colors.textTertiary },
 
   upgradeBtn: {
-    margin: Spacing[3],
+    margin: Spacing.md,
     backgroundColor: Colors.indigo,
     borderRadius: 12,
-    padding: Spacing[4],
+    padding: Spacing.md,
   },
   upgradeBtnTitle: { fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 4 },
   upgradeBtnSub: { fontSize: 12, color: 'rgba(255,255,255,0.75)', lineHeight: 18 },
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 11,
     color: Colors.textTertiary,
-    marginTop: Spacing[4],
+    marginTop: Spacing.md,
     letterSpacing: 0.5,
   },
 });

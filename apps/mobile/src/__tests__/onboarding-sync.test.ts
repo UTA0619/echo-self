@@ -4,6 +4,7 @@
  * Tests the pure data-transformation parts of onboarding-sync.ts
  * without requiring a live Supabase connection.
  */
+import { describe, it, expect } from 'vitest'
 
 interface OnboardingData {
   name?: string
@@ -37,7 +38,9 @@ function sanitizeName(name: string): string {
 }
 
 function validateStreakGoal(value: unknown): number {
-  if (typeof value !== 'number' || value < 1 || value > 365) return 5
+  // typeof NaN === 'number', so guard finiteness explicitly to reject
+  // NaN / ±Infinity before the range check.
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 1 || value > 365) return 5
   return Math.round(value)
 }
 
