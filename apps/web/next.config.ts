@@ -22,7 +22,12 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@echo-self/shared-types'],
+  transpilePackages: [
+    '@echo-self/shared-types',
+    '@echo-self/design-system',
+    '@echoself/auth',
+    '@echoself/supabase',
+  ],
 
   images: {
     remotePatterns: [
@@ -44,6 +49,20 @@ const nextConfig: NextConfig = {
 
   experimental: {
     typedRoutes: true,
+  },
+
+  // Workspace packages are raw TypeScript whose ESM re-exports use explicit
+  // `.js` specifiers (e.g. `export * from './server.js'`). tsc resolves these
+  // via bundler module resolution, but webpack needs an extension alias to map
+  // `.js` → the real `.ts`/`.tsx` sources.
+  webpack: (config) => {
+    config.resolve.extensionAlias = {
+      ...(config.resolve.extensionAlias ?? {}),
+      '.js':  ['.ts', '.tsx', '.js'],
+      '.jsx': ['.tsx', '.jsx'],
+      '.mjs': ['.mts', '.mjs'],
+    }
+    return config
   },
 }
 

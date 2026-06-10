@@ -10,7 +10,7 @@
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import { getSubscriptionStatus } from '@/lib/subscription'
+import { getSubscriptionStatus } from '@/lib/subscription-server'
 import { FutureSelfClient } from './FutureSelfClient'
 
 export const metadata: Metadata = {

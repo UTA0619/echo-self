@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { getSubscriptionStatus } from '@/lib/subscription'
+import { getSubscriptionStatus } from '@/lib/subscription-server'
 import { SettingsClient } from './SettingsClient'
 
 export default async function SettingsPage({

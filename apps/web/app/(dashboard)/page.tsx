@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { fetchEntries, countTodayEntries } from '@/lib/entries.server'
-import { fetchIdentityNodes, fetchBehavioralPatterns } from '@/lib/identity'
-import { fetchEmotionHistory } from '@/lib/emotions'
-import { getSubscriptionStatus } from '@/lib/subscription'
+import { fetchIdentityNodes, fetchBehavioralPatterns } from '@/lib/identity-server'
+import { fetchEmotionHistory } from '@/lib/emotions-server'
+import { getSubscriptionStatus } from '@/lib/subscription-server'
 import { DashboardClient } from './DashboardClient'
 import { LandingPage } from '@/components/echo/LandingPage'
 

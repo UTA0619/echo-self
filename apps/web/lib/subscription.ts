@@ -1,4 +1,6 @@
-import { createClient } from '@/lib/supabase/server'
+// Client-safe subscription types and tier constants. Keep free of
+// server-only imports — imported by Client Components (SettingsClient).
+// The status fetcher lives in ./subscription-server.
 
 export type SubscriptionTier = 'free' | 'premium'
 
@@ -6,28 +8,6 @@ export interface SubscriptionStatus {
   tier: SubscriptionTier
   isPremium: boolean
   expiresAt: string | null
-}
-
-export async function getSubscriptionStatus(): Promise<SubscriptionStatus> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) return { tier: 'free', isPremium: false, expiresAt: null }
-
-  const { data: sub } = await supabase
-    .from('subscriptions')
-    .select('status, current_period_end')
-    .eq('user_id', user.id)
-    .eq('status', 'active')
-    .maybeSingle()
-
-  if (!sub) return { tier: 'free', isPremium: false, expiresAt: null }
-
-  return {
-    tier: 'premium',
-    isPremium: true,
-    expiresAt: sub.current_period_end ?? null,
-  }
 }
 
 // Free tier limits

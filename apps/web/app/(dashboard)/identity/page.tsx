@@ -10,7 +10,7 @@
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import { fetchIdentityNodes, fetchBehavioralPatterns } from '@/lib/identity'
+import { fetchIdentityNodes, fetchBehavioralPatterns } from '@/lib/identity-server'
 import { IdentityExplorerClient } from './IdentityExplorerClient'
 
 export const metadata: Metadata = {
