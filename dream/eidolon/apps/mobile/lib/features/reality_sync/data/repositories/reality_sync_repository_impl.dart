@@ -12,13 +12,17 @@ RealitySyncRepository realitySyncRepository(Ref ref) =>
     RealitySyncRepositoryImpl();
 
 class RealitySyncRepositoryImpl implements RealitySyncRepository {
+  /// [health] is injectable so the Health Connect / HealthKit plugin can be
+  /// faked in tests; defaults to a real [Health] instance in production.
+  RealitySyncRepositoryImpl({Health? health}) : _health = health ?? Health();
+
   static const _types = [
     HealthDataType.STEPS,
     HealthDataType.SLEEP_ASLEEP,
     HealthDataType.ACTIVE_ENERGY_BURNED,
   ];
 
-  final Health _health = Health();
+  final Health _health;
 
   @override
   Future<bool> hasPermission() async {
