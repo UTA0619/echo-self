@@ -1,4 +1,12 @@
-import type { Entry, Memory, EmotionHistoryPoint } from '@echo-self/shared-types'
+import type { Entry } from '@echo-self/shared-types'
+
+/** A single day's aggregated emotional signal, used to build the 30-day arc. */
+export interface EmotionHistoryPoint {
+  /** Mean emotional valence for the day, 0 (negative) … 1 (positive). */
+  avgValence: number
+  /** Count of each emotion label observed that day. */
+  emotionCounts: Record<string, number>
+}
 
 const TOKEN_BUDGET = {
   systemBase: 800,
@@ -52,9 +60,9 @@ export function selectRecentEntries(
   const maxChars = maxTokens * 4
 
   for (const entry of entries.slice(0, 10)) {
-    const text = `[${entry.createdAt}]: ${entry.content}`
+    const text = `[${entry.created_at}]: ${entry.content}`
     if (usedChars + text.length > maxChars) break
-    result.push({ content: entry.content, createdAt: entry.createdAt, emotion: entry.emotion })
+    result.push({ content: entry.content, createdAt: entry.created_at, emotion: entry.emotion })
     usedChars += text.length
   }
 

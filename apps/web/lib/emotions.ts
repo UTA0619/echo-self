@@ -1,4 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+// Client-safe emotion constants and types.
+// NOTE: keep this module free of server-only imports (next/headers, the
+// server Supabase client). It is imported by Client Components such as
+// EmotionalTimeline; the data-fetching helper lives in ./emotions-server.
 
 export interface EmotionPoint {
   date: string
@@ -19,27 +22,4 @@ export const EMOTION_COLORS: Record<string, string> = {
   love:         '#F66CAE',
   awe:          '#C86CF6',
   neutral:      '#8B8FA8',
-}
-
-export async function fetchEmotionHistory(days = 30): Promise<EmotionPoint[]> {
-  const supabase = await createClient()
-  const since = new Date(Date.now() - days * 86_400_000).toISOString()
-
-  const { data, error } = await supabase
-    .from('entries')
-    .select('created_at, emotion, emotion_score')
-    .not('emotion', 'is', null)
-    .gte('created_at', since)
-    .order('created_at', { ascending: true })
-    .limit(200)
-
-  if (error) throw error
-
-  return (data ?? [])
-    .filter(r => r.emotion && r.emotion_score != null)
-    .map(r => ({
-      date: r.created_at.split('T')[0]!,
-      emotion: r.emotion!,
-      score: r.emotion_score!,
-    }))
 }

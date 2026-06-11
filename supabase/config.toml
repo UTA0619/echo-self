@@ -45,5 +45,24 @@ enabled = true
 client_id = "env(APPLE_CLIENT_ID)"
 secret = "env(APPLE_CLIENT_SECRET)"
 
-[functions]
-verify_jwt = true
+# Per-function JWT verification.
+# Newer Supabase CLI requires [functions.<name>] tables — a global
+# [functions] verify_jwt bool is rejected ("expected a map or struct").
+# Functions default to verify_jwt = true; only externally-invoked
+# endpoints (Stripe webhooks, pg_cron jobs that authenticate via
+# x-cron-secret instead of a user JWT) opt out.
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.generate-daily-insight]
+verify_jwt = false
+
+[functions.pattern-detect]
+verify_jwt = false
+
+[functions.update-future-self]
+verify_jwt = false
+
+[functions.ai-push-notifications]
+verify_jwt = false

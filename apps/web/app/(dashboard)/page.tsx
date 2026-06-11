@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { fetchEntries, countTodayEntries } from '@/lib/entries.server'
-import { fetchIdentityNodes, fetchBehavioralPatterns } from '@/lib/identity'
-import { fetchEmotionHistory } from '@/lib/emotions'
-import { getSubscriptionStatus } from '@/lib/subscription'
+import { fetchIdentityNodes, fetchBehavioralPatterns } from '@/lib/identity-server'
+import { fetchEmotionHistory } from '@/lib/emotions-server'
+import { getSubscriptionStatus } from '@/lib/subscription-server'
 import { DashboardClient } from './DashboardClient'
+import { LandingPage } from '@/components/echo/LandingPage'
 
 async function fetchReferralCode(userId: string): Promise<string | null> {
   const supabase = await createClient()
@@ -16,10 +16,12 @@ async function fetchReferralCode(userId: string): Promise<string | null> {
   return data?.referral_code ?? null
 }
 
-export default async function DashboardPage() {
+export default async function RootPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth')
+
+  // Show marketing landing for unauthenticated visitors
+  if (!user) return <LandingPage />
 
   const [entries, identityNodes, emotionHistory, behavioralPatterns, subscription, referralCode, todayCount] = await Promise.all([
     fetchEntries(20).catch(() => []),
@@ -44,6 +46,39 @@ export default async function DashboardPage() {
           {subscription.isPremium && (
             <span className="text-xs text-[#7B6CF6] font-medium">Pro</span>
           )}
+          <a
+            href="/search"
+            className="text-[#8B8FA8] hover:text-[#7B6CF6] transition-colors"
+            aria-label="Search memories"
+            title="Search memories"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="6.5" cy="6.5" r="4.5" />
+              <path d="M11 11l3 3" strokeLinecap="round" />
+            </svg>
+          </a>
+          <a
+            href="/identity"
+            className="text-[#8B8FA8] hover:text-[#7B6CF6] transition-colors"
+            aria-label="Identity web"
+            title="Identity web"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="8" cy="8" r="3" />
+              <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M11.4 11.4l1.4 1.4M3.2 12.8l1.4-1.4M11.4 4.6l1.4-1.4" strokeLinecap="round"/>
+            </svg>
+          </a>
+          <a
+            href="/future-self"
+            className="text-[#8B8FA8] hover:text-[#7B6CF6] transition-colors"
+            aria-label="Future self"
+            title="Future self"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M8 2c0 0 4 2 4 6s-4 6-4 6S4 12 4 8s4-6 4-6z" />
+              <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/>
+            </svg>
+          </a>
           <a
             href="/wrapped"
             className="text-xs text-[#8B8FA8] hover:text-[#7B6CF6] transition-colors"

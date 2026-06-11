@@ -50,18 +50,26 @@ create policy "users own their future self simulations"
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
--- Schedule pattern-detect cron to run daily at 3am UTC (after daily-digest at 2am)
-select cron.schedule(
-  'pattern-detect-daily',
-  '0 3 * * *',
-  $$
-  select net.http_post(
-    url := (select decrypted_secret from vault.decrypted_secrets where name = 'SUPABASE_FUNCTIONS_URL') || '/pattern-detect',
-    headers := jsonb_build_object(
-      'Content-Type', 'application/json',
-      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'SUPABASE_SERVICE_ROLE_KEY')
-    ),
-    body := '{}'::jsonb
-  );
-  $$
-);
+-- Schedule pattern-detect cron to run daily at 3am UTC (after daily-digest at 2am).
+-- pg_cron is production-only (enabled via the Supabase Dashboard); guard on the
+-- cron schema so this migration still applies in local/CI Postgres.
+do $do$
+begin
+  if exists (select 1 from pg_namespace where nspname = 'cron') then
+    perform cron.schedule(
+      'pattern-detect-daily',
+      '0 3 * * *',
+      $cron$
+      select net.http_post(
+        url := (select decrypted_secret from vault.decrypted_secrets where name = 'SUPABASE_FUNCTIONS_URL') || '/pattern-detect',
+        headers := jsonb_build_object(
+          'Content-Type', 'application/json',
+          'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'SUPABASE_SERVICE_ROLE_KEY')
+        ),
+        body := '{}'::jsonb
+      );
+      $cron$
+    );
+  end if;
+end
+$do$;

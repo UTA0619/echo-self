@@ -261,10 +261,10 @@ export function OnboardingClient({ userId, email, defaultName }: OnboardingClien
         .update({
           display_name: name.trim(),
           timezone,
-          onboarding_completed: true,
-          metadata: { goals, values },
+          onboarding_done: true,
+          onboarding_data: { goals, values, stepCompleted: 4, identityTags: values, aspirations: goals.join(', '), streakCommitment: 5 },
         })
-        .eq('id', userId)
+        .eq('auth_id', userId)
 
       if (profileErr) throw profileErr
 

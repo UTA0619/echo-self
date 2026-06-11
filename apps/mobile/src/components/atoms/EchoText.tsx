@@ -16,7 +16,7 @@ interface EchoTextProps {
   style?: object
 }
 
-export function EchoText({ children, size = 'base', weight = 'regular', animated = false, style }: EchoTextProps) {
+export function EchoText({ children, size = 'base', animated = false, style }: EchoTextProps) {
   const progress = useSharedValue(0)
 
   useEffect(() => {

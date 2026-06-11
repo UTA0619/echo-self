@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
 import type { Entry, EmotionAnalysis } from '@echo-self/shared-types';
+import { Analytics, Events } from '../lib/analytics';
 
 export type StreamState = 'idle' | 'submitting' | 'streaming' | 'complete' | 'error';
 
@@ -59,6 +60,11 @@ export const useEntriesStore = create<EntriesState>((set, get) => ({
       // Optimistically add to list
       set((s) => ({ entries: [entry, ...s.entries], todayEntry: entry }));
 
+      Analytics.track(Events.ENTRY_SUBMITTED, {
+        entry_id: entry.id,
+        word_count: entry.word_count ?? 0,
+      });
+
       // 2. Subscribe to Realtime updates on this entry
       set({ streamState: 'streaming' });
       const channel = supabase
@@ -77,6 +83,10 @@ export const useEntriesStore = create<EntriesState>((set, get) => ({
             if (updated.ai_response && updated.emotion_data) {
               set({ streamState: 'complete' });
               channel.unsubscribe();
+              Analytics.track(Events.ECHO_RECEIVED, {
+                entry_id: entry.id,
+                emotion: updated.emotion ?? null,
+              });
               // Refresh entries list
               get().loadEntries();
             }
@@ -95,6 +105,7 @@ export const useEntriesStore = create<EntriesState>((set, get) => ({
         if (streamState === 'streaming') {
           channel.unsubscribe();
           set({ streamState: 'error', errorMessage: 'Echo took too long. Please try again.' });
+          Analytics.track(Events.ECHO_ERROR, { entry_id: entry.id, reason: 'timeout' });
         }
       }, 30_000);
 

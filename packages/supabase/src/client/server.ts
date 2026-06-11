@@ -29,7 +29,7 @@ export function createSupabaseServerClient(cookieStore: CookieStore) {
         // next/headers cookies() API — returns all cookies as array
         return (cookieStore as unknown as { getAll(): { name: string; value: string }[] }).getAll?.() ?? []
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
         try {
           cookiesToSet.forEach(({ name, value, options }) => {
             cookieStore.set(name, value, options)
@@ -56,7 +56,7 @@ export function createSupabaseAdminClient() {
   }
 
   // Import at runtime to avoid bundling in client code
-  const { createClient } = require('@supabase/supabase-js')
+  const { createClient } = require('@supabase/supabase-js') as typeof import('@supabase/supabase-js')
   return createClient<Database>(url, serviceKey, {
     auth: {
       autoRefreshToken: false,

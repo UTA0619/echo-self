@@ -12,6 +12,10 @@
       "@echo-self/ai-core": ["../../packages/ai-core/src"]
     },
     "strict": true,
+    // App-level stores idiomatically assign `undefined` to optional fields
+    // (Zustand state, Supabase rows). Relax the base config's strict
+    // exactOptionalPropertyTypes here; libraries keep it enabled.
+    "exactOptionalPropertyTypes": false,
     "noEmit": true
   },
   "include": ["src", "app.json"]

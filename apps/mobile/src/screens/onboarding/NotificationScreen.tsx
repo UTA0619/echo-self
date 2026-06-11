@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import * as Notifications from 'expo-notifications'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
-import type { OnboardingStackParamList } from '../../navigation/OnboardingNavigator'
+import type { OnboardingParamList } from '../../navigation/OnboardingNavigator'
 import { AnimatedBackground } from '../../components/onboarding/AnimatedBackground'
 import { OnboardingButton } from '../../components/onboarding/OnboardingButton'
 import { OnboardingProgress } from '../../components/onboarding/OnboardingProgress'
@@ -18,7 +18,7 @@ import { useOnboardingStore } from '../../store/onboarding'
 import { Colors, Spacing, Typography } from '../../theme/tokens'
 import { HapticPatterns } from '../../theme/haptics'
 
-type Props = NativeStackScreenProps<OnboardingStackParamList, 'Notifications'>
+type Props = NativeStackScreenProps<OnboardingParamList, 'Notifications'>
 
 // Hoisted static data (rendering-hoist-jsx)
 const BENEFITS = [
@@ -28,7 +28,7 @@ const BENEFITS = [
 ]
 
 export function NotificationScreen({ navigation }: Props) {
-  const { setNotificationsEnabled } = useOnboardingStore()
+  const { setNotificationsEnabled, setExpoPushToken } = useOnboardingStore()
 
   const contentOpacity = useSharedValue(0)
   const contentY       = useSharedValue(20)
@@ -57,7 +57,19 @@ export function NotificationScreen({ navigation }: Props) {
       const { status } = await Notifications.requestPermissionsAsync()
       const granted = status === 'granted'
       setNotificationsEnabled(granted)
-      if (granted) await HapticPatterns.success()
+
+      if (granted) {
+        await HapticPatterns.success()
+        // Capture the Expo push token so PaywallScreen can sync it to Supabase
+        try {
+          const tokenData = await Notifications.getExpoPushTokenAsync()
+          const { Platform } = await import('react-native')
+          const platform = Platform.OS === 'android' ? 'android' : 'ios'
+          setExpoPushToken(tokenData.data, platform)
+        } catch (tokenErr) {
+          console.warn('[notifications] failed to get push token:', tokenErr)
+        }
+      }
     } catch {
       setNotificationsEnabled(false)
     }

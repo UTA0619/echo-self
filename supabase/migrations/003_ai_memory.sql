@@ -23,11 +23,14 @@ CREATE TABLE memories (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ANN vector search index
--- lists = 100 is good for up to ~1M vectors. Increase to 300 at 5M+.
+-- ANN vector search index.
+-- text-embedding-3-large is 3072-dim, which exceeds pgvector's 2000-dim
+-- limit for ivfflat/hnsw indexes on full `vector`. Index a half-precision
+-- cast instead: hnsw over halfvec supports up to 4000 dimensions. Queries
+-- must cosine-compare against the same halfvec cast to use this index
+-- (see the ORDER BY ... ::halfvec clauses in the match functions below).
 CREATE INDEX memories_embedding_idx
-  ON memories USING ivfflat (embedding vector_cosine_ops)
-  WITH (lists = 100);
+  ON memories USING hnsw ((embedding::halfvec(3072)) halfvec_cosine_ops);
 
 -- User-scoped queries
 CREATE INDEX memories_user_created_idx
@@ -88,7 +91,8 @@ AS $$
     AND embedding IS NOT NULL
     AND (p_types IS NULL OR type = ANY(p_types))
     AND 1 - (embedding <=> p_query_embedding) >= p_min_similarity
-  ORDER BY embedding <=> p_query_embedding
+  -- Cast to halfvec so the planner can use memories_embedding_idx (hnsw).
+  ORDER BY embedding::halfvec(3072) <=> p_query_embedding::halfvec(3072)
   LIMIT p_top_k;
 $$;
 
@@ -122,7 +126,8 @@ AS $$
     AND embedding IS NOT NULL
     AND (p_exclude_id IS NULL OR id != p_exclude_id)
     AND 1 - (embedding <=> p_embedding) >= p_min_similarity
-  ORDER BY embedding <=> p_embedding
+  -- Cast to halfvec so the planner can use memories_embedding_idx (hnsw).
+  ORDER BY embedding::halfvec(3072) <=> p_embedding::halfvec(3072)
   LIMIT 5;
 $$;
 

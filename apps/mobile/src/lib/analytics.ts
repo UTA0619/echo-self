@@ -14,9 +14,15 @@
  */
 
 import * as Sentry from '@sentry/react-native';
+import type PostHog from 'posthog-react-native';
 
-// PostHog is imported lazily to avoid bundling it in the main chunk
-let _posthog: typeof import('posthog-react-native') | null = null;
+// PostHog's event-property type isn't re-exported from the package root,
+// so derive it from the instance method signatures.
+type PostHogProps = Parameters<PostHog['capture']>[1];
+
+// PostHog is imported lazily to avoid bundling it in the main chunk.
+// Holds a constructed instance (posthog-react-native v3 is instance-based).
+let _posthog: PostHog | null = null;
 
 const SENTRY_DSN       = process.env.EXPO_PUBLIC_SENTRY_DSN ?? '';
 const POSTHOG_API_KEY  = process.env.EXPO_PUBLIC_POSTHOG_KEY ?? '';
@@ -51,17 +57,11 @@ export function initAnalytics(): void {
 
   // PostHog — lazy import after Sentry to keep critical path fast
   import('posthog-react-native')
-    .then((ph) => {
-      _posthog = ph;
+    .then(({ default: PostHogClass }) => {
       if (POSTHOG_API_KEY) {
-        ph.default.setup(POSTHOG_API_KEY, {
+        _posthog = new PostHogClass(POSTHOG_API_KEY, {
           host: POSTHOG_HOST,
-          captureApplicationLifecycleEvents: true,
-          captureDeepLinks: true,
-          sessionReplay: {
-            maskAllTextInputs: true,   // Mask journal text for privacy
-            maskAllImages: false,
-          },
+          // Journal text is masked at the component layer; keep init minimal.
         });
       }
     })
@@ -80,7 +80,7 @@ export const Analytics = {
    */
   identify(userId: string, traits: Record<string, unknown> = {}): void {
     Sentry.setUser({ id: userId });
-    _posthog?.default.identify(userId, traits);
+    _posthog?.identify(userId, traits as PostHogProps);
   },
 
   /**
@@ -88,7 +88,7 @@ export const Analytics = {
    */
   track(event: string, properties: Record<string, unknown> = {}): void {
     if (IS_DEV) console.log(`[analytics] track: ${event}`, properties);
-    _posthog?.default.capture(event, properties);
+    _posthog?.capture(event, properties as PostHogProps);
     Sentry.addBreadcrumb({ category: 'analytics', message: event, data: properties });
   },
 
@@ -97,7 +97,7 @@ export const Analytics = {
    */
   screen(name: string, properties: Record<string, unknown> = {}): void {
     if (IS_DEV) console.log(`[analytics] screen: ${name}`);
-    _posthog?.default.screen(name, properties);
+    _posthog?.screen(name, properties as PostHogProps);
     Sentry.addBreadcrumb({ category: 'navigation', message: name });
   },
 
@@ -116,7 +116,7 @@ export const Analytics = {
    * Start a Sentry performance span (returns a finish function).
    */
   startSpan(name: string, op = 'custom'): () => void {
-    const span = Sentry.startSpan({ name, op }, () => {});
+    Sentry.startSpan({ name, op }, () => {});
     return () => { /* span finishes automatically */ };
   },
 
@@ -125,7 +125,7 @@ export const Analytics = {
    */
   reset(): void {
     Sentry.setUser(null);
-    _posthog?.default.reset();
+    _posthog?.reset();
   },
 };
 

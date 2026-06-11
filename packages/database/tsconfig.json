@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "//": "This package ships SQL migrations only — no TypeScript source. An explicit (empty) file set keeps `tsc --noEmit` scoped to this package instead of walking up to the repo-root tsconfig and pulling in the entire home directory.",
+  "files": [],
+  "include": []
+}

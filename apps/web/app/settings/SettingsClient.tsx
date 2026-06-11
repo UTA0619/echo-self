@@ -5,23 +5,25 @@ import { createClient } from '@/lib/supabase/client'
 import type { SubscriptionStatus } from '@/lib/subscription'
 
 interface Profile {
-  display_name: string | null
-  timezone: string | null
-  created_at: string
+  display_name:          string | null
+  timezone:              string | null
+  notification_time:     string | null  // HH:MM:SS
+  notification_enabled:  boolean | null
+  created_at:            string
 }
 
 interface Referral {
-  referral_code: string
-  total_referrals: number
-  successful_referrals: number
-  reward_months_earned: number
+  referral_code:          string
+  total_referrals:        number
+  successful_referrals:   number
+  reward_months_earned:   number
 }
 
 interface SettingsClientProps {
-  user: { id: string; email: string }
-  profile: Profile | null
-  subscription: SubscriptionStatus
-  referral: Referral | null
+  user:          { id: string; email: string }
+  profile:       Profile | null
+  subscription:  SubscriptionStatus
+  referral:      Referral | null
   upgradeStatus: string | null
 }
 
@@ -41,8 +43,10 @@ export function SettingsClient({ user, profile, subscription, referral, upgradeS
       )}
 
       <ProfileSection user={user} profile={profile} />
+      <NotificationSection userId={user.id} profile={profile} />
       <SubscriptionSection subscription={subscription} userId={user.id} />
       {referral && <ReferralSection referral={referral} />}
+      <DataSection userId={user.id} />
       <DangerSection userId={user.id} />
     </div>
   )
@@ -61,7 +65,7 @@ function ProfileSection({ user, profile }: { user: { id: string; email: string }
     await supabase
       .from('profiles')
       .update({ display_name: name.trim() })
-      .eq('id', user.id)
+      .eq('auth_id', user.id)
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
@@ -105,7 +109,7 @@ function ProfileSection({ user, profile }: { user: { id: string; email: string }
 
 // ── Subscription ──────────────────────────────────────────────────────────────
 
-function SubscriptionSection({ subscription, userId }: { subscription: SubscriptionStatus; userId: string }) {
+function SubscriptionSection({ subscription, userId: _userId }: { subscription: SubscriptionStatus; userId: string }) {
   const [loading, setLoading] = useState<'monthly' | 'annual' | 'portal' | null>(null)
 
   async function checkout(plan: 'monthly' | 'annual') {
@@ -231,9 +235,143 @@ function ReferralSection({ referral }: { referral: Referral }) {
   )
 }
 
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+function NotificationSection({ userId, profile }: { userId: string; profile: Profile | null }) {
+  const [time, setTime]       = useState(profile?.notification_time?.slice(0, 5) ?? '09:00')
+  const [enabled, setEnabled] = useState(profile?.notification_enabled ?? true)
+  const [saving, setSaving]   = useState(false)
+  const [saved, setSaved]     = useState(false)
+
+  async function handleSave() {
+    setSaving(true)
+    const supabase = createClient()
+    await supabase
+      .from('profiles')
+      .update({ notification_time: `${time}:00`, notification_enabled: enabled })
+      .eq('auth_id', userId)
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  return (
+    <Section title="Notifications">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-[#F0F0F5]">Daily reminder</p>
+            <p className="text-[11px] text-[#8B8FA8] mt-0.5">ECHO will nudge you to reflect each day</p>
+          </div>
+          <button
+            onClick={() => setEnabled((v) => !v)}
+            className={[
+              'relative w-11 h-6 rounded-full transition-colors duration-200',
+              enabled ? 'bg-[#7B6CF6]' : 'bg-white/10',
+            ].join(' ')}
+            aria-label={enabled ? 'Disable notifications' : 'Enable notifications'}
+            role="switch"
+            aria-checked={enabled}
+          >
+            <span
+              className={[
+                'absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200',
+                enabled ? 'translate-x-5' : 'translate-x-0',
+              ].join(' ')}
+            />
+          </button>
+        </div>
+
+        {enabled && (
+          <div className="space-y-1.5">
+            <label className="block text-[10px] text-[#8B8FA8] uppercase tracking-widest">
+              Reminder time (your local time)
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="flex-1 rounded-lg bg-[#0A0B0F] border border-white/10 px-3 py-2 text-sm text-[#F0F0F5] outline-none focus:border-[#7B6CF6]/50 transition-colors"
+              />
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-3 py-2 rounded-lg bg-[#7B6CF6]/10 border border-[#7B6CF6]/30 text-xs text-[#7B6CF6] hover:bg-[#7B6CF6]/20 transition-colors disabled:opacity-40"
+              >
+                {saved ? '✓' : saving ? '…' : 'Save'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!enabled && (
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="text-xs text-[#7B6CF6] hover:opacity-80 disabled:opacity-40 transition-opacity"
+          >
+            {saved ? '✓ Saved' : saving ? 'Saving…' : 'Save preference'}
+          </button>
+        )}
+      </div>
+    </Section>
+  )
+}
+
+// ── Data export ───────────────────────────────────────────────────────────────
+
+function DataSection({ userId: _userId }: { userId: string }) {
+  const [exporting, setExporting] = useState(false)
+  const [exportDone, setExportDone] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
+
+  async function handleExport() {
+    setExporting(true)
+    setExportError(null)
+    try {
+      const res = await fetch('/api/account/export', { method: 'POST' })
+      if (!res.ok) throw new Error(`Export failed: ${res.status}`)
+      const blob = await res.blob()
+      const url  = URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      a.href     = url
+      a.download = `echo-export-${new Date().toISOString().split('T')[0]}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+      setExportDone(true)
+      setTimeout(() => setExportDone(false), 4000)
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : 'Export failed')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  return (
+    <Section title="Your data">
+      <div className="space-y-3">
+        <p className="text-[11px] text-[#8B8FA8]">
+          Download a complete copy of your journal entries, identity nodes, and behavioral patterns as JSON.
+        </p>
+        <button
+          onClick={handleExport}
+          disabled={exporting}
+          className="text-xs text-[#7B6CF6] hover:opacity-80 disabled:opacity-40 transition-opacity"
+        >
+          {exportDone ? '✓ Download started' : exporting ? 'Preparing export…' : 'Export all data →'}
+        </button>
+        {exportError && (
+          <p className="text-[11px] text-red-400">{exportError}</p>
+        )}
+      </div>
+    </Section>
+  )
+}
+
 // ── Danger zone ───────────────────────────────────────────────────────────────
 
-function DangerSection({ userId }: { userId: string }) {
+function DangerSection({ userId: _userId }: { userId: string }) {
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
 

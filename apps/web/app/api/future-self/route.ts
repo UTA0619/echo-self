@@ -61,11 +61,19 @@ async function runFutureSelf(
   timeframe: Timeframe,
 ): Promise<NextResponse> {
   // Fetch user profile
-  const { data: profile } = await supabase
+  const { data: profileRow } = await supabase
     .from('profiles')
-    .select('display_name, onboarding_data, current_streak, total_entries')
-    .eq('id', user.id)
+    .select('display_name, onboarding_data')
+    .eq('auth_id', user.id)
     .single()
+  // total_entries / current_streak aren't in this projection (or the generated
+  // types); widen to optional so the prompt builder can fall back to 0.
+  const profile = profileRow as {
+    display_name: string | null
+    onboarding_data: unknown
+    total_entries?: number
+    current_streak?: number
+  } | null
 
   const userName = profile?.display_name ?? 'you'
   const onboardingData = (profile?.onboarding_data as Record<string, unknown>) ?? {}
@@ -96,7 +104,12 @@ async function runFutureSelf(
     `${identityTags.join(', ')} ${aspirations} ${emotionalArcSummary}`
   )
 
-  const { data: memories } = await supabase.rpc('search_entries', {
+  // search_entries is a custom RPC not present in the generated Database types.
+  const rpc = supabase.rpc as unknown as (
+    fn: string,
+    args: Record<string, unknown>,
+  ) => Promise<{ data: Record<string, unknown>[] | null; error: unknown }>
+  const { data: memories } = await rpc('search_entries', {
     p_user_id: user.id,
     p_query_embedding: JSON.stringify(queryEmbedding),
     p_match_count: 8,

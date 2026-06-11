@@ -17,21 +17,21 @@ import Animated, {
   withDelay,
 } from 'react-native-reanimated'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
-import type { OnboardingStackParamList } from '../../navigation/OnboardingNavigator'
+import type { OnboardingParamList } from '../../navigation/OnboardingNavigator'
 import { AnimatedBackground } from '../../components/onboarding/AnimatedBackground'
 import { OnboardingButton } from '../../components/onboarding/OnboardingButton'
 import { OnboardingProgress } from '../../components/onboarding/OnboardingProgress'
 import { useOnboardingStore } from '../../store/onboarding'
 import { Colors, Spacing, Typography } from '../../theme/tokens'
 
-type Props = NativeStackScreenProps<OnboardingStackParamList, 'Name'>
+type Props = NativeStackScreenProps<OnboardingParamList, 'Name'>
 
 // Static content hoisted outside component (rendering-hoist-jsx)
 const HEADER_TEXT = 'What should Echo\ncall you?'
 const SUBTEXT = 'This is just your display name inside the app. You can change it later.'
 
 export function NameScreen({ navigation }: Props) {
-  const { name, setName } = useOnboardingStore()
+  const { displayName: name, setDisplayName: setName } = useOnboardingStore()
   const inputRef = useRef<TextInput>(null)
 
   const contentOpacity = useSharedValue(0)
@@ -84,7 +84,7 @@ export function NameScreen({ navigation }: Props) {
               value={name}
               onChangeText={setName}
               placeholder="Your name…"
-              placeholderTextColor={Colors.textMuted}
+              placeholderTextColor={Colors.textTertiary}
               autoCapitalize="words"
               autoCorrect={false}
               returnKeyType="done"
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   },
   inputUnderline: {
     height: 1.5,
-    backgroundColor: Colors.border,
+    backgroundColor: Colors.border0,
     borderRadius: 1,
   },
   inputUnderlineActive: {
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     ...Typography.bodySm,
-    color: Colors.textMuted,
+    color: Colors.textTertiary,
   },
   ctaContainer: {
     paddingHorizontal: Spacing.xl,

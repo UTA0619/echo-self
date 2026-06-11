@@ -13,8 +13,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
+import Purchases from 'react-native-purchases';
 import { useAuthStore } from '../../store/auth';
 import { useOnboardingStore } from '../../store/onboarding';
+import { useIAPStore } from '../../store/iap';
 import { supabase } from '../../services/supabase';
 import { Colors, Spacing } from '../../theme/tokens';
 
@@ -49,6 +51,9 @@ function Row({
       onPress={onPress}
       style={({ pressed }) => [styles.row, pressed && onPress && styles.rowPressed]}
       disabled={!onPress && !right}
+      accessibilityLabel={value ? `${label}: ${value}` : label}
+      accessibilityRole={onPress ? 'button' : 'text'}
+      accessibilityHint={destructive ? 'This action cannot be undone' : undefined}
     >
       <Text style={[styles.rowLabel, destructive && styles.rowDestructive]}>{label}</Text>
       {right ?? (value ? <Text style={styles.rowValue}>{value}</Text> : <Text style={styles.rowChevron}>›</Text>)}
@@ -58,12 +63,16 @@ function Row({
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export function ProfileScreen() {
-  const { user, signOut } = useAuthStore();
+  const { user, signOut, loadProfile } = useAuthStore();
   const { reset: resetOnboarding } = useOnboardingStore();
+  const { packages, isPurchasing, purchasePackage, restorePurchases } = useIAPStore();
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
-  const isPremium = user?.subscriptionTier === 'premium';
+  // (rerender-derived-state-no-effect) derive during render
+  const isPremium = useIAPStore((s) => s.isPremium) || user?.subscriptionTier === 'premium';
+  // Monthly package for the quick-upgrade CTA; may be undefined before offerings load
+  const monthlyPkg = packages.find((p) => p.period === 'monthly');
 
   // Check notification status on mount
   React.useEffect(() => {
@@ -89,12 +98,37 @@ export function ProfileScreen() {
   }
 
   async function handleUpgrade() {
+    if (!monthlyPkg) {
+      // Fallback: no offerings loaded yet (e.g. Simulator)
+      Linking.openURL(`${APP_URL}/upgrade`);
+      return;
+    }
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Linking.openURL(`${APP_URL}/settings`);
+    const success = await purchasePackage(monthlyPkg);
+    if (success && user?.id) {
+      await loadProfile(user.id);
+    }
   }
 
   async function handleManageBilling() {
-    Linking.openURL(`${APP_URL}/settings`);
+    // Opens the native subscription management sheet (iOS 15+)
+    try {
+      await Purchases.showManageSubscriptions();
+    } catch {
+      // Fallback for older OS versions
+      Linking.openURL('https://apps.apple.com/account/subscriptions');
+    }
+  }
+
+  async function handleRestorePurchases() {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const restored = await restorePurchases();
+    if (restored) {
+      if (user?.id) await loadProfile(user.id);
+      Alert.alert('Purchases restored', 'Your ECHO Pro subscription is active.');
+    } else {
+      Alert.alert('Nothing to restore', 'No active subscription found for your Apple ID.');
+    }
   }
 
   async function handleSignOut() {
@@ -177,10 +211,27 @@ export function ProfileScreen() {
             ) : (
               <>
                 <Row label="Plan" value="Free" />
-                <Pressable style={styles.upgradeBtn} onPress={handleUpgrade}>
-                  <Text style={styles.upgradeBtnTitle}>Upgrade to Pro</Text>
-                  <Text style={styles.upgradeBtnSub}>Unlimited entries · AI responses · Future Self · $12/mo</Text>
+                <Pressable
+                  style={[styles.upgradeBtn, isPurchasing && styles.upgradeBtnDisabled]}
+                  onPress={handleUpgrade}
+                  disabled={isPurchasing}
+                  accessibilityLabel={
+                    monthlyPkg
+                      ? `Upgrade to Pro for ${monthlyPkg.priceString} per month`
+                      : 'Upgrade to Pro'
+                  }
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.upgradeBtnTitle}>
+                    {isPurchasing ? 'Processing…' : 'Upgrade to Pro'}
+                  </Text>
+                  <Text style={styles.upgradeBtnSub}>
+                    {monthlyPkg
+                      ? `${monthlyPkg.priceString}/mo · Unlimited entries · AI responses · Future Self`
+                      : 'Unlimited entries · AI responses · Future Self · $12/mo'}
+                  </Text>
                 </Pressable>
+                <Row label="Restore purchases" onPress={handleRestorePurchases} />
               </>
             )}
           </Section>
@@ -246,9 +297,9 @@ function StatBlock({ label, value, suffix }: { label: string; value: number; suf
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.black },
-  scroll: { padding: Spacing[4], paddingBottom: 120 },
+  scroll: { padding: Spacing.md, paddingBottom: 120 },
 
-  profileHeader: { alignItems: 'center', paddingVertical: Spacing[5], gap: Spacing[1] },
+  profileHeader: { alignItems: 'center', paddingVertical: Spacing.lg, gap: Spacing.xs },
   avatar: {
     width: 80,
     height: 80,
@@ -258,13 +309,13 @@ const styles = StyleSheet.create({
     borderColor: `${Colors.indigo}60`,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing[2],
+    marginBottom: Spacing.sm,
   },
   avatarInitial: { fontSize: 32, fontWeight: '700', color: Colors.indigo },
   displayName: { fontSize: 22, fontWeight: '700', color: Colors.textPrimary },
   email: { fontSize: 13, color: Colors.textSecondary },
   proBadge: {
-    marginTop: Spacing[1],
+    marginTop: Spacing.xs,
     backgroundColor: `${Colors.indigo}20`,
     borderWidth: 1,
     borderColor: `${Colors.indigo}40`,
@@ -276,14 +327,14 @@ const styles = StyleSheet.create({
 
   statsRow: {
     flexDirection: 'row',
-    gap: Spacing[2],
-    marginBottom: Spacing[4],
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   statBlock: {
     flex: 1,
     backgroundColor: Colors.surface1,
     borderRadius: 12,
-    padding: Spacing[3],
+    padding: Spacing.md,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.border0,
@@ -292,15 +343,15 @@ const styles = StyleSheet.create({
   statSuffix: { fontSize: 12, fontWeight: '400', color: Colors.textSecondary },
   statLabel: { fontSize: 10, color: Colors.textTertiary, marginTop: 2 },
 
-  section: { marginBottom: Spacing[4] },
+  section: { marginBottom: Spacing.md },
   sectionTitle: {
     fontSize: 11,
     fontWeight: '600',
     color: Colors.textTertiary,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
-    marginBottom: Spacing[2],
-    paddingHorizontal: Spacing[1],
+    marginBottom: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
   },
   sectionBody: {
     backgroundColor: Colors.surface1,
@@ -314,8 +365,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing[4],
-    paddingVertical: Spacing[3],
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.border0,
   },
@@ -326,19 +377,20 @@ const styles = StyleSheet.create({
   rowChevron: { fontSize: 20, color: Colors.textTertiary },
 
   upgradeBtn: {
-    margin: Spacing[3],
+    margin: Spacing.md,
     backgroundColor: Colors.indigo,
     borderRadius: 12,
-    padding: Spacing[4],
+    padding: Spacing.md,
   },
   upgradeBtnTitle: { fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 4 },
   upgradeBtnSub: { fontSize: 12, color: 'rgba(255,255,255,0.75)', lineHeight: 18 },
+  upgradeBtnDisabled: { opacity: 0.5 },
 
   footer: {
     textAlign: 'center',
     fontSize: 11,
     color: Colors.textTertiary,
-    marginTop: Spacing[4],
+    marginTop: Spacing.md,
     letterSpacing: 0.5,
   },
 });

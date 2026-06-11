@@ -1,4 +1,6 @@
-import { createClient } from '@/lib/supabase/server'
+// Client-safe identity types. Keep free of server-only imports
+// (next/headers, the server Supabase client) — imported by Client
+// Components. Data fetchers live in ./identity-server.
 
 export type IdentityNodeType =
   | 'belief'
@@ -23,19 +25,6 @@ export interface IdentityNode {
   updated_at: string
 }
 
-export async function fetchIdentityNodes(): Promise<IdentityNode[]> {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('identity_nodes')
-    .select('*')
-    .eq('active', true)
-    .order('confidence', { ascending: false })
-    .limit(40)
-
-  if (error) throw error
-  return data ?? []
-}
-
 export interface BehavioralPattern {
   id: string
   user_id: string
@@ -46,17 +35,4 @@ export interface BehavioralPattern {
   trigger_tags: string[]
   last_seen_at: string
   is_active: boolean
-}
-
-export async function fetchBehavioralPatterns(): Promise<BehavioralPattern[]> {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('behavioral_patterns')
-    .select('*')
-    .eq('is_active', true)
-    .order('confidence', { ascending: false })
-    .limit(10)
-
-  if (error) return []
-  return data ?? []
 }

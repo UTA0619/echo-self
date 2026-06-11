@@ -1,4 +1,7 @@
-import type { PredictionTimeframe, EmotionType } from '@echo-self/shared-types'
+import type { EmotionType } from '@echo-self/shared-types'
+
+/** Supported future-self projection horizons. */
+export type PredictionTimeframe = '30d' | '90d' | '1yr'
 
 export interface FutureSelfPromptParams {
   userName: string
