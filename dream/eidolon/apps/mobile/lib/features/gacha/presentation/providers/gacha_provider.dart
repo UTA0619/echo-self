@@ -128,8 +128,10 @@ class GachaNotifier extends _$GachaNotifier {
       );
     } else {
       final err = result.error!;
-      // Code 0 = user cancelled — no error banner
-      final isCancelled = err is NetworkError && (err.statusCode ?? 0) == 0;
+      // The repository encodes user-cancelled purchases as statusCode 0
+      // (and only those) — match exactly so errors whose statusCode failed
+      // to parse (null) still surface a banner.
+      final isCancelled = err is NetworkError && err.statusCode == 0;
       state = state.copyWith(
         isBuyingCrystals: false,
         errorMessage: isCancelled ? null : _msg(err),
