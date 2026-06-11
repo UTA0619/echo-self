@@ -1,0 +1,6 @@
+# Google Play service-account JSON key.
+# Provide either a path (CI: write the secret to a file) or leave unset and
+# pass `json_key_data` via the SUPPLY_JSON_KEY_DATA env var that supply reads.
+json_key_file(ENV["GOOGLE_PLAY_JSON_KEY_PATH"]) if ENV["GOOGLE_PLAY_JSON_KEY_PATH"]
+
+package_name("studio.eidolon.eidolon")
