@@ -29,15 +29,13 @@ class EidolonOrb extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  EidolonColors.accent.withValues(alpha:0.15),
-                  EidolonColors.soulCore.withValues(alpha:0.05),
+                  EidolonColors.accent.withValues(alpha: 0.15),
+                  EidolonColors.soulCore.withValues(alpha: 0.05),
                   Colors.transparent,
                 ],
               ),
             ),
-          )
-              .animate(onPlay: (c) => c.repeat(reverse: true))
-              .scaleXY(
+          ).animate(onPlay: (c) => c.repeat(reverse: true)).scaleXY(
                 begin: 0.9,
                 end: 1.1,
                 duration: 3.seconds,
@@ -51,7 +49,7 @@ class EidolonOrb extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: EidolonColors.accent.withValues(alpha:0.4),
+                color: EidolonColors.accent.withValues(alpha: 0.4),
                 width: 1,
               ),
             ),
@@ -86,12 +84,12 @@ class EidolonOrb extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: EidolonColors.soulCore.withValues(alpha:0.6),
+                  color: EidolonColors.soulCore.withValues(alpha: 0.6),
                   blurRadius: 24,
                   spreadRadius: 4,
                 ),
                 BoxShadow(
-                  color: EidolonColors.accent.withValues(alpha:0.4),
+                  color: EidolonColors.accent.withValues(alpha: 0.4),
                   blurRadius: 40,
                   spreadRadius: 8,
                 ),

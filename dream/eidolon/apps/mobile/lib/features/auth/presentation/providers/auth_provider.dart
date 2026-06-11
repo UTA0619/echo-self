@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:eidolon/core/error/app_error.dart';
 import 'package:eidolon/core/firebase/firebase_service.dart';
 import 'package:eidolon/features/auth/data/repositories/auth_repository_impl.dart';
@@ -6,6 +8,7 @@ import 'package:eidolon/features/auth/domain/usecases/create_account_usecase.dar
 import 'package:eidolon/features/auth/domain/usecases/sign_in_with_apple_usecase.dart';
 import 'package:eidolon/features/auth/domain/usecases/sign_in_with_email_usecase.dart';
 import 'package:eidolon/features/auth/domain/usecases/sign_in_with_google_usecase.dart';
+import 'package:eidolon/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:eidolon/features/auth/domain/usecases/sign_out_usecase.dart';
 // Hide Supabase's User type which clashes with Firebase's User
 import 'package:firebase_auth/firebase_auth.dart' hide OAuthProvider;
@@ -24,6 +27,11 @@ abstract class AuthState with _$AuthState {
     AuthUser? user,
     @Default(false) bool isLoading,
     String? errorMessage,
+
+    /// Set to true when deleteAccount() fails with requiresRecentLogin.
+    /// The UI should show a re-authentication dialog then call
+    /// reauthenticateAndDelete().
+    @Default(false) bool needsReAuth,
   }) = _AuthState;
 }
 
@@ -64,12 +72,22 @@ class AuthNotifier extends _$AuthNotifier {
     final hasProfile =
         await ref.read(authRepositoryProvider).hasCompletedOnboarding(user.uid);
 
+    final newStatus =
+        hasProfile ? AuthStatus.authenticated : AuthStatus.onboardingRequired;
     state = state.copyWith(
-      status:
-          hasProfile ? AuthStatus.authenticated : AuthStatus.onboardingRequired,
+      status: newStatus,
       user: authUser,
       errorMessage: null,
     );
+
+    // Log login event on first transition to authenticated.
+    // Guarded: analytics must never break auth flow (e.g. Firebase not
+    // initialized in unit tests).
+    if (newStatus == AuthStatus.authenticated) {
+      try {
+        unawaited(ref.read(firebaseAnalyticsProvider).logLogin());
+      } catch (_) {/* analytics unavailable — non-fatal */}
+    }
   }
 
   // ── Public actions ────────────────────────────────────────────────────────
@@ -115,6 +133,53 @@ class AuthNotifier extends _$AuthNotifier {
     state = state.copyWith(isLoading: false);
   }
 
+  Future<void> deleteAccount() async {
+    state =
+        state.copyWith(isLoading: true, errorMessage: null, needsReAuth: false);
+    final result = await ref.read(deleteAccountUseCaseProvider).call();
+    if (!result.isSuccess) {
+      final isReAuth = result.error is RequiresRecentLoginError;
+      state = state.copyWith(
+        isLoading: false,
+        needsReAuth: isReAuth,
+        errorMessage: isReAuth ? null : _errorMsg(result.error!),
+      );
+    } else {
+      // Clear loading on success; the Firebase stream will then transition
+      // state to unauthenticated once sign-out propagates.
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
+  /// Re-authenticates the current user with their password, then immediately
+  /// retries account deletion. Call when [AuthState.needsReAuth] is true.
+  Future<void> reauthenticateAndDelete({
+    required String email,
+    required String password,
+  }) async {
+    state =
+        state.copyWith(isLoading: true, errorMessage: null, needsReAuth: false);
+    final reAuthResult = await ref
+        .read(authRepositoryProvider)
+        .reauthenticateWithPassword(email: email, password: password);
+    if (!reAuthResult.isSuccess) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: _errorMsg(reAuthResult.error!),
+      );
+      return;
+    }
+    // Re-auth succeeded — retry deletion
+    final deleteResult = await ref.read(deleteAccountUseCaseProvider).call();
+    if (!deleteResult.isSuccess) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: _errorMsg(deleteResult.error!),
+      );
+    }
+    // On success, Firebase stream transitions to unauthenticated
+  }
+
   void clearError() => state = state.copyWith(errorMessage: null);
 
   /// Re-evaluates auth state against the current Firebase user.
@@ -141,6 +206,8 @@ class AuthNotifier extends _$AuthNotifier {
   static String _errorMsg(AppError error) => switch (error) {
         AuthError(:final message) => message,
         NetworkError(:final message) => message,
+        RequiresRecentLoginError() =>
+          'Please sign in again to complete this action.',
         _ => error.toString(),
       };
 }

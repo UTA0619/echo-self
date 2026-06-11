@@ -32,7 +32,12 @@ class GachaCard extends StatelessWidget {
       return _CompactCard(item: item, color: color)
           .animate(delay: delay)
           .fadeIn(duration: 350.ms)
-          .scaleXY(begin: 0.7, end: 1.0, curve: Curves.elasticOut, duration: 500.ms);
+          .scaleXY(
+            begin: 0.7,
+            end: 1.0,
+            curve: Curves.elasticOut,
+            duration: 500.ms,
+          );
     }
 
     return Container(

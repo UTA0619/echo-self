@@ -31,15 +31,12 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
@@ -49,5 +46,9 @@
 	<string>Eidolon reads your steps, sleep, and calories to power your Eidolon's stats via Reality Sync.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Eidolon does not write health data.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>We use analytics to improve gameplay and Eidolon AI responses. No data is sold to third parties.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

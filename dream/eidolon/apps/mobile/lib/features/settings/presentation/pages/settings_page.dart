@@ -1,11 +1,11 @@
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/auth/domain/entities/auth_user.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
+import 'package:eidolon/features/settings/presentation/pages/legal_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 part 'settings_page.g.dart';
 
@@ -39,7 +39,6 @@ class SettingsPage extends ConsumerWidget {
         children: [
           _ProfileHeader(user: user),
           const SizedBox(height: 24),
-
           _SectionHeader(title: 'Account'),
           _SettingsTile(
             icon: Icons.logout_rounded,
@@ -47,7 +46,12 @@ class SettingsPage extends ConsumerWidget {
             isDestructive: true,
             onTap: () => _confirmSignOut(context, ref),
           ),
-
+          _SettingsTile(
+            icon: Icons.delete_forever_rounded,
+            label: 'Delete Account',
+            isDestructive: true,
+            onTap: () => _confirmDeleteAccount(context, ref),
+          ),
           const SizedBox(height: 16),
           _SectionHeader(title: 'About'),
           versionAsync.when(
@@ -67,18 +71,144 @@ class SettingsPage extends ConsumerWidget {
             icon: Icons.privacy_tip_outlined,
             label: 'Privacy Policy',
             showArrow: true,
-            onTap: () => _launch('https://eidolon.app/privacy'),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const LegalPage(type: LegalPageType.privacy),
+              ),
+            ),
           ),
           _SettingsTile(
             icon: Icons.article_outlined,
             label: 'Terms of Service',
             showArrow: true,
-            onTap: () => _launch('https://eidolon.app/terms'),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const LegalPage(type: LegalPageType.terms),
+              ),
+            ),
           ),
           const SizedBox(height: 32),
         ],
       ),
     );
+  }
+
+  Future<void> _confirmDeleteAccount(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: EidolonColors.surface,
+        title: Text(
+          'Delete Account?',
+          style: Theme.of(ctx).textTheme.titleMedium,
+        ),
+        content: Text(
+          'This permanently deletes your Eidolon, dungeon history, and all '
+          'data. This action cannot be undone.',
+          style: Theme.of(ctx).textTheme.bodyMedium,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: EidolonColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Delete',
+              style: TextStyle(color: EidolonColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    await ref.read(authNotifierProvider.notifier).deleteAccount();
+
+    if (!context.mounted) return;
+    // If Firebase requires re-authentication, prompt for password
+    final needsReAuth = ref.read(authNotifierProvider).needsReAuth;
+    if (needsReAuth) {
+      await _reauthAndDelete(context, ref);
+    }
+  }
+
+  Future<void> _reauthAndDelete(BuildContext context, WidgetRef ref) async {
+    final user = ref.read(authNotifierProvider).user;
+    final email = user?.email ?? '';
+    final controller = TextEditingController();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: EidolonColors.surface,
+        title: Text(
+          'Confirm Identity',
+          style: Theme.of(ctx).textTheme.titleMedium,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'For security, enter your password to permanently delete '
+              'your account.',
+              style: Theme.of(ctx).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              obscureText: true,
+              autofocus: true,
+              style: const TextStyle(color: EidolonColors.textPrimary),
+              decoration: InputDecoration(
+                labelText: 'Password',
+                labelStyle: const TextStyle(color: EidolonColors.textSecondary),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: EidolonColors.border),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: EidolonColors.accent),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: EidolonColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Delete',
+              style: TextStyle(color: EidolonColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    controller.dispose();
+    if (confirmed != true || !context.mounted) return;
+
+    await ref.read(authNotifierProvider.notifier).reauthenticateAndDelete(
+          email: email,
+          password: controller.text,
+        );
   }
 
   Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
@@ -115,11 +245,6 @@ class SettingsPage extends ConsumerWidget {
     if (confirmed == true) {
       await ref.read(authNotifierProvider.notifier).signOut();
     }
-  }
-
-  Future<void> _launch(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 }
 
@@ -242,40 +367,49 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isDestructive ? EidolonColors.error : EidolonColors.textPrimary;
+    final color =
+        isDestructive ? EidolonColors.error : EidolonColors.textPrimary;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        splashColor: EidolonColors.accent.withValues(alpha: 0.08),
-        highlightColor: EidolonColors.accent.withValues(alpha: 0.04),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          child: Row(
-            children: [
-              Icon(icon, size: 20, color: color.withValues(alpha: 0.8)),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  label,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: color),
+    return Semantics(
+      button: onTap != null,
+      label: label,
+      hint: isDestructive ? 'Destructive action' : null,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          splashColor: EidolonColors.accent.withValues(alpha: 0.08),
+          highlightColor: EidolonColors.accent.withValues(alpha: 0.04),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            child: Row(
+              children: [
+                Icon(icon, size: 20, color: color.withValues(alpha: 0.8)),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(color: color),
+                  ),
                 ),
-              ),
-              if (trailing != null)
-                Text(
-                  trailing!,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: EidolonColors.textSecondary,
-                      ),
-                ),
-              if (showArrow)
-                Icon(
-                  Icons.chevron_right_rounded,
-                  size: 20,
-                  color: EidolonColors.textSecondary,
-                ),
-            ],
+                if (trailing != null)
+                  Text(
+                    trailing!,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: EidolonColors.textSecondary,
+                        ),
+                  ),
+                if (showArrow)
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 20,
+                    color: EidolonColors.textSecondary,
+                  ),
+              ],
+            ),
           ),
         ),
       ),

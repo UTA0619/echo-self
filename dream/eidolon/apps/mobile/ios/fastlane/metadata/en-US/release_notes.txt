@@ -1,0 +1,7 @@
+Initial release.
+
+• AI-generated dungeons
+• Personality-driven Eidolon companion
+• Reality Sync with Apple Health
+• Soul Summon with fully disclosed rates
+• Sign in with Apple, Google, or email

@@ -17,28 +17,35 @@ class OnboardingNotifier extends _$OnboardingNotifier {
   void setEidolonName(String value) =>
       state = state.copyWith(eidolonName: value, errorMessage: null);
 
-  void setAnswer(int questionId, int likertValue) =>
-      state = state.copyWith(
+  void setAnswer(int questionId, int likertValue) => state = state.copyWith(
         answers: {...state.answers, questionId: likertValue},
         errorMessage: null,
       );
 
   void nextStep() {
     if (state.currentStep < 3) {
-      state = state.copyWith(currentStep: state.currentStep + 1, errorMessage: null);
+      state = state.copyWith(
+        currentStep: state.currentStep + 1,
+        errorMessage: null,
+      );
     }
   }
 
   void previousStep() {
     if (state.currentStep > 0) {
-      state = state.copyWith(currentStep: state.currentStep - 1, errorMessage: null);
+      state = state.copyWith(
+        currentStep: state.currentStep - 1,
+        errorMessage: null,
+      );
     }
   }
 
   Future<void> complete() async {
     final authUid = ref.read(authNotifierProvider).user?.uid;
     if (authUid == null) {
-      state = state.copyWith(errorMessage: 'Not signed in. Please restart the app.');
+      state = state.copyWith(
+        errorMessage: 'Not signed in. Please restart the app.',
+      );
       return;
     }
 

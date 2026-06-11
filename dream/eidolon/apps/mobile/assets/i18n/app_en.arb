@@ -1,0 +1,56 @@
+{
+  "@@locale": "en",
+  "appTitle": "Eidolon",
+  "@appTitle": { "description": "Application title" },
+
+  "soulTwinTagline": "Your AI soul-twin keeps adventuring while you sleep.",
+  "@soulTwinTagline": { "description": "Main marketing tagline" },
+
+  "onboardingWelcomeTitle": "Welcome to Eidolon",
+  "onboardingWelcomeSubtitle": "Let's awaken your soul-twin.",
+
+  "onboardingPersonalityTitle": "Who are you?",
+  "onboardingPersonalitySubtitle": "Your answers shape your Eidolon's soul.",
+
+  "traitOpenness": "Openness",
+  "traitConscientiousness": "Conscientiousness",
+  "traitExtraversion": "Extraversion",
+  "traitAgreeableness": "Agreeableness",
+  "traitNeuroticism": "Neuroticism",
+
+  "buttonContinue": "Continue",
+  "buttonBack": "Back",
+  "buttonGetStarted": "Awaken",
+  "buttonSkip": "Skip",
+  "buttonCancel": "Cancel",
+  "buttonRetry": "Retry",
+  "buttonSummon": "Summon",
+  "buttonReturnToHub": "Return to Hub",
+  "buttonConnectHealth": "Connect Health",
+  "buttonReturnHome": "Return Home",
+
+  "gachaTitle": "Summon",
+  "homeTalkWithEidolon": "Talk with Eidolon",
+
+  "errorGeneric": "Something went wrong. Please try again.",
+  "errorNetwork": "Connection failed. Check your internet.",
+  "errorAiUnavailable": "Your Eidolon is resting. Trying backup...",
+
+  "homeTabHome": "Home",
+  "homeTabDungeon": "Dungeon",
+  "homeTabEidolon": "Eidolon",
+  "homeTabWorld": "World",
+  "homeTabProfile": "Profile",
+  "homeTabGacha": "Gacha",
+  "homeTabSettings": "Settings",
+
+  "dungeonGenerating": "Your Eidolon is mapping the dungeon…",
+  "dungeonEnter": "Enter Dungeon",
+
+  "subscriptionSoulPass": "Soul Pass",
+  "subscriptionEternal": "Eternal",
+  "subscriptionFree": "Free",
+
+  "priceSoulPass": "$9.99 / month",
+  "priceEternal": "$19.99 / month"
+}

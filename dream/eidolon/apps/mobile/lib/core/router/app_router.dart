@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/features/auth/auth.dart';
 import 'package:eidolon/features/dungeon/dungeon.dart';
 import 'package:eidolon/features/eidolon/eidolon.dart';
@@ -203,7 +204,7 @@ class _ErrorPage extends StatelessWidget {
             const SizedBox(height: 24),
             OutlinedButton(
               onPressed: () => context.go(Routes.splash),
-              child: const Text('Return Home'),
+              child: Text(context.l10n.buttonReturnHome),
             ),
           ],
         ),

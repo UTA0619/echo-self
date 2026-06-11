@@ -91,7 +91,8 @@ void main() {
     });
 
     test('max activity → score 100', () {
-      final b = bonusFromSnapshot(_snap(steps: 10000, sleep: 8, calories: 1000));
+      final b =
+          bonusFromSnapshot(_snap(steps: 10000, sleep: 8, calories: 1000));
       expect(b.syncScore, 100);
     });
 

@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,9 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
   }
 
   void _onChanged(String value) {
-    ref.read(onboardingNotifierProvider.notifier).setUsername(value.toLowerCase());
+    ref
+        .read(onboardingNotifierProvider.notifier)
+        .setUsername(value.toLowerCase());
     setState(() => _validationError = _validate(value.toLowerCase()));
   }
 
@@ -83,9 +86,9 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _proceed(),
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              letterSpacing: 1.5,
-              fontWeight: FontWeight.w600,
-            ),
+                  letterSpacing: 1.5,
+                  fontWeight: FontWeight.w600,
+                ),
             decoration: InputDecoration(
               hintText: 'e.g. shadow_walker',
               errorText: _validationError,
@@ -93,9 +96,13 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
                 Icons.alternate_email_rounded,
                 color: EidolonColors.accent,
               ),
-              suffixIcon: _controller.text.isNotEmpty && _validationError == null
-                  ? const Icon(Icons.check_circle_rounded, color: EidolonColors.success)
-                  : null,
+              suffixIcon:
+                  _controller.text.isNotEmpty && _validationError == null
+                      ? const Icon(
+                          Icons.check_circle_rounded,
+                          color: EidolonColors.success,
+                        )
+                      : null,
               counterText: '${_controller.text.length}/20',
             ),
           ).animate(delay: 300.ms).fadeIn(duration: 400.ms),
@@ -112,10 +119,14 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: canProceed && _validationError == null ? _proceed : null,
-              child: const Text('Continue'),
+              onPressed:
+                  canProceed && _validationError == null ? _proceed : null,
+              child: Text(context.l10n.buttonContinue),
             ),
-          ).animate(delay: 500.ms).fadeIn(duration: 400.ms).slideY(begin: 0.3, end: 0),
+          )
+              .animate(delay: 500.ms)
+              .fadeIn(duration: 400.ms)
+              .slideY(begin: 0.3, end: 0),
 
           const SizedBox(height: 40),
         ],

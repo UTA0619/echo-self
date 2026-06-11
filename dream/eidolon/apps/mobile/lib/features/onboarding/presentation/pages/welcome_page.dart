@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:eidolon/features/onboarding/presentation/widgets/eidolon_orb.dart';
@@ -21,7 +22,12 @@ class WelcomePage extends ConsumerWidget {
           const EidolonOrb(size: 180)
               .animate()
               .fadeIn(duration: 900.ms)
-              .scaleXY(begin: 0.7, end: 1.0, curve: Curves.elasticOut, duration: 1200.ms),
+              .scaleXY(
+                begin: 0.7,
+                end: 1.0,
+                curve: Curves.elasticOut,
+                duration: 1200.ms,
+              ),
 
           const SizedBox(height: 48),
 
@@ -29,12 +35,15 @@ class WelcomePage extends ConsumerWidget {
           Text(
             'EIDOLON',
             style: Theme.of(context).textTheme.displayLarge?.copyWith(
-              letterSpacing: 12,
-              foreground: Paint()
-                ..shader = const LinearGradient(
-                  colors: [EidolonColors.accentGlow, EidolonColors.soulCore],
-                ).createShader(const Rect.fromLTWH(0, 0, 200, 60)),
-            ),
+                  letterSpacing: 12,
+                  foreground: Paint()
+                    ..shader = const LinearGradient(
+                      colors: [
+                        EidolonColors.accentGlow,
+                        EidolonColors.soulCore,
+                      ],
+                    ).createShader(const Rect.fromLTWH(0, 0, 200, 60)),
+                ),
           )
               .animate(delay: 400.ms)
               .fadeIn(duration: 700.ms)
@@ -44,12 +53,11 @@ class WelcomePage extends ConsumerWidget {
 
           // Tagline
           Text(
-            'Your AI soul-twin keeps adventuring\nwhile you sleep.',
+            context.l10n.soulTwinTagline,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.7),
-          )
-              .animate(delay: 700.ms)
-              .fadeIn(duration: 700.ms),
+            style:
+                Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.7),
+          ).animate(delay: 700.ms).fadeIn(duration: 700.ms),
 
           const Spacer(flex: 3),
 
@@ -70,11 +78,11 @@ class WelcomePage extends ConsumerWidget {
                 ),
               ),
               child: Text(
-                'Awaken',
+                context.l10n.buttonGetStarted,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
-                  letterSpacing: 2,
-                ),
+                      color: Colors.white,
+                      letterSpacing: 2,
+                    ),
               ),
             ),
           )
@@ -87,7 +95,7 @@ class WelcomePage extends ConsumerWidget {
           TextButton(
             onPressed: () => context.go('/onboarding/1'),
             child: Text(
-              'Skip intro',
+              context.l10n.buttonSkip,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ).animate(delay: 1200.ms).fadeIn(duration: 400.ms),

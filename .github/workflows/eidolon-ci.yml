@@ -1,0 +1,95 @@
+name: Eidolon CI
+
+# The Eidolon Flutter app lives at dream/eidolon inside this monorepo.
+# Its own dream/eidolon/.github/workflows/ never executes (GitHub only runs
+# workflows from the repository root), so the quality gates are enforced here.
+#
+# Scope: apps/mobile only — the melos workspace also lists apps/admin and
+# packages/{design_system,game_logic}, but those are empty scaffolds without
+# pubspec.yaml, so `melos bootstrap` would fail in CI.
+
+on:
+  pull_request:
+    paths:
+      - 'dream/eidolon/**'
+      - '.github/workflows/eidolon-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'dream/eidolon/**'
+      - '.github/workflows/eidolon-ci.yml'
+
+concurrency:
+  group: eidolon-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.27.4'
+
+defaults:
+  run:
+    working-directory: dream/eidolon/apps/mobile
+
+jobs:
+  analyze:
+    name: Analyze & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Generate code (shared_types path dependency)
+        # build_runner only generates for the current package, and the app
+        # depends on packages/shared_types whose freezed entities are also
+        # gitignored — generate there first.
+        working-directory: dream/eidolon/packages/shared_types
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Generate code (freezed / json_serializable)
+        # *.freezed.dart / *.g.dart are gitignored, so CI must regenerate them.
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Analyze (zero issues required)
+        run: flutter analyze
+
+      - name: Format check
+        run: dart format --set-exit-if-changed --output=none .
+
+  test:
+    name: Unit & Widget Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Generate code (shared_types path dependency)
+        # build_runner only generates for the current package, and the app
+        # depends on packages/shared_types whose freezed entities are also
+        # gitignored — generate there first.
+        working-directory: dream/eidolon/packages/shared_types
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Generate code (freezed / json_serializable)
+        # *.freezed.dart / *.g.dart are gitignored, so CI must regenerate them.
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Test
+        run: flutter test

@@ -70,7 +70,8 @@ void main() {
     });
 
     test('crystalsSpent equals ten cost for 10 items', () {
-      final items = List.generate(10, (i) => kGachaCatalog[i % kGachaCatalog.length]);
+      final items =
+          List.generate(10, (i) => kGachaCatalog[i % kGachaCatalog.length]);
       final result = GachaPullResult(
         items: items,
         pulledAt: DateTime.now(),

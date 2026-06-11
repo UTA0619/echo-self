@@ -6,10 +6,18 @@ import 'package:eidolon/features/gacha/domain/entities/gacha_item.dart';
 import 'package:eidolon/features/gacha/domain/entities/gacha_pull_result.dart';
 import 'package:eidolon/features/gacha/domain/repositories/gacha_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'gacha_repository_impl.g.dart';
+
+// ── IAP product IDs (must match App Store Connect / Play Console) ─────────────
+const _kOffering = 'soul_crystals';
+const _kProductSmall = 'eidolon.crystals.80';
+const _kProductMedium = 'eidolon.crystals.500';
+const _kProductLarge = 'eidolon.crystals.1800';
+const _kProductMega = 'eidolon.crystals.5000';
 
 @Riverpod(keepAlive: true)
 GachaRepository gachaRepository(Ref ref) =>
@@ -21,7 +29,104 @@ class GachaRepositoryImpl implements GachaRepository {
 
   static final _rng = Random.secure();
 
-  // ── Public API ────────────────────────────────────────────────────────────
+  // ── Crystal bundles ───────────────────────────────────────────────────────
+
+  @override
+  Future<Result<List<CrystalBundle>>> getCrystalBundles() async {
+    try {
+      final offerings = await Purchases.getOfferings();
+      final offering = offerings.getOffering(_kOffering) ?? offerings.current;
+
+      if (offering == null) return ok(_fallbackBundles());
+
+      final bundles = offering.availablePackages.map((pkg) {
+        final crystals = _crystalsForProduct(pkg.storeProduct.identifier);
+        return CrystalBundle(
+          productId: pkg.storeProduct.identifier,
+          crystals: crystals,
+          displayPrice: pkg.storeProduct.priceString,
+          isBestValue: pkg.packageType == PackageType.annual ||
+              pkg.storeProduct.identifier == _kProductMega,
+        );
+      }).toList()
+        ..sort((a, b) => a.crystals.compareTo(b.crystals));
+
+      return ok(bundles.isEmpty ? _fallbackBundles() : bundles);
+    } catch (_) {
+      // Don't fail hard — return static fallback so UI still shows bundles
+      return ok(_fallbackBundles());
+    }
+  }
+
+  @override
+  Future<Result<int>> purchaseCrystals({
+    required String userId,
+    required String productId,
+  }) async {
+    try {
+      final offerings = await Purchases.getOfferings();
+      final offering = offerings.getOffering(_kOffering) ?? offerings.current;
+      if (offering == null) {
+        return err(
+          const AppError.network(
+            message: 'Store not available. Please try again later.',
+            statusCode: 503,
+          ),
+        );
+      }
+
+      final matchedPackage = offering.availablePackages
+          .where((p) => p.storeProduct.identifier == productId)
+          .firstOrNull;
+      if (matchedPackage == null) {
+        return err(
+          AppError.network(
+            message: 'Product not found: $productId',
+            statusCode: 404,
+          ),
+        );
+      }
+      final pkg = matchedPackage;
+
+      // Trigger native purchase sheet
+      final purchaseResult = await Purchases.purchase(
+        PurchaseParams.package(pkg),
+      );
+      final customerInfo = purchaseResult.customerInfo;
+
+      // Count crystals to credit
+      final crystals = _crystalsForProduct(productId);
+
+      // Credit via Supabase RPC (idempotent — receipt_id prevents double-credit)
+      await _supabase.rpc<void>(
+        'credit_crystals',
+        params: {
+          'p_user_id': userId,
+          'p_amount': crystals,
+          'p_receipt_id': customerInfo.originalAppUserId,
+        },
+      );
+
+      // Return new balance
+      final balanceResult = await getCrystals(userId);
+      return balanceResult;
+    } on PurchasesErrorCode catch (e) {
+      // User cancelled — not an error worth reporting
+      if (e == PurchasesErrorCode.purchaseCancelledError) {
+        return err(
+          const AppError.network(
+            message: 'Purchase cancelled.',
+            statusCode: 0,
+          ),
+        );
+      }
+      return err(AppError.network(message: e.toString()));
+    } catch (e, st) {
+      return err(AppError.unknown(error: e, stackTrace: st));
+    }
+  }
+
+  // ── Pull logic ────────────────────────────────────────────────────────────
 
   @override
   Future<Result<GachaPullResult>> pull({
@@ -41,20 +146,20 @@ class GachaRepositoryImpl implements GachaRepository {
       // 2. Roll items locally using catalog + weighted random
       final items = List.generate(count, (_) => _roll());
 
-      // 3. Persist pull records
+      // 3. Persist pull record (one row per pull, results as JSONB array)
       final now = DateTime.now();
-      await _supabase.from('gacha_pulls').insert(
-            items
-                .map(
-                  (item) => {
-                    'user_id': userId,
-                    'item_id': item.id,
-                    'rarity': item.rarity.name,
-                    'pulled_at': now.toIso8601String(),
-                  },
-                )
-                .toList(),
-          );
+      await _supabase.from('gacha_pulls').insert({
+        'user_id': userId,
+        'pool_id': 'standard',
+        'count': count,
+        'results': items
+            .map((item) => {'item_id': item.id, 'rarity': item.rarity.name})
+            .toList(),
+        'currency_spent': cost,
+        'pity_before': 0,
+        'pity_after': 0,
+        'pulled_at': now.toIso8601String(),
+      });
 
       return ok(
         GachaPullResult(
@@ -64,7 +169,6 @@ class GachaRepositoryImpl implements GachaRepository {
         ),
       );
     } on PostgrestException catch (e) {
-      // RPC throws with code P0001 when insufficient crystals
       if (e.message.contains('insufficient') || e.code == 'P0001') {
         return err(
           const AppError.network(
@@ -110,15 +214,26 @@ class GachaRepositoryImpl implements GachaRepository {
     try {
       final rows = await _supabase
           .from('gacha_pulls')
-          .select('item_id')
+          .select('results')
           .eq('user_id', userId)
           .order('pulled_at', ascending: false)
-          .limit(30);
+          .limit(10); // 10 pulls × up to 10 items = 100 items max
 
       final items = (rows as List<dynamic>)
-          .map((r) => (r as Map<String, dynamic>)['item_id'] as String)
-          .map((id) => kGachaCatalog.where((i) => i.id == id).firstOrNull)
-          .whereType<GachaItem>()
+          .expand((r) {
+            final results = (r as Map<String, dynamic>)['results'];
+            if (results is! List<dynamic>) return <GachaItem>[];
+            return results
+                .map(
+                  (entry) =>
+                      (entry as Map<String, dynamic>)['item_id'] as String,
+                )
+                .map(
+                  (id) => kGachaCatalog.where((i) => i.id == id).firstOrNull,
+                )
+                .whereType<GachaItem>();
+          })
+          .take(30)
           .toList();
 
       return ok(items);
@@ -134,7 +249,7 @@ class GachaRepositoryImpl implements GachaRepository {
     }
   }
 
-  // ── Weighted random roll ──────────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
   GachaItem _roll() {
     final rarity = _rollRarity();
@@ -151,4 +266,39 @@ class GachaRepositoryImpl implements GachaRepository {
     }
     return GachaRarity.common;
   }
+
+  static int _crystalsForProduct(String productId) => switch (productId) {
+        _kProductSmall => 80,
+        _kProductMedium => 500,
+        _kProductLarge => 1800,
+        _kProductMega => 5000,
+        _ => 0,
+      };
+
+  static List<CrystalBundle> _fallbackBundles() => const [
+        CrystalBundle(
+          productId: _kProductSmall,
+          crystals: 80,
+          displayPrice: '\$0.99',
+          isBestValue: false,
+        ),
+        CrystalBundle(
+          productId: _kProductMedium,
+          crystals: 500,
+          displayPrice: '\$4.99',
+          isBestValue: false,
+        ),
+        CrystalBundle(
+          productId: _kProductLarge,
+          crystals: 1800,
+          displayPrice: '\$14.99',
+          isBestValue: false,
+        ),
+        CrystalBundle(
+          productId: _kProductMega,
+          crystals: 5000,
+          displayPrice: '\$39.99',
+          isBestValue: true,
+        ),
+      ];
 }

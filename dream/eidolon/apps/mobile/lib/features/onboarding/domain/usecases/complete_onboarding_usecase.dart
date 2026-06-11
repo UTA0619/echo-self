@@ -17,13 +17,15 @@ class CompleteOnboardingUseCase {
   final SupabaseClient _supabase;
 
   /// [authUid] must be the Firebase UID stored in `users.auth_uid`.
-  Future<Result<void>> call(OnboardingState state, {required String authUid}) async {
+  Future<Result<void>> call(
+    OnboardingState state, {
+    required String authUid,
+  }) async {
     try {
       // 1. Update username
       await _supabase
           .from('users')
-          .update({'username': state.username.trim()})
-          .eq('auth_uid', authUid);
+          .update({'username': state.username.trim()}).eq('auth_uid', authUid);
 
       // 2. Fetch internal game user id
       final userRow = await _supabase
@@ -45,7 +47,12 @@ class CompleteOnboardingUseCase {
 
       return ok(null);
     } on PostgrestException catch (e) {
-      return err(AppError.network(message: e.message, statusCode: int.tryParse(e.code ?? '')));
+      return err(
+        AppError.network(
+          message: e.message,
+          statusCode: int.tryParse(e.code ?? ''),
+        ),
+      );
     } catch (e, st) {
       return err(AppError.unknown(error: e, stackTrace: st));
     }

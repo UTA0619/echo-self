@@ -1,0 +1,53 @@
+name: eidolon
+repository: https://github.com/eidolon-studio/eidolon
+
+packages:
+  - apps/mobile
+  - apps/admin
+  - packages/**
+
+sdkPath: auto
+
+command:
+  bootstrap:
+    hooks:
+      post: dart run build_runner build --delete-conflicting-outputs
+  version:
+    workspaceChangelog: true
+
+scripts:
+  analyze:
+    run: flutter analyze
+    exec:
+      concurrency: 5
+    description: Run flutter analyze on all packages
+
+  format:
+    run: dart format . --set-exit-if-changed
+    exec:
+      concurrency: 5
+    description: Check formatting on all packages
+
+  test:
+    run: flutter test --coverage
+    exec:
+      concurrency: 3
+    description: Run unit tests with coverage
+
+  test:integration:
+    run: flutter test integration_test/
+    exec:
+      concurrency: 1
+    description: Run integration tests
+
+  build:runner:
+    run: dart run build_runner build --delete-conflicting-outputs
+    exec:
+      concurrency: 3
+    description: Run code generation
+
+  clean:
+    run: flutter clean
+    exec:
+      concurrency: 5
+    description: Clean all build artifacts

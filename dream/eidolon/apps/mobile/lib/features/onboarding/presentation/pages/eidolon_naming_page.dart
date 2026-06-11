@@ -75,11 +75,15 @@ class _EidolonNamingPageState extends ConsumerState<EidolonNamingPage> {
           // Name input
           TextField(
             controller: _controller,
-            onChanged: ref.read(onboardingNotifierProvider.notifier).setEidolonName,
+            onChanged:
+                ref.read(onboardingNotifierProvider.notifier).setEidolonName,
             textAlign: TextAlign.center,
             textCapitalization: TextCapitalization.words,
             maxLength: 24,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(letterSpacing: 2),
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(letterSpacing: 2),
             decoration: InputDecoration(
               hintText: 'e.g. Aether',
               counterText: '',
@@ -98,9 +102,9 @@ class _EidolonNamingPageState extends ConsumerState<EidolonNamingPage> {
             child: Text(
               '${state.eidolonName.trim()} is awakening…',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: EidolonColors.accentGlow,
-                fontStyle: FontStyle.italic,
-              ),
+                    color: EidolonColors.accentGlow,
+                    fontStyle: FontStyle.italic,
+                  ),
             ),
           ),
 
@@ -110,8 +114,8 @@ class _EidolonNamingPageState extends ConsumerState<EidolonNamingPage> {
             Text(
               state.errorMessage!,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: EidolonColors.error,
-              ),
+                    color: EidolonColors.error,
+                  ),
             ),
           ],
 
@@ -155,14 +159,18 @@ class _EidolonNamingPageState extends ConsumerState<EidolonNamingPage> {
                       )
                     : Text(
                         'Awaken ${state.eidolonName.trim().isEmpty ? '' : state.eidolonName.trim()}',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
-                          letterSpacing: 1.5,
-                        ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: Colors.white,
+                                  letterSpacing: 1.5,
+                                ),
                       ),
               ),
             ),
-          ).animate(delay: 500.ms).fadeIn(duration: 400.ms).slideY(begin: 0.3, end: 0),
+          )
+              .animate(delay: 500.ms)
+              .fadeIn(duration: 400.ms)
+              .slideY(begin: 0.3, end: 0),
 
           const SizedBox(height: 40),
         ],
