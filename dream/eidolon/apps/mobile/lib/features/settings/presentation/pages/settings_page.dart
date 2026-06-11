@@ -39,7 +39,6 @@ class SettingsPage extends ConsumerWidget {
         children: [
           _ProfileHeader(user: user),
           const SizedBox(height: 24),
-
           _SectionHeader(title: 'Account'),
           _SettingsTile(
             icon: Icons.logout_rounded,
@@ -53,7 +52,6 @@ class SettingsPage extends ConsumerWidget {
             isDestructive: true,
             onTap: () => _confirmDeleteAccount(context, ref),
           ),
-
           const SizedBox(height: 16),
           _SectionHeader(title: 'About'),
           versionAsync.when(
@@ -75,8 +73,7 @@ class SettingsPage extends ConsumerWidget {
             showArrow: true,
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) =>
-                    const LegalPage(type: LegalPageType.privacy),
+                builder: (_) => const LegalPage(type: LegalPageType.privacy),
               ),
             ),
           ),
@@ -86,8 +83,7 @@ class SettingsPage extends ConsumerWidget {
             showArrow: true,
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) =>
-                    const LegalPage(type: LegalPageType.terms),
+                builder: (_) => const LegalPage(type: LegalPageType.terms),
               ),
             ),
           ),
@@ -98,7 +94,9 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Future<void> _confirmDeleteAccount(
-      BuildContext context, WidgetRef ref) async {
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -172,8 +170,7 @@ class SettingsPage extends ConsumerWidget {
               style: const TextStyle(color: EidolonColors.textPrimary),
               decoration: InputDecoration(
                 labelText: 'Password',
-                labelStyle:
-                    const TextStyle(color: EidolonColors.textSecondary),
+                labelStyle: const TextStyle(color: EidolonColors.textSecondary),
                 enabledBorder: OutlineInputBorder(
                   borderSide: const BorderSide(color: EidolonColors.border),
                   borderRadius: BorderRadius.circular(8),
@@ -249,7 +246,6 @@ class SettingsPage extends ConsumerWidget {
       await ref.read(authNotifierProvider.notifier).signOut();
     }
   }
-
 }
 
 // ── Profile header ────────────────────────────────────────────────────────────
@@ -371,48 +367,52 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isDestructive ? EidolonColors.error : EidolonColors.textPrimary;
+    final color =
+        isDestructive ? EidolonColors.error : EidolonColors.textPrimary;
 
     return Semantics(
       button: onTap != null,
       label: label,
       hint: isDestructive ? 'Destructive action' : null,
       child: Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        splashColor: EidolonColors.accent.withValues(alpha: 0.08),
-        highlightColor: EidolonColors.accent.withValues(alpha: 0.04),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          child: Row(
-            children: [
-              Icon(icon, size: 20, color: color.withValues(alpha: 0.8)),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  label,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: color),
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          splashColor: EidolonColors.accent.withValues(alpha: 0.08),
+          highlightColor: EidolonColors.accent.withValues(alpha: 0.04),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            child: Row(
+              children: [
+                Icon(icon, size: 20, color: color.withValues(alpha: 0.8)),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(color: color),
+                  ),
                 ),
-              ),
-              if (trailing != null)
-                Text(
-                  trailing!,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: EidolonColors.textSecondary,
-                      ),
-                ),
-              if (showArrow)
-                Icon(
-                  Icons.chevron_right_rounded,
-                  size: 20,
-                  color: EidolonColors.textSecondary,
-                ),
-            ],
+                if (trailing != null)
+                  Text(
+                    trailing!,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: EidolonColors.textSecondary,
+                        ),
+                  ),
+                if (showArrow)
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 20,
+                    color: EidolonColors.textSecondary,
+                  ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
     );
   }
 }

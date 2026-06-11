@@ -18,7 +18,8 @@ abstract class OnboardingState with _$OnboardingState {
   }) = _OnboardingState;
 
   int scoreFor(OceanTrait trait) {
-    final questions = kPersonalityQuestions.where((q) => q.trait == trait).toList();
+    final questions =
+        kPersonalityQuestions.where((q) => q.trait == trait).toList();
     if (questions.isEmpty) return 50;
     final rawSum = questions.fold<int>(0, (sum, q) {
       final raw = answers[q.id] ?? 3;

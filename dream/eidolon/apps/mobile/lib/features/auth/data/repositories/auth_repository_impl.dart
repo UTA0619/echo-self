@@ -78,7 +78,9 @@ class AuthRepositoryImpl implements AuthRepository {
       final googleAccount = await GoogleSignIn.instance.authenticate();
       final idToken = googleAccount.authentication.idToken;
       if (idToken == null) {
-        return err(const AppError.auth(message: 'Google sign-in failed: no ID token'));
+        return err(
+          const AppError.auth(message: 'Google sign-in failed: no ID token'),
+        );
       }
       final credential = GoogleAuthProvider.credential(idToken: idToken);
       final cred = await _auth.signInWithCredential(credential);
@@ -88,7 +90,9 @@ class AuthRepositoryImpl implements AuthRepository {
       if (e.code == GoogleSignInExceptionCode.canceled) {
         return err(const AppError.auth(message: 'Sign-in cancelled'));
       }
-      return err(AppError.auth(message: e.description ?? 'Google sign-in failed'));
+      return err(
+        AppError.auth(message: e.description ?? 'Google sign-in failed'),
+      );
     } on FirebaseAuthException catch (e) {
       return err(AppError.auth(message: _friendlyMessage(e.code)));
     } catch (e, st) {
@@ -235,10 +239,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
   static String _friendlyMessage(String code) => switch (code) {
         'user-not-found' => 'No account found with this email.',
-        'wrong-password' || 'invalid-credential' =>
+        'wrong-password' ||
+        'invalid-credential' =>
           'Incorrect email or password.',
-        'email-already-in-use' =>
-          'An account with this email already exists.',
+        'email-already-in-use' => 'An account with this email already exists.',
         'invalid-email' => 'Please enter a valid email address.',
         'weak-password' => 'Password must be at least 6 characters.',
         'user-disabled' => 'This account has been disabled.',

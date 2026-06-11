@@ -73,7 +73,8 @@ Widget _wrapWithNotifier(_FakeGachaNotifier notifier) {
   );
 }
 
-GachaItem _item(GachaRarity r) => kGachaCatalog.firstWhere((i) => i.rarity == r);
+GachaItem _item(GachaRarity r) =>
+    kGachaCatalog.firstWhere((i) => i.rarity == r);
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
@@ -226,7 +227,8 @@ void main() {
   });
 
   group('GachaPage — history', () {
-    testWidgets('shows recent summons when history is non-empty', (tester) async {
+    testWidgets('shows recent summons when history is non-empty',
+        (tester) async {
       final history = kGachaCatalog.take(3).toList();
       await tester.pumpWidget(
         _wrap(
@@ -257,7 +259,8 @@ void main() {
       await tester.pump();
 
       await tester.tap(find.text('100  ×1 Summon'));
-      await tester.pump(); // open dialog (no pumpAndSettle — infinite animations)
+      await tester
+          .pump(); // open dialog (no pumpAndSettle — infinite animations)
 
       expect(find.text('Confirm this summon?'), findsOneWidget);
 

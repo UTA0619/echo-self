@@ -35,7 +35,10 @@ class GachaPage extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(context.l10n.gachaTitle, style: Theme.of(context).textTheme.titleMedium),
+        title: Text(
+          context.l10n.gachaTitle,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         centerTitle: true,
         actions: [
           Padding(

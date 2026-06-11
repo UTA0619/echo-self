@@ -2,7 +2,8 @@ import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/auth/domain/entities/auth_user.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
 import 'package:eidolon/features/settings/presentation/pages/legal_page.dart';
-import 'package:eidolon/features/settings/presentation/pages/settings_page.dart' show SettingsPage, settingsAppVersionProvider;
+import 'package:eidolon/features/settings/presentation/pages/settings_page.dart'
+    show SettingsPage, settingsAppVersionProvider;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -74,7 +75,8 @@ void main() {
       expect(find.text('S'), findsOneWidget);
     });
 
-    testWidgets('shows email prefix as name when displayName is absent', (tester) async {
+    testWidgets('shows email prefix as name when displayName is absent',
+        (tester) async {
       final auth = _authState(
         user: const AuthUser(uid: 'uid-2', email: 'warrior@test.com'),
       );
@@ -114,7 +116,8 @@ void main() {
       expect(find.text('Terms of Service'), findsOneWidget);
     });
 
-    testWidgets('tapping Privacy Policy opens in-app legal page', (tester) async {
+    testWidgets('tapping Privacy Policy opens in-app legal page',
+        (tester) async {
       await tester.pumpWidget(_wrap(const SettingsPage()));
       await tester.pumpAndSettle();
 
@@ -126,7 +129,8 @@ void main() {
       expect(find.textContaining('Information We Collect'), findsOneWidget);
     });
 
-    testWidgets('tapping Terms of Service opens in-app legal page', (tester) async {
+    testWidgets('tapping Terms of Service opens in-app legal page',
+        (tester) async {
       await tester.pumpWidget(_wrap(const SettingsPage()));
       await tester.pumpAndSettle();
 
@@ -157,7 +161,8 @@ void main() {
       expect(find.text('Delete'), findsOneWidget);
     });
 
-    testWidgets('confirming Delete Account calls deleteAccount', (tester) async {
+    testWidgets('confirming Delete Account calls deleteAccount',
+        (tester) async {
       final fakeNotifier = _FakeAuthNotifier(_authState());
       final router = GoRouter(
         initialLocation: '/',
@@ -199,7 +204,8 @@ void main() {
       expect(find.text('Cancel'), findsOneWidget);
     });
 
-    testWidgets('cancelling sign out dialog does not call signOut', (tester) async {
+    testWidgets('cancelling sign out dialog does not call signOut',
+        (tester) async {
       final fakeNotifier = _FakeAuthNotifier(_authState());
       final router = GoRouter(
         initialLocation: '/',

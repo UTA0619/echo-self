@@ -140,8 +140,7 @@ class _HubView extends ConsumerWidget {
                     final emoji = _themeEmojis[t] ?? '✨';
                     final label = t.name.replaceAll('_', ' ');
                     return GestureDetector(
-                      onTap: () =>
-                          notifier.setTheme(selected ? null : t),
+                      onTap: () => notifier.setTheme(selected ? null : t),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         padding: const EdgeInsets.symmetric(
@@ -342,8 +341,7 @@ class _RunView extends ConsumerWidget {
           child: SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed:
-                  state.isLoading ? null : notifier.advanceRoom,
+              onPressed: state.isLoading ? null : notifier.advanceRoom,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 18),
               ),
@@ -397,9 +395,7 @@ class _ResultView extends ConsumerWidget {
                   curve: Curves.elasticOut,
                   duration: 800.ms,
                 ),
-
             const SizedBox(height: 16),
-
             Text(
               isVictory
                   ? '${state.dungeon?.name ?? 'The dungeon'} has been conquered.\nYour Eidolon grows stronger.'
@@ -410,9 +406,7 @@ class _ResultView extends ConsumerWidget {
                     height: 1.7,
                   ),
             ).animate(delay: 300.ms).fadeIn(),
-
             const SizedBox(height: 40),
-
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

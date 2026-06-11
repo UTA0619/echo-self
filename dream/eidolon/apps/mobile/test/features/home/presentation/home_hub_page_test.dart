@@ -24,16 +24,20 @@ Widget _wrap({HomeState? homeState, AuthState? authState}) {
   );
   return ProviderScope(
     overrides: [
-      homeNotifierProvider.overrideWith(() => _FakeHomeNotifier(
-            homeState ?? const HomeState(),
-          )),
-      authNotifierProvider.overrideWith(() => _FakeAuthNotifier(
-            authState ??
-                const AuthState(
-                  status: AuthStatus.authenticated,
-                  user: AuthUser(uid: 'uid-1', email: 'test@test.com'),
-                ),
-          )),
+      homeNotifierProvider.overrideWith(
+        () => _FakeHomeNotifier(
+          homeState ?? const HomeState(),
+        ),
+      ),
+      authNotifierProvider.overrideWith(
+        () => _FakeAuthNotifier(
+          authState ??
+              const AuthState(
+                status: AuthStatus.authenticated,
+                user: AuthUser(uid: 'uid-1', email: 'test@test.com'),
+              ),
+        ),
+      ),
       realitySyncNotifierProvider.overrideWith(
         () => _FakeRealitySyncNotifier(const RealitySyncState()),
       ),
@@ -76,15 +80,17 @@ void main() {
 
   group('HomeHubPage — loaded state', () {
     testWidgets('shows greeting and daily stats section', (tester) async {
-      await tester.pumpWidget(_wrap(
-        homeState: const HomeState(
-          summary: HomeSummary(
-            hasActiveRun: false,
-            dungeonRunsToday: 2,
-            currentStreak: 7,
+      await tester.pumpWidget(
+        _wrap(
+          homeState: const HomeState(
+            summary: HomeSummary(
+              hasActiveRun: false,
+              dungeonRunsToday: 2,
+              currentStreak: 7,
+            ),
           ),
         ),
-      ));
+      );
       await tester.pump();
 
       expect(find.textContaining('Adventurer'), findsOneWidget);
@@ -95,15 +101,17 @@ void main() {
     });
 
     testWidgets('shows streak badge when summary is present', (tester) async {
-      await tester.pumpWidget(_wrap(
-        homeState: const HomeState(
-          summary: HomeSummary(
-            hasActiveRun: false,
-            dungeonRunsToday: 0,
-            currentStreak: 14,
+      await tester.pumpWidget(
+        _wrap(
+          homeState: const HomeState(
+            summary: HomeSummary(
+              hasActiveRun: false,
+              dungeonRunsToday: 0,
+              currentStreak: 14,
+            ),
           ),
         ),
-      ));
+      );
       await tester.pump();
 
       // The streak value appears in two places: the greeting streak badge
@@ -124,22 +132,24 @@ void main() {
 
     testWidgets('shows Eidolon card with name and level', (tester) async {
       final now = DateTime(2026);
-      await tester.pumpWidget(_wrap(
-        homeState: HomeState(
-          eidolon: EidolonProfile(
-            id: 'e1',
-            userId: 'uid-1',
-            name: 'Lyra',
-            level: 5,
-            xp: 200,
-            xpToNext: 500,
-            currentMood: EidolonMood.calm,
-            personality: const PersonalityProfile(),
-            createdAt: now,
-            updatedAt: now,
+      await tester.pumpWidget(
+        _wrap(
+          homeState: HomeState(
+            eidolon: EidolonProfile(
+              id: 'e1',
+              userId: 'uid-1',
+              name: 'Lyra',
+              level: 5,
+              xp: 200,
+              xpToNext: 500,
+              currentMood: EidolonMood.calm,
+              personality: const PersonalityProfile(),
+              createdAt: now,
+              updatedAt: now,
+            ),
           ),
         ),
-      ));
+      );
       await tester.pump();
 
       expect(find.text('Lyra'), findsOneWidget);
@@ -150,16 +160,18 @@ void main() {
 
     testWidgets('shows active dungeon run banner when run is active',
         (tester) async {
-      await tester.pumpWidget(_wrap(
-        homeState: const HomeState(
-          summary: HomeSummary(
-            hasActiveRun: true,
-            activeRunId: 'run-123',
-            dungeonRunsToday: 1,
-            currentStreak: 3,
+      await tester.pumpWidget(
+        _wrap(
+          homeState: const HomeState(
+            summary: HomeSummary(
+              hasActiveRun: true,
+              activeRunId: 'run-123',
+              dungeonRunsToday: 1,
+              currentStreak: 3,
+            ),
           ),
         ),
-      ));
+      );
       await tester.pump();
 
       expect(

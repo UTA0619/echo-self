@@ -28,59 +28,59 @@ abstract final class EidolonColors {
 
 abstract final class EidolonTextStyles {
   static TextStyle get displayLarge => GoogleFonts.rajdhani(
-    fontSize: 48,
-    fontWeight: FontWeight.w700,
-    letterSpacing: 2.0,
-    color: EidolonColors.textPrimary,
-  );
+        fontSize: 48,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 2.0,
+        color: EidolonColors.textPrimary,
+      );
 
   static TextStyle get displayMedium => GoogleFonts.rajdhani(
-    fontSize: 36,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 1.5,
-    color: EidolonColors.textPrimary,
-  );
+        fontSize: 36,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 1.5,
+        color: EidolonColors.textPrimary,
+      );
 
   static TextStyle get titleLarge => GoogleFonts.rajdhani(
-    fontSize: 24,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0.5,
-    color: EidolonColors.textPrimary,
-  );
+        fontSize: 24,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+        color: EidolonColors.textPrimary,
+      );
 
   static TextStyle get titleMedium => GoogleFonts.spaceGrotesk(
-    fontSize: 18,
-    fontWeight: FontWeight.w500,
-    color: EidolonColors.textPrimary,
-  );
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
+        color: EidolonColors.textPrimary,
+      );
 
   static TextStyle get bodyLarge => GoogleFonts.spaceGrotesk(
-    fontSize: 16,
-    fontWeight: FontWeight.w400,
-    color: EidolonColors.textPrimary,
-    height: 1.6,
-  );
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        color: EidolonColors.textPrimary,
+        height: 1.6,
+      );
 
   static TextStyle get bodyMedium => GoogleFonts.spaceGrotesk(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    color: EidolonColors.textSecondary,
-    height: 1.5,
-  );
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: EidolonColors.textSecondary,
+        height: 1.5,
+      );
 
   static TextStyle get labelLarge => GoogleFonts.spaceGrotesk(
-    fontSize: 14,
-    fontWeight: FontWeight.w500,
-    letterSpacing: 0.5,
-    color: EidolonColors.textPrimary,
-  );
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.5,
+        color: EidolonColors.textPrimary,
+      );
 
   static TextStyle get labelSmall => GoogleFonts.spaceGrotesk(
-    fontSize: 11,
-    fontWeight: FontWeight.w500,
-    letterSpacing: 1.0,
-    color: EidolonColors.textMuted,
-  );
+        fontSize: 11,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 1.0,
+        color: EidolonColors.textMuted,
+      );
 }
 
 ThemeData buildEidolonTheme() {

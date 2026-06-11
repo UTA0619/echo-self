@@ -66,7 +66,8 @@ void main() {
   });
 
   group('UsernamePage', () {
-    testWidgets('renders text field and Continue button disabled initially', (tester) async {
+    testWidgets('renders text field and Continue button disabled initially',
+        (tester) async {
       await tester.pumpWidget(_wrap(const UsernamePage()));
       await tester.pump(const Duration(milliseconds: 600));
 
@@ -106,12 +107,16 @@ void main() {
       await tester.enterText(find.byType(TextField), 'Hello World!');
       await tester.pump();
 
-      expect(find.text('Lowercase letters, numbers, and _ only'), findsOneWidget);
+      expect(
+        find.text('Lowercase letters, numbers, and _ only'),
+        findsOneWidget,
+      );
     });
   });
 
   group('PersonalityPage', () {
-    testWidgets('renders first question and progress indicator', (tester) async {
+    testWidgets('renders first question and progress indicator',
+        (tester) async {
       await tester.pumpWidget(_wrap(const PersonalityPage()));
       await tester.pump(const Duration(milliseconds: 600));
 
@@ -128,7 +133,8 @@ void main() {
       expect(btn.onPressed, isNull);
     });
 
-    testWidgets('answering a question updates the progress counter', (tester) async {
+    testWidgets('answering a question updates the progress counter',
+        (tester) async {
       await tester.pumpWidget(_wrap(const PersonalityPage()));
       await tester.pump(const Duration(milliseconds: 600));
 
@@ -142,7 +148,8 @@ void main() {
   });
 
   group('EidolonNamingPage', () {
-    testWidgets('renders name input and disabled Awaken button initially', (tester) async {
+    testWidgets('renders name input and disabled Awaken button initially',
+        (tester) async {
       await tester.pumpWidget(_wrap(const EidolonNamingPage()));
       await tester.pump(const Duration(milliseconds: 700));
 
@@ -167,23 +174,27 @@ void main() {
       expect(find.textContaining('Aether is awakening'), findsOneWidget);
     });
 
-    testWidgets('Awaken button enabled after entering valid name', (tester) async {
+    testWidgets('Awaken button enabled after entering valid name',
+        (tester) async {
       final state = OnboardingState(
         username: 'shadow_walker',
         eidolonName: 'Aether',
         answers: {for (var i = 1; i <= 10; i++) i: 3},
       );
-      await tester.pumpWidget(_wrap(
-        const EidolonNamingPage(),
-        overrides: [
-          onboardingNotifierProvider.overrideWith(
-            () => _FakeOnboardingNotifier(state),
-          ),
-        ],
-      ),);
+      await tester.pumpWidget(
+        _wrap(
+          const EidolonNamingPage(),
+          overrides: [
+            onboardingNotifierProvider.overrideWith(
+              () => _FakeOnboardingNotifier(state),
+            ),
+          ],
+        ),
+      );
       await tester.pump(const Duration(milliseconds: 700));
 
-      final btn = tester.widget<ElevatedButton>(find.byType(ElevatedButton).last);
+      final btn =
+          tester.widget<ElevatedButton>(find.byType(ElevatedButton).last);
       expect(btn.onPressed, isNotNull);
     });
   });

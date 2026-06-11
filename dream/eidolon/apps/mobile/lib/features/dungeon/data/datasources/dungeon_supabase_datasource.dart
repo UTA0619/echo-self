@@ -1,0 +1,159 @@
+import 'package:eidolon/core/error/app_error.dart';
+import 'package:eidolon/core/supabase/supabase_service.dart';
+import 'package:eidolon/features/dungeon/data/models/dungeon_model.dart';
+import 'package:eidolon/features/dungeon/data/models/dungeon_run_model.dart';
+import 'package:eidolon/features/dungeon/domain/entities/dungeon_run.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_types/shared_types.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+part 'dungeon_supabase_datasource.g.dart';
+
+@riverpod
+DungeonSupabaseDataSource dungeonSupabaseDataSource(Ref ref) =>
+    DungeonSupabaseDataSource(ref.watch(supabaseClientProvider));
+
+class DungeonSupabaseDataSource {
+  const DungeonSupabaseDataSource(this._client);
+  final SupabaseClient _client;
+
+  Future<Result<Dungeon>> getDungeon(String dungeonId) async {
+    try {
+      final row = await _client
+          .from('dungeons')
+          .select('*')
+          .eq('id', dungeonId)
+          .single();
+      return ok(DungeonModel.fromRow(row));
+    } on PostgrestException catch (e) {
+      return err(
+        AppError.network(
+          message: e.message,
+          statusCode: int.tryParse(e.code ?? ''),
+        ),
+      );
+    } catch (e, st) {
+      return err(AppError.unknown(error: e, stackTrace: st));
+    }
+  }
+
+  Future<Result<DungeonRun>> startRun({
+    required String eidolonId,
+    required String dungeonId,
+  }) async {
+    try {
+      final row = await _client
+          .from('dungeon_runs')
+          .insert({
+            'eidolon_id': eidolonId,
+            'dungeon_id': dungeonId,
+            'run_status': 'in_progress',
+            'current_room': 0,
+          })
+          .select()
+          .single();
+      return ok(DungeonRunModel.fromRow(row));
+    } on PostgrestException catch (e) {
+      return err(
+        AppError.network(
+          message: e.message,
+          statusCode: int.tryParse(e.code ?? ''),
+        ),
+      );
+    } catch (e, st) {
+      return err(AppError.unknown(error: e, stackTrace: st));
+    }
+  }
+
+  Future<Result<DungeonRun?>> getActiveRun(String eidolonId) async {
+    try {
+      final rows = await _client
+          .from('dungeon_runs')
+          .select('*')
+          .eq('eidolon_id', eidolonId)
+          .eq('run_status', 'in_progress')
+          .order('started_at', ascending: false)
+          .limit(1);
+
+      final list = rows as List;
+      if (list.isEmpty) return ok<DungeonRun?>(null);
+      return ok(DungeonRunModel.fromRow(list.first as Map<String, dynamic>));
+    } on PostgrestException catch (e) {
+      return err(
+        AppError.network(
+          message: e.message,
+          statusCode: int.tryParse(e.code ?? ''),
+        ),
+      );
+    } catch (e, st) {
+      return err(AppError.unknown(error: e, stackTrace: st));
+    }
+  }
+
+  Future<Result<DungeonRun>> advanceRoom(String runId) async {
+    try {
+      // Fetch current room first
+      final current = await _client
+          .from('dungeon_runs')
+          .select('current_room')
+          .eq('id', runId)
+          .single();
+
+      final nextRoom = ((current['current_room'] as num?) ?? 0).toInt() + 1;
+
+      final row = await _client
+          .from('dungeon_runs')
+          .update({'current_room': nextRoom})
+          .eq('id', runId)
+          .select()
+          .single();
+
+      return ok(DungeonRunModel.fromRow(row));
+    } on PostgrestException catch (e) {
+      return err(
+        AppError.network(
+          message: e.message,
+          statusCode: int.tryParse(e.code ?? ''),
+        ),
+      );
+    } catch (e, st) {
+      return err(AppError.unknown(error: e, stackTrace: st));
+    }
+  }
+
+  Future<Result<DungeonRun>> finishRun(
+    String runId,
+    RunStatus finalStatus,
+  ) async {
+    try {
+      final statusStr = switch (finalStatus) {
+        RunStatus.completed => 'completed',
+        RunStatus.failed => 'failed',
+        RunStatus.abandoned => 'abandoned',
+        _ => 'abandoned',
+      };
+
+      final row = await _client
+          .from('dungeon_runs')
+          .update({
+            'run_status': statusStr,
+            'ended_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', runId)
+          .select()
+          .single();
+
+      return ok(DungeonRunModel.fromRow(row));
+    } on PostgrestException catch (e) {
+      return err(
+        AppError.network(
+          message: e.message,
+          statusCode: int.tryParse(e.code ?? ''),
+        ),
+      );
+    } catch (e, st) {
+      return err(AppError.unknown(error: e, stackTrace: st));
+    }
+  }
+}

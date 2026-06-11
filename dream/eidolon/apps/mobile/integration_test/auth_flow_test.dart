@@ -1,4 +1,6 @@
 // ignore_for_file: avoid_print
+import 'dart:async';
+
 import 'package:eidolon/main.dart' as app;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,7 +27,9 @@ void main() {
       settleTimeout: Duration(seconds: 20),
     ),
     ($) async {
-      app.main();
+      // Intentionally not awaited: pumpAndSettle drives the frames; awaiting
+      // main() here can deadlock under the Patrol binding.
+      unawaited(app.main());
       await $.pumpAndSettle();
 
       // ── Landing on Login page ───────────────────────────────────────

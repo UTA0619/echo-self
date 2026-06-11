@@ -22,7 +22,12 @@ class WelcomePage extends ConsumerWidget {
           const EidolonOrb(size: 180)
               .animate()
               .fadeIn(duration: 900.ms)
-              .scaleXY(begin: 0.7, end: 1.0, curve: Curves.elasticOut, duration: 1200.ms),
+              .scaleXY(
+                begin: 0.7,
+                end: 1.0,
+                curve: Curves.elasticOut,
+                duration: 1200.ms,
+              ),
 
           const SizedBox(height: 48),
 
@@ -30,12 +35,15 @@ class WelcomePage extends ConsumerWidget {
           Text(
             'EIDOLON',
             style: Theme.of(context).textTheme.displayLarge?.copyWith(
-              letterSpacing: 12,
-              foreground: Paint()
-                ..shader = const LinearGradient(
-                  colors: [EidolonColors.accentGlow, EidolonColors.soulCore],
-                ).createShader(const Rect.fromLTWH(0, 0, 200, 60)),
-            ),
+                  letterSpacing: 12,
+                  foreground: Paint()
+                    ..shader = const LinearGradient(
+                      colors: [
+                        EidolonColors.accentGlow,
+                        EidolonColors.soulCore,
+                      ],
+                    ).createShader(const Rect.fromLTWH(0, 0, 200, 60)),
+                ),
           )
               .animate(delay: 400.ms)
               .fadeIn(duration: 700.ms)
@@ -47,10 +55,9 @@ class WelcomePage extends ConsumerWidget {
           Text(
             context.l10n.soulTwinTagline,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.7),
-          )
-              .animate(delay: 700.ms)
-              .fadeIn(duration: 700.ms),
+            style:
+                Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.7),
+          ).animate(delay: 700.ms).fadeIn(duration: 700.ms),
 
           const Spacer(flex: 3),
 
@@ -73,9 +80,9 @@ class WelcomePage extends ConsumerWidget {
               child: Text(
                 context.l10n.buttonGetStarted,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
-                  letterSpacing: 2,
-                ),
+                      color: Colors.white,
+                      letterSpacing: 2,
+                    ),
               ),
             ),
           )

@@ -29,8 +29,9 @@ class RealitySyncCard extends ConsumerWidget {
                 ? _BonusBody(
                     bonus: state.bonus,
                     snapshot: state.snapshot,
-                    onRefresh: () =>
-                        ref.read(realitySyncNotifierProvider.notifier).refresh(),
+                    onRefresh: () => ref
+                        .read(realitySyncNotifierProvider.notifier)
+                        .refresh(),
                   )
                 : _PermissionBody(
                     onConnect: () => ref

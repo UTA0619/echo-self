@@ -23,7 +23,10 @@ class LegalPage extends StatelessWidget {
         title: Text(_title, style: Theme.of(context).textTheme.titleMedium),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: EidolonColors.textPrimary),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: EidolonColors.textPrimary,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),

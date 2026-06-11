@@ -93,7 +93,8 @@ void main() {
   });
 
   group('DungeonPage — hub view', () {
-    testWidgets('renders Dungeon title and Enter Dungeon button', (tester) async {
+    testWidgets('renders Dungeon title and Enter Dungeon button',
+        (tester) async {
       await tester.pumpWidget(_wrap());
       await tester.pump();
 
@@ -103,10 +104,13 @@ void main() {
       await _settle(tester);
     });
 
-    testWidgets('Enter Dungeon button disabled when no Eidolon', (tester) async {
-      await tester.pumpWidget(_wrap(
-        eidolonState: const EidolonState(),
-      ));
+    testWidgets('Enter Dungeon button disabled when no Eidolon',
+        (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          eidolonState: const EidolonState(),
+        ),
+      );
       await tester.pump();
 
       final btn = tester.widget<ElevatedButton>(
@@ -119,9 +123,11 @@ void main() {
 
     testWidgets('Enter Dungeon button enabled when Eidolon is loaded',
         (tester) async {
-      await tester.pumpWidget(_wrap(
-        eidolonState: EidolonState(eidolon: _profile()),
-      ));
+      await tester.pumpWidget(
+        _wrap(
+          eidolonState: EidolonState(eidolon: _profile()),
+        ),
+      );
       await tester.pump();
 
       final btn = tester.widget<ElevatedButton>(
@@ -157,9 +163,11 @@ void main() {
     });
 
     testWidgets('shows error message when errorMessage is set', (tester) async {
-      await tester.pumpWidget(_wrap(
-        dungeonState: const DungeonState(errorMessage: 'AI unavailable'),
-      ));
+      await tester.pumpWidget(
+        _wrap(
+          dungeonState: const DungeonState(errorMessage: 'AI unavailable'),
+        ),
+      );
       await tester.pump();
 
       expect(find.text('AI unavailable'), findsOneWidget);
@@ -183,9 +191,11 @@ void main() {
 
   group('DungeonPage — generating view', () {
     testWidgets('shows Eidolon mapping text during generation', (tester) async {
-      await tester.pumpWidget(_wrap(
-        dungeonState: const DungeonState(phase: DungeonPhase.generating),
-      ));
+      await tester.pumpWidget(
+        _wrap(
+          dungeonState: const DungeonState(phase: DungeonPhase.generating),
+        ),
+      );
       await tester.pump();
 
       expect(
@@ -200,18 +210,20 @@ void main() {
   group('DungeonPage — result view', () {
     testWidgets('shows Victory when run completed', (tester) async {
       final now = DateTime(2026);
-      await tester.pumpWidget(_wrap(
-        dungeonState: DungeonState(
-          phase: DungeonPhase.result,
-          run: DungeonRun(
-            id: 'r1',
-            dungeonId: 'd1',
-            eidolonId: 'e1',
-            startedAt: now,
-            status: RunStatus.completed,
+      await tester.pumpWidget(
+        _wrap(
+          dungeonState: DungeonState(
+            phase: DungeonPhase.result,
+            run: DungeonRun(
+              id: 'r1',
+              dungeonId: 'd1',
+              eidolonId: 'e1',
+              startedAt: now,
+              status: RunStatus.completed,
+            ),
           ),
         ),
-      ));
+      );
       await tester.pump();
 
       expect(find.textContaining('Victory!'), findsOneWidget);
@@ -222,18 +234,20 @@ void main() {
 
     testWidgets('shows Retreated when run abandoned', (tester) async {
       final now = DateTime(2026);
-      await tester.pumpWidget(_wrap(
-        dungeonState: DungeonState(
-          phase: DungeonPhase.result,
-          run: DungeonRun(
-            id: 'r1',
-            dungeonId: 'd1',
-            eidolonId: 'e1',
-            startedAt: now,
-            status: RunStatus.abandoned,
+      await tester.pumpWidget(
+        _wrap(
+          dungeonState: DungeonState(
+            phase: DungeonPhase.result,
+            run: DungeonRun(
+              id: 'r1',
+              dungeonId: 'd1',
+              eidolonId: 'e1',
+              startedAt: now,
+              status: RunStatus.abandoned,
+            ),
           ),
         ),
-      ));
+      );
       await tester.pump();
 
       expect(find.textContaining('Retreated'), findsOneWidget);

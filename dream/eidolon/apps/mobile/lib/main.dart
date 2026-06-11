@@ -96,7 +96,6 @@ Future<void> _initServices() async {
   }
 }
 
-
 class EidolonApp extends ConsumerWidget {
   const EidolonApp({super.key});
 

@@ -32,12 +32,20 @@ class GachaIdleView extends ConsumerWidget {
               GachaPullButtons(
                 crystals: state.crystals,
                 onSinglePull: () => unawaited(
-                  _confirmPull(context, notifier,
-                      count: 1, crystals: state.crystals),
+                  _confirmPull(
+                    context,
+                    notifier,
+                    count: 1,
+                    crystals: state.crystals,
+                  ),
                 ),
                 onTenPull: () => unawaited(
-                  _confirmPull(context, notifier,
-                      count: 10, crystals: state.crystals),
+                  _confirmPull(
+                    context,
+                    notifier,
+                    count: 10,
+                    crystals: state.crystals,
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -136,12 +144,12 @@ class GachaBannerSection extends StatelessWidget {
                 )
                     .animate(onPlay: (c) => c.repeat(reverse: true))
                     .fadeIn(
-                        duration:
-                            Duration(milliseconds: 800 + i * 200))
+                      duration: Duration(milliseconds: 800 + i * 200),
+                    )
                     .then()
                     .fadeOut(
-                        duration:
-                            Duration(milliseconds: 800 + i * 200)),
+                      duration: Duration(milliseconds: 800 + i * 200),
+                    ),
               );
             }),
             // Content
@@ -152,20 +160,19 @@ class GachaBannerSection extends StatelessWidget {
                   const Text('🌀', style: TextStyle(fontSize: 48))
                       .animate(onPlay: (c) => c.repeat(reverse: true))
                       .scaleXY(
-                          begin: 0.95,
-                          end: 1.05,
-                          duration: 2.seconds)
+                        begin: 0.95,
+                        end: 1.05,
+                        duration: 2.seconds,
+                      )
                       .rotate(
-                          begin: -0.02,
-                          end: 0.02,
-                          duration: 3.seconds),
+                        begin: -0.02,
+                        end: 0.02,
+                        duration: 3.seconds,
+                      ),
                   const SizedBox(height: 8),
                   Text(
                     'SOUL SUMMON',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
-                        ?.copyWith(
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           letterSpacing: 4,
                           color: EidolonColors.accentGlow,
                         ),
@@ -197,8 +204,7 @@ Future<void> _confirmPull(
     context: context,
     builder: (ctx) => AlertDialog(
       backgroundColor: EidolonColors.surface,
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
         count == 1 ? '×1 Summon' : '×10 Summon',
         style: Theme.of(ctx).textTheme.titleMedium,
@@ -244,7 +250,6 @@ void _showBuySheet(
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
-    builder: (_) =>
-        GachaBuyCrystalsSheet(state: state, notifier: notifier),
+    builder: (_) => GachaBuyCrystalsSheet(state: state, notifier: notifier),
   );
 }

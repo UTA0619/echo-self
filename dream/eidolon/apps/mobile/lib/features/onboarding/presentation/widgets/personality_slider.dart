@@ -13,11 +13,17 @@ class PersonalitySlider extends StatelessWidget {
   });
 
   final String question;
-  final int value;          // 1-5, 0 = unanswered
+  final int value; // 1-5, 0 = unanswered
   final ValueChanged<int> onChanged;
   final int questionIndex;
 
-  static const _labels = ['Strongly\nDisagree', '', 'Neutral', '', 'Strongly\nAgree'];
+  static const _labels = [
+    'Strongly\nDisagree',
+    '',
+    'Neutral',
+    '',
+    'Strongly\nAgree',
+  ];
   static const _colors = [
     Color(0xFF5A5AFF),
     Color(0xFF8A7AFF),
@@ -59,7 +65,13 @@ class PersonalitySlider extends StatelessWidget {
                     width: selected ? 0 : 1,
                   ),
                   boxShadow: selected
-                      ? [BoxShadow(color: dotColor.withValues(alpha: 0.5), blurRadius: 12, spreadRadius: 2)]
+                      ? [
+                          BoxShadow(
+                            color: dotColor.withValues(alpha: 0.5),
+                            blurRadius: 12,
+                            spreadRadius: 2,
+                          ),
+                        ]
                       : null,
                 ),
                 child: selected

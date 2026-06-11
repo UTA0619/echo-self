@@ -78,8 +78,10 @@ void main() {
       await settle(tester);
     });
 
-    testWidgets('tapping Connect calls requestPermissionAndFetch', (tester) async {
-      final notifier = _FakeNotifier(const RealitySyncState(hasPermission: false));
+    testWidgets('tapping Connect calls requestPermissionAndFetch',
+        (tester) async {
+      final notifier =
+          _FakeNotifier(const RealitySyncState(hasPermission: false));
       await tester.pumpWidget(
         ProviderScope(
           overrides: [

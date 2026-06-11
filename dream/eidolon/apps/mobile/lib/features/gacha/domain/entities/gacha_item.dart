@@ -57,7 +57,8 @@ const kGachaCatalog = [
   GachaItem(
     id: 'leg_003',
     name: 'Void Memory',
-    description: 'A fragment from a forgotten timeline. Unlocks secret dungeon.',
+    description:
+        'A fragment from a forgotten timeline. Unlocks secret dungeon.',
     rarity: GachaRarity.legendary,
     category: GachaCategory.memoryFragment,
     iconEmoji: '🌀',
@@ -115,7 +116,8 @@ const kGachaCatalog = [
   GachaItem(
     id: 'rar_003',
     name: 'Echo Shard',
-    description: 'A resonance crystal. Your Eidolon gains 1 extra chat per day.',
+    description:
+        'A resonance crystal. Your Eidolon gains 1 extra chat per day.',
     rarity: GachaRarity.rare,
     category: GachaCategory.memoryFragment,
     iconEmoji: '💎',

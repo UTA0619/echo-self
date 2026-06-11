@@ -14,10 +14,10 @@ part 'gacha_repository_impl.g.dart';
 
 // ── IAP product IDs (must match App Store Connect / Play Console) ─────────────
 const _kOffering = 'soul_crystals';
-const _kProductSmall  = 'eidolon.crystals.80';
+const _kProductSmall = 'eidolon.crystals.80';
 const _kProductMedium = 'eidolon.crystals.500';
-const _kProductLarge  = 'eidolon.crystals.1800';
-const _kProductMega   = 'eidolon.crystals.5000';
+const _kProductLarge = 'eidolon.crystals.1800';
+const _kProductMega = 'eidolon.crystals.5000';
 
 @Riverpod(keepAlive: true)
 GachaRepository gachaRepository(Ref ref) =>
@@ -35,8 +35,7 @@ class GachaRepositoryImpl implements GachaRepository {
   Future<Result<List<CrystalBundle>>> getCrystalBundles() async {
     try {
       final offerings = await Purchases.getOfferings();
-      final offering = offerings.getOffering(_kOffering)
-          ?? offerings.current;
+      final offering = offerings.getOffering(_kOffering) ?? offerings.current;
 
       if (offering == null) return ok(_fallbackBundles());
 
@@ -66,8 +65,7 @@ class GachaRepositoryImpl implements GachaRepository {
   }) async {
     try {
       final offerings = await Purchases.getOfferings();
-      final offering = offerings.getOffering(_kOffering)
-          ?? offerings.current;
+      final offering = offerings.getOffering(_kOffering) ?? offerings.current;
       if (offering == null) {
         return err(
           const AppError.network(
@@ -219,7 +217,7 @@ class GachaRepositoryImpl implements GachaRepository {
           .select('results')
           .eq('user_id', userId)
           .order('pulled_at', ascending: false)
-          .limit(10);   // 10 pulls × up to 10 items = 100 items max
+          .limit(10); // 10 pulls × up to 10 items = 100 items max
 
       final items = (rows as List<dynamic>)
           .expand((r) {
@@ -227,7 +225,8 @@ class GachaRepositoryImpl implements GachaRepository {
             if (results is! List<dynamic>) return <GachaItem>[];
             return results
                 .map(
-                  (entry) => (entry as Map<String, dynamic>)['item_id'] as String,
+                  (entry) =>
+                      (entry as Map<String, dynamic>)['item_id'] as String,
                 )
                 .map(
                   (id) => kGachaCatalog.where((i) => i.id == id).firstOrNull,
@@ -269,11 +268,11 @@ class GachaRepositoryImpl implements GachaRepository {
   }
 
   static int _crystalsForProduct(String productId) => switch (productId) {
-        _kProductSmall  => 80,
+        _kProductSmall => 80,
         _kProductMedium => 500,
-        _kProductLarge  => 1800,
-        _kProductMega   => 5000,
-        _               => 0,
+        _kProductLarge => 1800,
+        _kProductMega => 5000,
+        _ => 0,
       };
 
   static List<CrystalBundle> _fallbackBundles() => const [

@@ -147,7 +147,9 @@ void main() {
     test('setTheme updates selectedTheme and null clears it', () {
       final container = _makeContainer(_FakeDungeonRepo());
       addTearDown(container.dispose);
-      container.read(dungeonNotifierProvider.notifier).setTheme(DungeonTheme.cave);
+      container
+          .read(dungeonNotifierProvider.notifier)
+          .setTheme(DungeonTheme.cave);
       expect(
         container.read(dungeonNotifierProvider).selectedTheme,
         DungeonTheme.cave,
@@ -159,11 +161,13 @@ void main() {
     test('generateAndStart transitions to run phase on success', () async {
       final dungeon = _makeDungeon();
       final repo = _FakeDungeonRepo(
-        generateResult: ok(DungeonGenerateResult(
-          dungeon: dungeon,
-          modelUsed: 'claude-haiku-4-5',
-          generationMs: 500,
-        ),),
+        generateResult: ok(
+          DungeonGenerateResult(
+            dungeon: dungeon,
+            modelUsed: 'claude-haiku-4-5',
+            generationMs: 500,
+          ),
+        ),
         startRunResult: ok(_makeRun()),
       );
       final container = _makeContainer(repo);
@@ -182,8 +186,7 @@ void main() {
 
     test('generateAndStart sets errorMessage on generation failure', () async {
       final repo = _FakeDungeonRepo(
-        generateResult:
-            err(const AppError.network(message: 'No connection')),
+        generateResult: err(const AppError.network(message: 'No connection')),
       );
       final container = _makeContainer(repo);
       addTearDown(container.dispose);
@@ -200,11 +203,13 @@ void main() {
     test('advanceRoom increments room index', () async {
       final dungeon = _makeDungeon();
       final repo = _FakeDungeonRepo(
-        generateResult: ok(DungeonGenerateResult(
-          dungeon: dungeon,
-          modelUsed: 'test',
-          generationMs: 0,
-        ),),
+        generateResult: ok(
+          DungeonGenerateResult(
+            dungeon: dungeon,
+            modelUsed: 'test',
+            generationMs: 0,
+          ),
+        ),
         advanceResult: ok(_makeRun(currentRoom: 1)),
       );
       final container = _makeContainer(repo);
@@ -221,11 +226,13 @@ void main() {
     test('advanceRoom on last room completes the run', () async {
       final dungeon = _makeDungeon(roomCount: 2);
       final repo = _FakeDungeonRepo(
-        generateResult: ok(DungeonGenerateResult(
-          dungeon: dungeon,
-          modelUsed: 'test',
-          generationMs: 0,
-        ),),
+        generateResult: ok(
+          DungeonGenerateResult(
+            dungeon: dungeon,
+            modelUsed: 'test',
+            generationMs: 0,
+          ),
+        ),
         startRunResult: ok(_makeRun(currentRoom: 1)),
         finishResult: ok(_makeRun(status: RunStatus.completed)),
       );
@@ -247,11 +254,13 @@ void main() {
         () async {
       final dungeon = _makeDungeon();
       final repo = _FakeDungeonRepo(
-        generateResult: ok(DungeonGenerateResult(
-          dungeon: dungeon,
-          modelUsed: 'test',
-          generationMs: 0,
-        ),),
+        generateResult: ok(
+          DungeonGenerateResult(
+            dungeon: dungeon,
+            modelUsed: 'test',
+            generationMs: 0,
+          ),
+        ),
         finishResult: ok(_makeRun(status: RunStatus.abandoned)),
       );
       final container = _makeContainer(repo);
@@ -270,11 +279,13 @@ void main() {
     test('backToHub resets to hub phase', () async {
       final dungeon = _makeDungeon();
       final repo = _FakeDungeonRepo(
-        generateResult: ok(DungeonGenerateResult(
-          dungeon: dungeon,
-          modelUsed: 'test',
-          generationMs: 0,
-        ),),
+        generateResult: ok(
+          DungeonGenerateResult(
+            dungeon: dungeon,
+            modelUsed: 'test',
+            generationMs: 0,
+          ),
+        ),
         finishResult: ok(_makeRun(status: RunStatus.abandoned)),
       );
       final container = _makeContainer(repo);

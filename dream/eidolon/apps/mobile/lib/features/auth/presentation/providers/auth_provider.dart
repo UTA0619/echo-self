@@ -27,6 +27,7 @@ abstract class AuthState with _$AuthState {
     AuthUser? user,
     @Default(false) bool isLoading,
     String? errorMessage,
+
     /// Set to true when deleteAccount() fails with requiresRecentLogin.
     /// The UI should show a re-authentication dialog then call
     /// reauthenticateAndDelete().
@@ -133,7 +134,8 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   Future<void> deleteAccount() async {
-    state = state.copyWith(isLoading: true, errorMessage: null, needsReAuth: false);
+    state =
+        state.copyWith(isLoading: true, errorMessage: null, needsReAuth: false);
     final result = await ref.read(deleteAccountUseCaseProvider).call();
     if (!result.isSuccess) {
       final isReAuth = result.error is RequiresRecentLoginError;
@@ -155,7 +157,8 @@ class AuthNotifier extends _$AuthNotifier {
     required String email,
     required String password,
   }) async {
-    state = state.copyWith(isLoading: true, errorMessage: null, needsReAuth: false);
+    state =
+        state.copyWith(isLoading: true, errorMessage: null, needsReAuth: false);
     final reAuthResult = await ref
         .read(authRepositoryProvider)
         .reauthenticateWithPassword(email: email, password: password);

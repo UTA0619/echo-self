@@ -126,7 +126,8 @@ void main() {
   });
 
   group('LoginPage — loading state', () {
-    testWidgets('shows loading indicator when isLoading is true', (tester) async {
+    testWidgets('shows loading indicator when isLoading is true',
+        (tester) async {
       await tester.pumpWidget(
         _wrap(authState: const AuthState(isLoading: true)),
       );

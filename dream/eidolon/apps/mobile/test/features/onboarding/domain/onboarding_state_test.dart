@@ -26,7 +26,10 @@ void main() {
 
       test('true when username is 3 or more chars', () {
         expect(const OnboardingState(username: 'abc').canProceedStep1, true);
-        expect(const OnboardingState(username: 'shadow_walker').canProceedStep1, true);
+        expect(
+          const OnboardingState(username: 'shadow_walker').canProceedStep1,
+          true,
+        );
       });
 
       test('false when username is only whitespace', () {
@@ -52,11 +55,17 @@ void main() {
       });
 
       test('false when eidolonName is only whitespace', () {
-        expect(const OnboardingState(eidolonName: '   ').canProceedStep3, false);
+        expect(
+          const OnboardingState(eidolonName: '   ').canProceedStep3,
+          false,
+        );
       });
 
       test('true when eidolonName has non-whitespace chars', () {
-        expect(const OnboardingState(eidolonName: 'Aether').canProceedStep3, true);
+        expect(
+          const OnboardingState(eidolonName: 'Aether').canProceedStep3,
+          true,
+        );
       });
     });
 
@@ -90,7 +99,8 @@ void main() {
 
       // Reversed item: strongly agree (5) → should score low for that trait
       test('reversed items invert score contribution', () {
-        final reversed = kPersonalityQuestions.where((q) => q.reversed).toList();
+        final reversed =
+            kPersonalityQuestions.where((q) => q.reversed).toList();
         if (reversed.isEmpty) return; // skip if no reversed questions
 
         final q = reversed.first;

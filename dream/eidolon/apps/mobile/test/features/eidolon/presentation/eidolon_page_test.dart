@@ -68,9 +68,11 @@ void main() {
 
   group('EidolonPage — loading', () {
     testWidgets('shows loading indicator while loading', (tester) async {
-      await tester.pumpWidget(_wrap(
-        state: const EidolonState(isLoading: true),
-      ));
+      await tester.pumpWidget(
+        _wrap(
+          state: const EidolonState(isLoading: true),
+        ),
+      );
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -82,9 +84,11 @@ void main() {
   group('EidolonPage — empty state', () {
     testWidgets('shows empty state message when eidolon loaded, no messages',
         (tester) async {
-      await tester.pumpWidget(_wrap(
-        state: EidolonState(eidolon: _profile()),
-      ));
+      await tester.pumpWidget(
+        _wrap(
+          state: EidolonState(eidolon: _profile()),
+        ),
+      );
       await tester.pump();
 
       expect(find.text('Lyra is ready.'), findsOneWidget);
@@ -95,9 +99,11 @@ void main() {
 
     testWidgets('shows generic await message when eidolon name is empty',
         (tester) async {
-      await tester.pumpWidget(_wrap(
-        state: EidolonState(eidolon: _profile(name: '')),
-      ));
+      await tester.pumpWidget(
+        _wrap(
+          state: EidolonState(eidolon: _profile(name: '')),
+        ),
+      );
       await tester.pump();
 
       expect(find.text('Your Eidolon awaits…'), findsOneWidget);
@@ -114,12 +120,14 @@ void main() {
         isFromEidolon: true,
         timestamp: DateTime(2026),
       );
-      await tester.pumpWidget(_wrap(
-        state: EidolonState(
-          eidolon: _profile(),
-          messages: [msg],
+      await tester.pumpWidget(
+        _wrap(
+          state: EidolonState(
+            eidolon: _profile(),
+            messages: [msg],
+          ),
         ),
-      ));
+      );
       await tester.pump();
 
       expect(find.text('Hello adventurer!'), findsOneWidget);
@@ -134,13 +142,15 @@ void main() {
         isFromEidolon: false,
         timestamp: DateTime(2026),
       );
-      await tester.pumpWidget(_wrap(
-        state: EidolonState(
-          eidolon: _profile(),
-          messages: [msg],
-          isSending: true,
+      await tester.pumpWidget(
+        _wrap(
+          state: EidolonState(
+            eidolon: _profile(),
+            messages: [msg],
+            isSending: true,
+          ),
         ),
-      ));
+      );
       await tester.pump();
 
       expect(find.byType(EidolonTypingIndicator), findsOneWidget);
@@ -152,11 +162,13 @@ void main() {
   group('EidolonPage — error state', () {
     testWidgets('shows retry button when eidolon null and error set',
         (tester) async {
-      await tester.pumpWidget(_wrap(
-        state: const EidolonState(
-          errorMessage: 'Connection failed',
+      await tester.pumpWidget(
+        _wrap(
+          state: const EidolonState(
+            errorMessage: 'Connection failed',
+          ),
         ),
-      ));
+      );
       await tester.pump();
 
       expect(find.text('Retry'), findsOneWidget);
@@ -198,9 +210,11 @@ void main() {
 
   group('EidolonPage — input bar', () {
     testWidgets('input bar visible when eidolon is loaded', (tester) async {
-      await tester.pumpWidget(_wrap(
-        state: EidolonState(eidolon: _profile()),
-      ));
+      await tester.pumpWidget(
+        _wrap(
+          state: EidolonState(eidolon: _profile()),
+        ),
+      );
       await tester.pump();
 
       expect(find.byType(EidolonInputBar), findsOneWidget);
@@ -209,9 +223,11 @@ void main() {
     });
 
     testWidgets('input bar hidden when no eidolon', (tester) async {
-      await tester.pumpWidget(_wrap(
-        state: const EidolonState(),
-      ));
+      await tester.pumpWidget(
+        _wrap(
+          state: const EidolonState(),
+        ),
+      );
       await tester.pump();
 
       expect(find.byType(EidolonInputBar), findsNothing);

@@ -66,12 +66,14 @@ ProviderContainer _makeContainer({
         (ref) => SendMessageUseCase(
           _FakeRespondRepo(
             result: respondResult ??
-                ok(const EidolonResponse(
-                  text: 'Hello, adventurer.',
-                  newMemoryId: 'mem-1',
-                  modelUsed: 'claude-haiku-4-5',
-                  latencyMs: 100,
-                ),),
+                ok(
+                  const EidolonResponse(
+                    text: 'Hello, adventurer.',
+                    newMemoryId: 'mem-1',
+                    modelUsed: 'claude-haiku-4-5',
+                    latencyMs: 100,
+                  ),
+                ),
           ),
         ),
       ),

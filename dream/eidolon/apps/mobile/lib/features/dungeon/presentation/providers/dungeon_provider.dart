@@ -54,9 +54,8 @@ class DungeonNotifier extends _$DungeonNotifier {
     if (result.isSuccess && result.value != null) {
       final run = result.value!;
       // Also load the dungeon for this run
-      final dungeonResult = await ref
-          .read(dungeonRepositoryCheckProvider)
-          .call(run.dungeonId);
+      final dungeonResult =
+          await ref.read(dungeonRepositoryCheckProvider).call(run.dungeonId);
 
       state = state.copyWith(
         isLoading: false,
@@ -72,13 +71,12 @@ class DungeonNotifier extends _$DungeonNotifier {
   Future<void> generateAndStart(String eidolonId) async {
     state = state.copyWith(phase: DungeonPhase.generating, errorMessage: null);
 
-    final Result<DungeonGenerateResult> genResult = await ref
-        .read(generateDungeonUseCaseProvider)
-        .call(
-          eidolonId: eidolonId,
-          difficulty: state.selectedDifficulty,
-          theme: state.selectedTheme,
-        );
+    final Result<DungeonGenerateResult> genResult =
+        await ref.read(generateDungeonUseCaseProvider).call(
+              eidolonId: eidolonId,
+              difficulty: state.selectedDifficulty,
+              theme: state.selectedTheme,
+            );
 
     if (!genResult.isSuccess) {
       state = state.copyWith(
@@ -155,19 +153,20 @@ class DungeonNotifier extends _$DungeonNotifier {
       // Guarded: analytics must never break the run flow (e.g. Firebase not
       // initialized in unit tests).
       try {
-        unawaited(ref.read(firebaseAnalyticsProvider).logEvent(
-          name: 'dungeon_complete',
-          parameters: {
-            'run_id': run.id,
-            'difficulty': state.selectedDifficulty,
-          },
-        ));
+        unawaited(
+          ref.read(firebaseAnalyticsProvider).logEvent(
+            name: 'dungeon_complete',
+            parameters: {
+              'run_id': run.id,
+              'difficulty': state.selectedDifficulty,
+            },
+          ),
+        );
       } catch (_) {/* analytics unavailable — non-fatal */}
     }
   }
 
-  void backToHub() =>
-      state = state.copyWith(
+  void backToHub() => state = state.copyWith(
         phase: DungeonPhase.hub,
         dungeon: null,
         run: null,

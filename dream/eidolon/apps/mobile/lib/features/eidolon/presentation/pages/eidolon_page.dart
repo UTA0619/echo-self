@@ -93,8 +93,9 @@ class _EidolonPageState extends ConsumerState<EidolonPage> {
             if (state.eidolon != null)
               EidolonInputBar(
                 isEnabled: !state.isSending,
-                onSend: (text) =>
-                    ref.read(eidolonNotifierProvider.notifier).sendMessage(text),
+                onSend: (text) => ref
+                    .read(eidolonNotifierProvider.notifier)
+                    .sendMessage(text),
               ),
           ],
         ),
@@ -242,7 +243,8 @@ class _ErrorBanner extends StatelessWidget {
           ),
           GestureDetector(
             onTap: onDismiss,
-            child: const Icon(Icons.close, color: EidolonColors.error, size: 16),
+            child:
+                const Icon(Icons.close, color: EidolonColors.error, size: 16),
           ),
         ],
       ),

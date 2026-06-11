@@ -84,7 +84,8 @@ class GachaRevealView extends StatelessWidget {
             ),
           )
               .animate(
-                  delay: Duration(milliseconds: 120 * items.length + 600))
+                delay: Duration(milliseconds: 120 * items.length + 600),
+              )
               .fadeIn(duration: 400.ms)
               .slideY(begin: 0.3, end: 0),
         ),

@@ -54,15 +54,15 @@ class GachaNotifier extends _$GachaNotifier {
       ref.read(getCrystalBundlesUseCaseProvider).call(),
     ]);
 
-    final crystalResult  = results[0] as Result<int>;
-    final historyResult  = results[1] as Result<List<GachaItem>>;
-    final bundleResult   = results[2] as Result<List<CrystalBundle>>;
+    final crystalResult = results[0] as Result<int>;
+    final historyResult = results[1] as Result<List<GachaItem>>;
+    final bundleResult = results[2] as Result<List<CrystalBundle>>;
 
     state = state.copyWith(
       isLoading: false,
       crystals: crystalResult.isSuccess ? crystalResult.value! : 0,
-      history:  historyResult.isSuccess ? historyResult.value! : [],
-      bundles:  bundleResult.isSuccess  ? bundleResult.value!  : [],
+      history: historyResult.isSuccess ? historyResult.value! : [],
+      bundles: bundleResult.isSuccess ? bundleResult.value! : [],
       errorMessage: crystalResult.isSuccess ? null : _msg(crystalResult.error!),
     );
   }
@@ -93,13 +93,15 @@ class GachaNotifier extends _$GachaNotifier {
       // Guarded: analytics must never break the pull flow (e.g. Firebase not
       // initialized in unit tests).
       try {
-        unawaited(ref.read(firebaseAnalyticsProvider).logEvent(
-          name: 'gacha_pull',
-          parameters: {
-            'count': count,
-            'crystals_spent': pullResult.crystalsSpent,
-          },
-        ));
+        unawaited(
+          ref.read(firebaseAnalyticsProvider).logEvent(
+            name: 'gacha_pull',
+            parameters: {
+              'count': count,
+              'crystals_spent': pullResult.crystalsSpent,
+            },
+          ),
+        );
       } catch (_) {/* analytics unavailable — non-fatal */}
     } else {
       state = state.copyWith(
@@ -127,8 +129,7 @@ class GachaNotifier extends _$GachaNotifier {
     } else {
       final err = result.error!;
       // Code 0 = user cancelled — no error banner
-      final isCancelled =
-          err is NetworkError && (err.statusCode ?? 0) == 0;
+      final isCancelled = err is NetworkError && (err.statusCode ?? 0) == 0;
       state = state.copyWith(
         isBuyingCrystals: false,
         errorMessage: isCancelled ? null : _msg(err),

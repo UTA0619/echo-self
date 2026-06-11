@@ -31,6 +31,7 @@ class _FakeAuthRepo implements AuthRepository {
   final Result<AuthUser>? signInGoogleResult;
   final Result<AuthUser>? signInAppleResult;
   final Result<void>? deleteAccountResult;
+
   /// Result returned by [reauthenticateWithPassword].
   final Result<void>? reauthResult;
 
@@ -183,7 +184,9 @@ void main() {
     test('createAccount on failure sets errorMessage', () async {
       final repo = _FakeAuthRepo(
         createAccountResult: err(
-          const AppError.auth(message: 'An account with this email already exists.'),
+          const AppError.auth(
+            message: 'An account with this email already exists.',
+          ),
         ),
       );
       final container = _makeContainer(repo);
@@ -202,7 +205,8 @@ void main() {
 
     test('signInWithGoogle on failure sets errorMessage', () async {
       final repo = _FakeAuthRepo(
-        signInGoogleResult: err(const AppError.auth(message: 'Sign-in cancelled')),
+        signInGoogleResult:
+            err(const AppError.auth(message: 'Sign-in cancelled')),
       );
       final container = _makeContainer(repo);
       addTearDown(container.dispose);
@@ -217,7 +221,8 @@ void main() {
 
     test('signInWithApple on failure sets errorMessage', () async {
       final repo = _FakeAuthRepo(
-        signInAppleResult: err(const AppError.auth(message: 'Sign-in cancelled')),
+        signInAppleResult:
+            err(const AppError.auth(message: 'Sign-in cancelled')),
       );
       final container = _makeContainer(repo);
       addTearDown(container.dispose);
@@ -327,7 +332,8 @@ void main() {
       expect(container.read(authNotifierProvider).needsReAuth, isFalse);
     });
 
-    test('reauthenticateAndDelete sets errorMessage on reauth failure', () async {
+    test('reauthenticateAndDelete sets errorMessage on reauth failure',
+        () async {
       final repo = _FakeAuthRepo(
         reauthResult: err(const AppError.auth(message: 'Wrong password.')),
       );

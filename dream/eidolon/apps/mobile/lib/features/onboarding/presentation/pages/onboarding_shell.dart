@@ -33,7 +33,9 @@ class OnboardingShell extends ConsumerWidget {
                       icon: const Icon(Icons.arrow_back_ios_new_rounded),
                       color: EidolonColors.textSecondary,
                       onPressed: () {
-                        ref.read(onboardingNotifierProvider.notifier).previousStep();
+                        ref
+                            .read(onboardingNotifierProvider.notifier)
+                            .previousStep();
                         context.go('/onboarding/${state.currentStep - 1}');
                       },
                     )
