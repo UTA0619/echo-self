@@ -42,6 +42,15 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
+      - name: Generate code (shared_types path dependency)
+        # build_runner only generates for the current package, and the app
+        # depends on packages/shared_types whose freezed entities are also
+        # gitignored — generate there first.
+        working-directory: dream/eidolon/packages/shared_types
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
       - name: Pub get
         run: flutter pub get
 
@@ -65,6 +74,15 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+
+      - name: Generate code (shared_types path dependency)
+        # build_runner only generates for the current package, and the app
+        # depends on packages/shared_types whose freezed entities are also
+        # gitignored — generate there first.
+        working-directory: dream/eidolon/packages/shared_types
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
 
       - name: Pub get
         run: flutter pub get
