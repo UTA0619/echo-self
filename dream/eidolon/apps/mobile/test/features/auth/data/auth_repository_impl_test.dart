@@ -129,20 +129,33 @@ class _SupabaseRecorder {
       // postgrest's response parser dereferences response.request!, so the
       // originating request must be attached to every fake response.
       if (failStatus != null) {
-        return http.Response('{"message":"boom"}', failStatus!,
-            request: request);
+        return http.Response(
+          '{"message":"boom"}',
+          failStatus!,
+          request: request,
+        );
       }
       if (request.method == 'GET') {
-        return http.Response(selectBody, 200,
-            request: request,
-            headers: {'content-type': 'application/json'});
+        return http.Response(
+          selectBody,
+          200,
+          request: request,
+          headers: {'content-type': 'application/json'},
+        );
       }
       // upsert / delete
-      return http.Response('[]', 200,
-          request: request, headers: {'content-type': 'application/json'});
+      return http.Response(
+        '[]',
+        200,
+        request: request,
+        headers: {'content-type': 'application/json'},
+      );
     });
-    return SupabaseClient('http://localhost:54321', 'test-key',
-        httpClient: mock);
+    return SupabaseClient(
+      'http://localhost:54321',
+      'test-key',
+      httpClient: mock,
+    );
   }
 
   http.Request? get only => requests.length == 1 ? requests.single : null;
@@ -181,6 +194,19 @@ void main() {
       expect(body['auth_uid'], 'uid-9');
       // No displayName → username falls back to the email local part.
       expect(body['username'], 'kai');
+    });
+
+    test('username prefers the Firebase displayName when present', () async {
+      final auth = _FakeFirebaseAuth(
+        user: _FakeUser(displayName: 'Kai the Bold'),
+      );
+      final recorder = _SupabaseRecorder();
+      final repo = AuthRepositoryImpl(auth, recorder.buildClient());
+
+      await repo.signInWithEmail(email: 'a@b.c', password: 'p');
+
+      final body = jsonDecode(recorder.only!.body) as Map<String, dynamic>;
+      expect(body['username'], 'Kai the Bold');
     });
 
     test('username falls back to "adventurer" when no name and no email',
@@ -223,7 +249,8 @@ void main() {
         final repo =
             AuthRepositoryImpl(auth, _SupabaseRecorder().buildClient());
 
-        final result = await repo.signInWithEmail(email: 'a@b.c', password: 'p');
+        final result =
+            await repo.signInWithEmail(email: 'a@b.c', password: 'p');
 
         expect(result.error, isA<AuthError>());
         expect((result.error! as AuthError).message, message);

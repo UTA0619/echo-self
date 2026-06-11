@@ -5,6 +5,11 @@ import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// Page-local ephemeral UI state (convention: Riverpod for ALL state).
+final _isCreatingAccountProvider =
+    StateProvider.autoDispose<bool>((_) => false);
+final _obscurePasswordProvider = StateProvider.autoDispose<bool>((_) => true);
+
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
@@ -16,8 +21,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  bool _isCreatingAccount = false;
-  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -29,7 +32,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final notifier = ref.read(authNotifierProvider.notifier);
-    if (_isCreatingAccount) {
+    if (ref.read(_isCreatingAccountProvider)) {
       await notifier.createAccount(
         email: _emailCtrl.text.trim(),
         password: _passwordCtrl.text,
@@ -76,13 +79,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   formKey: _formKey,
                   emailCtrl: _emailCtrl,
                   passwordCtrl: _passwordCtrl,
-                  isCreatingAccount: _isCreatingAccount,
-                  obscurePassword: _obscurePassword,
+                  isCreatingAccount: ref.watch(_isCreatingAccountProvider),
+                  obscurePassword: ref.watch(_obscurePasswordProvider),
                   isLoading: authState.isLoading,
-                  onToggleObscure: () =>
-                      setState(() => _obscurePassword = !_obscurePassword),
+                  onToggleObscure: () => ref
+                      .read(_obscurePasswordProvider.notifier)
+                      .update((v) => !v),
                   onToggleMode: () {
-                    setState(() => _isCreatingAccount = !_isCreatingAccount);
+                    ref
+                        .read(_isCreatingAccountProvider.notifier)
+                        .update((v) => !v);
                     ref.read(authNotifierProvider.notifier).clearError();
                   },
                   onSubmit: _submit,

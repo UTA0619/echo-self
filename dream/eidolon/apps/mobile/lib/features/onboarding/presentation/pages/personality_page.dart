@@ -8,6 +8,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+// Page-local ephemeral UI state (convention: Riverpod for ALL state).
+final _currentQuestionProvider = StateProvider.autoDispose<int>((_) => 0);
+
 class PersonalityPage extends ConsumerStatefulWidget {
   const PersonalityPage({super.key});
 
@@ -17,7 +20,6 @@ class PersonalityPage extends ConsumerStatefulWidget {
 
 class _PersonalityPageState extends ConsumerState<PersonalityPage> {
   final _pageController = PageController();
-  int _currentQuestion = 0;
 
   @override
   void dispose() {
@@ -30,8 +32,9 @@ class _PersonalityPageState extends ConsumerState<PersonalityPage> {
     // Auto-advance after short delay
     Future.delayed(const Duration(milliseconds: 350), () {
       if (!mounted) return;
-      if (_currentQuestion < kPersonalityQuestions.length - 1) {
-        setState(() => _currentQuestion++);
+      final current = ref.read(_currentQuestionProvider);
+      if (current < kPersonalityQuestions.length - 1) {
+        ref.read(_currentQuestionProvider.notifier).state = current + 1;
         _pageController.nextPage(
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeInOut,
@@ -120,16 +123,17 @@ class _PersonalityPageState extends ConsumerState<PersonalityPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(kPersonalityQuestions.length, (i) {
               final answered = answers.containsKey(kPersonalityQuestions[i].id);
+              final current = ref.watch(_currentQuestionProvider);
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 margin: const EdgeInsets.symmetric(horizontal: 3),
-                width: i == _currentQuestion ? 16 : 6,
+                width: i == current ? 16 : 6,
                 height: 6,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(3),
                   color: answered
                       ? EidolonColors.accent
-                      : i == _currentQuestion
+                      : i == current
                           ? EidolonColors.textSecondary
                           : EidolonColors.border,
                 ),

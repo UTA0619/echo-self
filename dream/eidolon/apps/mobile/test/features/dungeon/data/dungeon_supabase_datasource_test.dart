@@ -24,11 +24,18 @@ class _SupabaseQueue {
       final (status, body) =
           _queue.isNotEmpty ? _queue.removeAt(0) : (200, '[]');
       // postgrest dereferences response.request!, so always attach it.
-      return http.Response(body, status,
-          request: request, headers: {'content-type': 'application/json'});
+      return http.Response(
+        body,
+        status,
+        request: request,
+        headers: {'content-type': 'application/json'},
+      );
     });
-    return SupabaseClient('http://localhost:54321', 'test-key',
-        httpClient: mock);
+    return SupabaseClient(
+      'http://localhost:54321',
+      'test-key',
+      httpClient: mock,
+    );
   }
 }
 
@@ -204,8 +211,7 @@ void main() {
       expect(q.requests, hasLength(2));
       expect(q.requests[0].method, 'GET');
       expect(q.requests[1].method, 'PATCH');
-      final patchBody =
-          jsonDecode(q.requests[1].body) as Map<String, dynamic>;
+      final patchBody = jsonDecode(q.requests[1].body) as Map<String, dynamic>;
       expect(patchBody['current_room'], 3);
       expect(q.requests[1].url.queryParameters['id'], 'eq.run-1');
     });
@@ -217,8 +223,7 @@ void main() {
 
       await _ds(q).advanceRoom('run-1');
 
-      final patchBody =
-          jsonDecode(q.requests[1].body) as Map<String, dynamic>;
+      final patchBody = jsonDecode(q.requests[1].body) as Map<String, dynamic>;
       expect(patchBody['current_room'], 1);
     });
 
@@ -250,8 +255,7 @@ void main() {
         final result = await _ds(q).finishRun('run-1', status);
 
         expect(result.error, isNull);
-        final body =
-            jsonDecode(q.requests.single.body) as Map<String, dynamic>;
+        final body = jsonDecode(q.requests.single.body) as Map<String, dynamic>;
         expect(body['run_status'], expected);
         expect(body['ended_at'], isNotNull);
       });

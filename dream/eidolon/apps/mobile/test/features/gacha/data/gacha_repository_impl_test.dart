@@ -25,11 +25,18 @@ class _SupabaseQueue {
       final (status, body) =
           _queue.isNotEmpty ? _queue.removeAt(0) : (200, 'null');
       // postgrest dereferences response.request!, so always attach it.
-      return http.Response(body, status,
-          request: request, headers: {'content-type': 'application/json'});
+      return http.Response(
+        body,
+        status,
+        request: request,
+        headers: {'content-type': 'application/json'},
+      );
     });
-    return SupabaseClient('http://localhost:54321', 'test-key',
-        httpClient: mock);
+    return SupabaseClient(
+      'http://localhost:54321',
+      'test-key',
+      httpClient: mock,
+    );
   }
 }
 
@@ -161,8 +168,7 @@ void main() {
   });
 
   group('getPullHistory', () {
-    test('resolves item ids through the catalog, skipping unknowns',
-        () async {
+    test('resolves item ids through the catalog, skipping unknowns', () async {
       final q = _SupabaseQueue()
         ..enqueue(200, [
           {
