@@ -1,0 +1,69 @@
+name: Eidolon CI
+
+# The Eidolon Flutter app lives at dream/eidolon inside this monorepo.
+# Its own dream/eidolon/.github/workflows/ never executes (GitHub only runs
+# workflows from the repository root), so the quality gates are enforced here.
+#
+# Scope: apps/mobile only — the melos workspace also lists apps/admin and
+# packages/{design_system,game_logic}, but those are empty scaffolds without
+# pubspec.yaml, so `melos bootstrap` would fail in CI.
+
+on:
+  pull_request:
+    paths:
+      - 'dream/eidolon/**'
+      - '.github/workflows/eidolon-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'dream/eidolon/**'
+      - '.github/workflows/eidolon-ci.yml'
+
+concurrency:
+  group: eidolon-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.27.4'
+
+defaults:
+  run:
+    working-directory: dream/eidolon/apps/mobile
+
+jobs:
+  analyze:
+    name: Analyze & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Analyze (zero issues required)
+        run: flutter analyze
+
+      - name: Format check
+        run: dart format --set-exit-if-changed --output=none .
+
+  test:
+    name: Unit & Widget Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Test
+        run: flutter test
