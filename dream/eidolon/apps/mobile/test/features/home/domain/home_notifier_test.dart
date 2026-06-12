@@ -1,4 +1,5 @@
 import 'package:eidolon/core/error/app_error.dart';
+import 'package:eidolon/features/eidolon/domain/entities/chat_message.dart';
 import 'package:eidolon/features/eidolon/domain/repositories/eidolon_repository.dart';
 import 'package:eidolon/features/eidolon/domain/usecases/get_eidolon_usecase.dart';
 import 'package:eidolon/features/eidolon/domain/usecases/get_recent_memories_usecase.dart';
@@ -43,6 +44,13 @@ class _FakeEidolonRepo implements EidolonRepository {
     int limit = 20,
   }) async =>
       ok(<MemoryEntry>[]);
+
+  @override
+  Future<Result<List<ChatMessage>>> getChatHistory({
+    required String eidolonId,
+    int limit = 50,
+  }) async =>
+      ok(<ChatMessage>[]);
 }
 
 // ── Factories ─────────────────────────────────────────────────────────────────

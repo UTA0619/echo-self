@@ -5,12 +5,17 @@ const anthropic = new Anthropic({
   apiKey: Deno.env.get('ANTHROPIC_API_KEY')!,
 });
 
+export type ChatTurn = { role: 'user' | 'assistant'; content: string };
+
 // Fallback chain: Claude → GPT-4o-mini → local template
 export type GenerateOptions = {
   system: string;
   user: string;
   model?: AiModel;
   maxTokens?: number;
+  // Prior conversation turns for multi-turn continuity. When present, they are
+  // sent before `user` (the new turn) so the model has real context.
+  history?: ChatTurn[];
 };
 
 export type GenerateResult = {
@@ -34,7 +39,10 @@ export async function generateWithFallback(
           : 'claude-haiku-4-5-20251001',
       max_tokens: opts.maxTokens ?? 512,
       system: opts.system,
-      messages: [{ role: 'user', content: opts.user }],
+      messages: [
+        ...(opts.history ?? []),
+        { role: 'user', content: opts.user },
+      ],
     });
     const text =
       response.content[0].type === 'text' ? response.content[0].text : '';
@@ -58,6 +66,7 @@ export async function generateWithFallback(
           max_tokens: opts.maxTokens ?? 512,
           messages: [
             { role: 'system', content: opts.system },
+            ...(opts.history ?? []),
             { role: 'user', content: opts.user },
           ],
         }),

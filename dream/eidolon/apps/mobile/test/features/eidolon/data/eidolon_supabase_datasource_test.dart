@@ -72,4 +72,58 @@ void main() {
       expect(result.error, isA<NetworkError>());
     });
   });
+
+  group('getChatHistory', () {
+    Map<String, dynamic> turn(String id, String role, String content) => {
+          'id': id,
+          'eidolon_id': 'eid-1',
+          'user_id': 'u-1',
+          'role': role,
+          'content': content,
+          'model_used': role == 'eidolon' ? 'claude-haiku-4-5' : null,
+          'created_at': '2026-06-0${id.substring(id.length - 1)}T00:00:00Z',
+        };
+
+    test('maps rows and reverses newest-first DB order to oldest→newest',
+        () async {
+      // DB returns created_at desc; the datasource flips it back to chrono order.
+      final q = SupabaseQueue()
+        ..enqueue(200, [
+          turn('m-3', 'eidolon', 'How did that go?'),
+          turn('m-2', 'user', 'I had a rough day'),
+          turn('m-1', 'eidolon', 'Welcome back.'),
+        ]);
+
+      final result = await _ds(q).getChatHistory(eidolonId: 'eid-1');
+
+      expect(result.error, isNull);
+      final msgs = result.value!;
+      expect(msgs.map((m) => m.id).toList(), ['m-1', 'm-2', 'm-3']);
+      expect(msgs.first.isFromEidolon, isTrue);
+      expect(msgs.first.text, 'Welcome back.');
+      expect(msgs[1].isFromEidolon, isFalse); // the 'user' turn
+
+      final params = q.requests.single.url.queryParameters;
+      expect(params['eidolon_id'], 'eq.eid-1');
+      expect(params['limit'], '50');
+      expect(params['order'], contains('created_at'));
+    });
+
+    test('empty history → empty list', () async {
+      final q = SupabaseQueue()..enqueue(200, const <dynamic>[]);
+
+      final result = await _ds(q).getChatHistory(eidolonId: 'eid-1');
+
+      expect(result.error, isNull);
+      expect(result.value, isEmpty);
+    });
+
+    test('failure → NetworkError', () async {
+      final q = SupabaseQueue()..enqueue(500, pgError);
+
+      final result = await _ds(q).getChatHistory(eidolonId: 'eid-1');
+
+      expect(result.error, isA<NetworkError>());
+    });
+  });
 }

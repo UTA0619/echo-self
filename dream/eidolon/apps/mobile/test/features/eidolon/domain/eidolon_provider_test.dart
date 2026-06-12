@@ -2,6 +2,7 @@ import 'package:eidolon/core/error/app_error.dart';
 import 'package:eidolon/features/eidolon/domain/entities/chat_message.dart';
 import 'package:eidolon/features/eidolon/domain/repositories/eidolon_repository.dart';
 import 'package:eidolon/features/eidolon/domain/repositories/eidolon_respond_repository.dart';
+import 'package:eidolon/features/eidolon/domain/usecases/get_chat_history_usecase.dart';
 import 'package:eidolon/features/eidolon/domain/usecases/get_eidolon_usecase.dart';
 import 'package:eidolon/features/eidolon/domain/usecases/send_message_usecase.dart';
 import 'package:eidolon/features/eidolon/presentation/providers/eidolon_provider.dart';
@@ -12,8 +13,9 @@ import 'package:shared_types/shared_types.dart';
 // ── Fake implementations ──────────────────────────────────────────────────────
 
 class _FakeEidolonRepo implements EidolonRepository {
-  _FakeEidolonRepo({required this.result});
+  _FakeEidolonRepo({required this.result, this.history});
   final Result<EidolonProfile> result;
+  final Result<List<ChatMessage>>? history;
 
   @override
   Future<Result<EidolonProfile>> getEidolonForCurrentUser() async => result;
@@ -24,6 +26,13 @@ class _FakeEidolonRepo implements EidolonRepository {
     int limit = 20,
   }) async =>
       ok([]);
+
+  @override
+  Future<Result<List<ChatMessage>>> getChatHistory({
+    required String eidolonId,
+    int limit = 50,
+  }) async =>
+      history ?? ok(<ChatMessage>[]);
 }
 
 class _FakeRespondRepo implements EidolonRespondRepository {
@@ -53,6 +62,7 @@ EidolonProfile _makeEidolon() => EidolonProfile(
 ProviderContainer _makeContainer({
   Result<EidolonProfile>? eidolonResult,
   Result<EidolonResponse>? respondResult,
+  Result<List<ChatMessage>>? historyResult,
 }) {
   final eidolon = _makeEidolon();
   return ProviderContainer(
@@ -60,6 +70,14 @@ ProviderContainer _makeContainer({
       getEidolonUseCaseProvider.overrideWith(
         (ref) => GetEidolonUseCase(
           _FakeEidolonRepo(result: eidolonResult ?? ok(eidolon)),
+        ),
+      ),
+      getChatHistoryUseCaseProvider.overrideWith(
+        (ref) => GetChatHistoryUseCase(
+          _FakeEidolonRepo(
+            result: eidolonResult ?? ok(eidolon),
+            history: historyResult,
+          ),
         ),
       ),
       sendMessageUseCaseProvider.overrideWith(
@@ -106,6 +124,27 @@ void main() {
       expect(state.isLoading, false);
       expect(state.eidolon?.name, 'Aether');
       expect(state.errorMessage, isNull);
+    });
+
+    test('loadEidolon restores the persisted conversation', () async {
+      final container = _makeContainer(
+        historyResult: ok([
+          ChatMessage(
+            id: 'm-1',
+            text: 'Welcome back.',
+            isFromEidolon: true,
+            timestamp: DateTime(2026),
+          ),
+        ]),
+      );
+      addTearDown(container.dispose);
+
+      await container.read(eidolonNotifierProvider.notifier).loadEidolon();
+
+      final state = container.read(eidolonNotifierProvider);
+      expect(state.messages, hasLength(1));
+      expect(state.messages.first.text, 'Welcome back.');
+      expect(state.messages.first.isFromEidolon, isTrue);
     });
 
     test('loadEidolon sets errorMessage on failure', () async {
