@@ -4,6 +4,7 @@ import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart'
 import 'package:eidolon/features/home/domain/entities/home_summary.dart';
 import 'package:eidolon/features/home/presentation/pages/home_hub_page.dart';
 import 'package:eidolon/features/home/presentation/providers/home_provider.dart';
+import 'package:eidolon/features/morning_report/presentation/providers/morning_report_provider.dart';
 import 'package:eidolon/features/reality_sync/presentation/providers/reality_sync_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,6 +41,9 @@ Widget _wrap({HomeState? homeState, AuthState? authState}) {
       ),
       realitySyncNotifierProvider.overrideWith(
         () => _FakeRealitySyncNotifier(const RealitySyncState()),
+      ),
+      morningReportNotifierProvider.overrideWith(
+        _FakeMorningReportNotifier.new,
       ),
     ],
     child: MaterialApp.router(
@@ -247,4 +251,12 @@ class _FakeRealitySyncNotifier extends RealitySyncNotifier {
 
   @override
   RealitySyncState build() => _state;
+}
+
+class _FakeMorningReportNotifier extends MorningReportNotifier {
+  @override
+  MorningReportState build() => const MorningReportState();
+
+  @override
+  Future<void> loadLatest() async {}
 }

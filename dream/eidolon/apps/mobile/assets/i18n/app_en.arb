@@ -168,6 +168,16 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
+  "morningReportTitle": "Morning Report",
+  "morningReportWhileYouSlept": "While you slept",
+  "morningReportXp": "+{xp} XP",
+  "@morningReportXp": {
+    "placeholders": { "xp": { "type": "int" } }
+  },
+  "morningReportMoodHeading": "Mood",
+  "morningReportLootTitle": "Spoils of the night",
+  "morningReportNoLoot": "Returned empty-handed.",
+
   "eidolonAwaits": "Your Eidolon awaits…",
   "eidolonReady": "{name} is ready.",
   "@eidolonReady": {

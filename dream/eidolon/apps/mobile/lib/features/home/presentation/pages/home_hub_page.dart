@@ -7,6 +7,8 @@ import 'package:eidolon/features/home/presentation/widgets/home_error_banner.dar
 import 'package:eidolon/features/home/presentation/widgets/home_greeting_header.dart';
 import 'package:eidolon/features/home/presentation/widgets/home_quick_actions.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
+import 'package:eidolon/features/morning_report/presentation/providers/morning_report_provider.dart';
+import 'package:eidolon/features/morning_report/presentation/widgets/morning_report_card.dart';
 import 'package:eidolon/features/reality_sync/presentation/widgets/reality_sync_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,6 +29,8 @@ class _HomeHubPageState extends ConsumerState<HomeHubPage> {
       if (uid.isNotEmpty) {
         ref.read(homeNotifierProvider.notifier).load(uid);
       }
+      // Surface last night's autonomous run, if any.
+      ref.read(morningReportNotifierProvider.notifier).loadLatest();
     });
   }
 
@@ -55,6 +59,7 @@ class _HomeHubPageState extends ConsumerState<HomeHubPage> {
               SliverToBoxAdapter(
                 child: HomeGreetingHeader(state: state),
               ),
+              const SliverToBoxAdapter(child: MorningReportCard()),
               SliverToBoxAdapter(
                 child: HomeEidolonCard(eidolon: state.eidolon),
               ),

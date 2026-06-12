@@ -131,6 +131,13 @@
   "gachaCrystalsLoading": "ソウルクリスタル読み込み中",
   "gachaCrystalsCount": "ソウルクリスタル: {count}",
 
+  "morningReportTitle": "モーニングレポート",
+  "morningReportWhileYouSlept": "あなたが眠っている間に",
+  "morningReportXp": "+{xp} XP",
+  "morningReportMoodHeading": "気分",
+  "morningReportLootTitle": "夜の戦利品",
+  "morningReportNoLoot": "手ぶらで帰ってきた。",
+
   "eidolonAwaits": "エイドロンが待っています…",
   "eidolonReady": "{name} の準備ができました。",
   "eidolonSaySomething": "話しかけて始めましょう。",
