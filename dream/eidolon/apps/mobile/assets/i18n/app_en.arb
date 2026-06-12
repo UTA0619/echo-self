@@ -56,6 +56,7 @@
   "priceEternal": "$19.99 / month",
 
   "commonAdventurer": "Adventurer",
+  "commonClose": "Close",
 
   "onboardingUsernameHint": "Your Eidolon will remember this forever.",
   "onboardingNameBound": "This name is bound to you forever.",
@@ -106,6 +107,8 @@
   "loginOrContinueWith": "or continue with",
   "loginContinueGoogle": "Continue with Google",
   "loginContinueApple": "Continue with Apple",
+  "loginShowPassword": "Show password",
+  "loginHidePassword": "Hide password",
 
   "homeGoodMorning": "Good morning",
   "homeGoodAfternoon": "Good afternoon",

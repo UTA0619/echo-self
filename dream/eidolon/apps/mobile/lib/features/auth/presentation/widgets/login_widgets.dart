@@ -135,6 +135,9 @@ class LoginFormCard extends StatelessWidget {
                 labelText: context.l10n.loginPassword,
                 prefixIcon: const Icon(Icons.lock_outlined),
                 suffixIcon: IconButton(
+                  tooltip: obscurePassword
+                      ? context.l10n.loginShowPassword
+                      : context.l10n.loginHidePassword,
                   icon: Icon(
                     obscurePassword
                         ? Icons.visibility_outlined

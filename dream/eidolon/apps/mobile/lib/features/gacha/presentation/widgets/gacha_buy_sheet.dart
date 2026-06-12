@@ -34,6 +34,7 @@ class GachaBuyCrystalsSheet extends StatelessWidget {
                 ),
                 const Spacer(),
                 IconButton(
+                  tooltip: context.l10n.commonClose,
                   icon: const Icon(Icons.close),
                   onPressed: () => Navigator.pop(context),
                   padding: EdgeInsets.zero,

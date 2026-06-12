@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -23,6 +24,7 @@ class LegalPage extends StatelessWidget {
         title: Text(_title, style: Theme.of(context).textTheme.titleMedium),
         centerTitle: true,
         leading: IconButton(
+          tooltip: context.l10n.buttonBack,
           icon: const Icon(
             Icons.arrow_back_ios,
             color: EidolonColors.textPrimary,

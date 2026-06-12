@@ -43,6 +43,7 @@
   "priceEternal": "¥3,000 / 月",
 
   "commonAdventurer": "冒険者",
+  "commonClose": "閉じる",
 
   "onboardingUsernameHint": "エイドロンはこの名前を永遠に記憶します。",
   "onboardingNameBound": "この名前はあなたと永遠に結ばれます。",
@@ -87,6 +88,8 @@
   "loginOrContinueWith": "または次で続行",
   "loginContinueGoogle": "Googleで続行",
   "loginContinueApple": "Appleで続行",
+  "loginShowPassword": "パスワードを表示",
+  "loginHidePassword": "パスワードを非表示",
 
   "homeGoodMorning": "おはようございます",
   "homeGoodAfternoon": "こんにちは",
