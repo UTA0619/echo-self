@@ -28,6 +28,7 @@
   "buttonReturnToHub": "Return to Hub",
   "buttonConnectHealth": "Connect Health",
   "buttonReturnHome": "Return Home",
+  "buttonDelete": "Delete",
 
   "gachaTitle": "Summon",
   "homeTalkWithEidolon": "Talk with Eidolon",
@@ -52,5 +53,156 @@
   "subscriptionFree": "Free",
 
   "priceSoulPass": "$9.99 / month",
-  "priceEternal": "$19.99 / month"
+  "priceEternal": "$19.99 / month",
+
+  "commonAdventurer": "Adventurer",
+  "commonClose": "Close",
+
+  "onboardingUsernameHint": "Your Eidolon will remember this forever.",
+  "onboardingNameBound": "This name is bound to you forever.",
+  "personalityStronglyDisagree": "Strongly\nDisagree",
+  "personalityNeutral": "Neutral",
+  "personalityStronglyAgree": "Strongly\nAgree",
+
+  "eidolonInputHint": "Speak to your Eidolon…",
+  "eidolonInputConnecting": "Connecting…",
+
+  "dungeonFinalBoss": "Final Boss",
+  "dungeonRoomProgress": "Room {current} / {total}",
+  "@dungeonRoomProgress": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+
+  "settingsTitle": "Settings",
+  "settingsAccount": "Account",
+  "settingsSignOut": "Sign Out",
+  "settingsDeleteAccount": "Delete Account",
+  "settingsAbout": "About",
+  "settingsVersion": "Version",
+  "settingsPrivacyPolicy": "Privacy Policy",
+  "settingsTermsOfService": "Terms of Service",
+  "settingsDeleteConfirmTitle": "Delete Account?",
+  "settingsDeleteConfirmBody": "This permanently deletes your Eidolon, dungeon history, and all data. This action cannot be undone.",
+  "settingsConfirmIdentityTitle": "Confirm Identity",
+  "settingsReauthBody": "For security, enter your password to permanently delete your account.",
+  "settingsPassword": "Password",
+  "settingsSignOutConfirmTitle": "Sign Out?",
+  "settingsSignOutConfirmBody": "Your Eidolon will wait for your return.",
+
+  "loginWelcomeBack": "Welcome Back",
+  "loginCreateAccount": "Create Account",
+  "loginEmail": "Email",
+  "loginEmailRequired": "Email is required",
+  "loginEmailInvalid": "Enter a valid email",
+  "loginPassword": "Password",
+  "loginPasswordRequired": "Password is required",
+  "loginPasswordTooShort": "Password must be at least 6 characters",
+  "loginSignIn": "Sign In",
+  "loginToggleToSignIn": "Already have an account? Sign in",
+  "loginToggleToCreate": "Don't have an account? Create one",
+  "loginTagline": "YOUR SOUL-TWIN AWAITS",
+  "loginOrContinueWith": "or continue with",
+  "loginContinueGoogle": "Continue with Google",
+  "loginContinueApple": "Continue with Apple",
+  "loginShowPassword": "Show password",
+  "loginHidePassword": "Hide password",
+
+  "homeGoodMorning": "Good morning",
+  "homeGoodAfternoon": "Good afternoon",
+  "homeGoodEvening": "Good evening",
+  "homeEidolonNotAwakened": "Eidolon not yet awakened",
+  "homeTodaysStats": "TODAY'S STATS",
+  "homeRunsToday": "Runs Today",
+  "homeDayStreak": "Day Streak",
+  "homeQuickActions": "QUICK ACTIONS",
+
+  "moodCalm": "Calm",
+  "moodExcited": "Excited",
+  "moodAnxious": "Anxious",
+  "moodTired": "Tired",
+  "moodFocused": "Focused",
+  "moodMelancholic": "Melancholic",
+  "moodUnknown": "Unknown",
+
+  "realitySyncTitle": "REALITY SYNC",
+  "realitySyncConnect": "Connect Health Data",
+  "realitySyncDescription": "Your real-world activity powers your Eidolon. Steps, sleep, and calories convert to ATK, HP, and EXP bonuses.",
+  "realitySyncScore": "Score {score}",
+  "@realitySyncScore": {
+    "placeholders": { "score": { "type": "int" } }
+  },
+
+  "gachaRecentSummons": "RECENT SUMMONS",
+  "gachaSoulSummon": "SOUL SUMMON",
+  "gachaSoulSummonSubtitle": "Discover fragments of your soul",
+  "gachaConfirmSummon": "Confirm this summon?",
+  "gachaSummonCount": "×{count} Summon",
+  "@gachaSummonCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "gachaCostBalance": "Cost: {cost} 💎  ·  Balance: {balance} 💎",
+  "@gachaCostBalance": {
+    "placeholders": {
+      "cost": { "type": "int" },
+      "balance": { "type": "int" }
+    }
+  },
+  "gachaSoulCrystals": "SOUL CRYSTALS",
+  "gachaPowerUp": "Power up your summons",
+  "gachaBestValue": "BEST VALUE",
+  "gachaStoreUnavailable": "Store unavailable. Check your connection.",
+  "gachaPriceDisclaimer": "Prices shown in your local currency. Payment will be charged to your App Store / Google Play account.",
+  "gachaCrystalsAmount": "{count} Crystals",
+  "@gachaCrystalsAmount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "gachaBuyCrystals": "Buy Soul Crystals",
+  "gachaSummonRates": "SUMMON RATES",
+  "gachaSummoning": "Summoning…",
+  "gachaCrystalsLoading": "Soul Crystals loading",
+  "gachaCrystalsCount": "Soul Crystals: {count}",
+  "@gachaCrystalsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "morningReportTitle": "Morning Report",
+  "morningReportWhileYouSlept": "While you slept",
+  "morningReportXp": "+{xp} XP",
+  "@morningReportXp": {
+    "placeholders": { "xp": { "type": "int" } }
+  },
+  "morningReportMoodHeading": "Mood",
+  "morningReportLootTitle": "Spoils of the night",
+  "morningReportNoLoot": "Returned empty-handed.",
+
+  "eidolonAwaits": "Your Eidolon awaits…",
+  "eidolonReady": "{name} is ready.",
+  "@eidolonReady": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "eidolonSaySomething": "Say something to begin.",
+  "eidolonUnreachable": "Could not reach your Eidolon.",
+
+  "dungeonDifficulty": "Difficulty",
+  "dungeonDifficultyNovice": "Novice",
+  "dungeonDifficultyAdept": "Adept",
+  "dungeonDifficultyExpert": "Expert",
+  "dungeonDifficultyMaster": "Master",
+  "dungeonDifficultyVoid": "Void",
+  "dungeonTheme": "Theme",
+  "dungeonNoThemeSelected": "No theme selected — random dungeon will be generated.",
+  "dungeonAbandon": "Abandon",
+  "dungeonDefeatBoss": "Defeat the Boss",
+  "dungeonAdvance": "Advance",
+  "dungeonVictory": "⚔️ Victory!",
+  "dungeonRetreated": "💨 Retreated",
+  "dungeonFallbackName": "The dungeon",
+  "dungeonVictoryBody": "{name} has been conquered.\nYour Eidolon grows stronger.",
+  "@dungeonVictoryBody": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "dungeonRetreatBody": "You escaped with your life.\nThe dungeon awaits your return."
 }

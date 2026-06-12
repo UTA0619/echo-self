@@ -6,6 +6,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+// Page-local ephemeral UI state (convention: Riverpod for ALL state).
+final _validationErrorProvider =
+    StateProvider.autoDispose<String?>((_) => null);
+
 class UsernamePage extends ConsumerStatefulWidget {
   const UsernamePage({super.key});
 
@@ -15,7 +19,6 @@ class UsernamePage extends ConsumerStatefulWidget {
 
 class _UsernamePageState extends ConsumerState<UsernamePage> {
   final _controller = TextEditingController();
-  String? _validationError;
 
   @override
   void dispose() {
@@ -37,13 +40,14 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
     ref
         .read(onboardingNotifierProvider.notifier)
         .setUsername(value.toLowerCase());
-    setState(() => _validationError = _validate(value.toLowerCase()));
+    ref.read(_validationErrorProvider.notifier).state =
+        _validate(value.toLowerCase());
   }
 
   void _proceed() {
     final error = _validate(_controller.text.toLowerCase());
     if (error != null) {
-      setState(() => _validationError = error);
+      ref.read(_validationErrorProvider.notifier).state = error;
       return;
     }
     ref.read(onboardingNotifierProvider.notifier).nextStep();
@@ -55,6 +59,7 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
     final canProceed = ref.watch(
       onboardingNotifierProvider.select((s) => s.canProceedStep1),
     );
+    final validationError = ref.watch(_validationErrorProvider);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -71,7 +76,7 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
           const SizedBox(height: 8),
 
           Text(
-            'Your Eidolon will remember this forever.',
+            context.l10n.onboardingUsernameHint,
             style: Theme.of(context).textTheme.bodyMedium,
           ).animate(delay: 150.ms).fadeIn(duration: 400.ms),
 
@@ -91,18 +96,17 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
                 ),
             decoration: InputDecoration(
               hintText: 'e.g. shadow_walker',
-              errorText: _validationError,
+              errorText: validationError,
               prefixIcon: const Icon(
                 Icons.alternate_email_rounded,
                 color: EidolonColors.accent,
               ),
-              suffixIcon:
-                  _controller.text.isNotEmpty && _validationError == null
-                      ? const Icon(
-                          Icons.check_circle_rounded,
-                          color: EidolonColors.success,
-                        )
-                      : null,
+              suffixIcon: _controller.text.isNotEmpty && validationError == null
+                  ? const Icon(
+                      Icons.check_circle_rounded,
+                      color: EidolonColors.success,
+                    )
+                  : null,
               counterText: '${_controller.text.length}/20',
             ),
           ).animate(delay: 300.ms).fadeIn(duration: 400.ms),
@@ -120,7 +124,7 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed:
-                  canProceed && _validationError == null ? _proceed : null,
+                  canProceed && validationError == null ? _proceed : null,
               child: Text(context.l10n.buttonContinue),
             ),
           )

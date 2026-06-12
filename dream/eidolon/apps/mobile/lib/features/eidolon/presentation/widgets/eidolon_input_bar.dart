@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -55,8 +56,9 @@ class _EidolonInputBarState extends State<EidolonInputBar> {
               onSubmitted: (_) => _submit(),
               style: Theme.of(context).textTheme.bodyMedium,
               decoration: InputDecoration(
-                hintText:
-                    widget.isEnabled ? 'Speak to your Eidolon…' : 'Connecting…',
+                hintText: widget.isEnabled
+                    ? context.l10n.eidolonInputHint
+                    : context.l10n.eidolonInputConnecting,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,

@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/gacha/domain/entities/gacha_pull_result.dart';
 import 'package:flutter/material.dart';
@@ -131,7 +132,7 @@ class GachaBuyCrystalsButton extends StatelessWidget {
         ),
         icon: const Text('💎', style: TextStyle(fontSize: 14)),
         label: Text(
-          'Buy Soul Crystals',
+          context.l10n.gachaBuyCrystals,
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
                 color: EidolonColors.gold,
               ),

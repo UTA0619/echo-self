@@ -85,7 +85,7 @@ class _PullingView extends StatelessWidget {
               ),
           const SizedBox(height: 32),
           Text(
-            'Summoning…',
+            context.l10n.gachaSummoning,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: EidolonColors.accentGlow,
                 ),

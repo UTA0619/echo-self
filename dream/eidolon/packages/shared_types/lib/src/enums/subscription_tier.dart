@@ -27,6 +27,11 @@ enum SubscriptionTier {
     SubscriptionTier.eternal => -1, // unlimited
   };
 
+  /// Parses a stored tier value, defaulting to [free] for unknown/legacy
+  /// strings so a stray DB value can never crash profile loading.
   static SubscriptionTier fromValue(String value) =>
-      SubscriptionTier.values.firstWhere((t) => t.value == value);
+      SubscriptionTier.values.firstWhere(
+        (t) => t.value == value,
+        orElse: () => SubscriptionTier.free,
+      );
 }

@@ -1,20 +1,25 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_types/shared_types.dart';
+
+/// Localized display label for an [EidolonMood].
+String moodLabel(BuildContext context, EidolonMood mood) {
+  final l10n = context.l10n;
+  return switch (mood) {
+    EidolonMood.calm => l10n.moodCalm,
+    EidolonMood.excited => l10n.moodExcited,
+    EidolonMood.anxious => l10n.moodAnxious,
+    EidolonMood.tired => l10n.moodTired,
+    EidolonMood.focused => l10n.moodFocused,
+    EidolonMood.melancholic => l10n.moodMelancholic,
+  };
+}
 
 /// Card showing the user's Eidolon — name, level, mood, XP bar.
 class HomeEidolonCard extends StatelessWidget {
   const HomeEidolonCard({super.key, required this.eidolon});
   final EidolonProfile? eidolon;
-
-  static const _moodLabels = {
-    EidolonMood.calm: 'Calm',
-    EidolonMood.excited: 'Excited',
-    EidolonMood.anxious: 'Anxious',
-    EidolonMood.tired: 'Tired',
-    EidolonMood.focused: 'Focused',
-    EidolonMood.melancholic: 'Melancholic',
-  };
 
   static const _moodIcons = {
     EidolonMood.calm: '🌊',
@@ -34,7 +39,7 @@ class HomeEidolonCard extends StatelessWidget {
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
-                  'Eidolon not yet awakened',
+                  context.l10n.homeEidolonNotAwakened,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: EidolonColors.textSecondary,
                       ),
@@ -42,7 +47,6 @@ class HomeEidolonCard extends StatelessWidget {
               )
             : HomeEidolonCardContent(
                 eidolon: eidolon!,
-                moodLabels: _moodLabels,
                 moodIcons: _moodIcons,
               ),
       ),
@@ -55,12 +59,10 @@ class HomeEidolonCardContent extends StatelessWidget {
   const HomeEidolonCardContent({
     super.key,
     required this.eidolon,
-    required this.moodLabels,
     required this.moodIcons,
   });
 
   final EidolonProfile eidolon;
-  final Map<EidolonMood, String> moodLabels;
   final Map<EidolonMood, String> moodIcons;
 
   @override
@@ -109,7 +111,7 @@ class HomeEidolonCardContent extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              moodLabels[mood] ?? 'Unknown',
+              moodLabel(context, mood),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: EidolonColors.textSecondary,
                   ),

@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/gacha/domain/repositories/gacha_repository.dart';
 import 'package:eidolon/features/gacha/presentation/providers/gacha_provider.dart';
@@ -26,13 +27,14 @@ class GachaBuyCrystalsSheet extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  'SOUL CRYSTALS',
+                  context.l10n.gachaSoulCrystals,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         letterSpacing: 1.5,
                       ),
                 ),
                 const Spacer(),
                 IconButton(
+                  tooltip: context.l10n.commonClose,
                   icon: const Icon(Icons.close),
                   onPressed: () => Navigator.pop(context),
                   padding: EdgeInsets.zero,
@@ -42,7 +44,7 @@ class GachaBuyCrystalsSheet extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Power up your summons',
+              context.l10n.gachaPowerUp,
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 20),
@@ -51,7 +53,7 @@ class GachaBuyCrystalsSheet extends StatelessWidget {
             else if (state.bundles.isEmpty)
               Center(
                 child: Text(
-                  'Store unavailable. Check your connection.',
+                  context.l10n.gachaStoreUnavailable,
                   style: Theme.of(context).textTheme.bodySmall,
                   textAlign: TextAlign.center,
                 ),
@@ -68,8 +70,7 @@ class GachaBuyCrystalsSheet extends StatelessWidget {
               ),
             const SizedBox(height: 8),
             Text(
-              'Prices shown in your local currency. '
-              'Payment will be charged to your App Store / Google Play account.',
+              context.l10n.gachaPriceDisclaimer,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: EidolonColors.textDim,
                     fontSize: 10,
@@ -119,14 +120,14 @@ class GachaBundleTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${bundle.crystals} Crystals',
+                    context.l10n.gachaCrystalsAmount(bundle.crystals),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                   ),
                   if (bundle.isBestValue)
                     Text(
-                      'BEST VALUE',
+                      context.l10n.gachaBestValue,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: EidolonColors.gold,
                             letterSpacing: 1,

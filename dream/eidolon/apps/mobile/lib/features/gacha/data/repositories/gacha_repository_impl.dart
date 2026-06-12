@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:eidolon/core/error/app_error.dart';
 import 'package:eidolon/core/supabase/supabase_service.dart';
 import 'package:eidolon/features/gacha/domain/entities/gacha_item.dart';
+import 'package:eidolon/features/gacha/data/repositories/gacha_iap_products.dart';
 import 'package:eidolon/features/gacha/domain/entities/gacha_pull_result.dart';
 import 'package:eidolon/features/gacha/domain/repositories/gacha_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,13 +12,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'gacha_repository_impl.g.dart';
-
-// ── IAP product IDs (must match App Store Connect / Play Console) ─────────────
-const _kOffering = 'soul_crystals';
-const _kProductSmall = 'eidolon.crystals.80';
-const _kProductMedium = 'eidolon.crystals.500';
-const _kProductLarge = 'eidolon.crystals.1800';
-const _kProductMega = 'eidolon.crystals.5000';
 
 @Riverpod(keepAlive: true)
 GachaRepository gachaRepository(Ref ref) =>
@@ -35,26 +29,27 @@ class GachaRepositoryImpl implements GachaRepository {
   Future<Result<List<CrystalBundle>>> getCrystalBundles() async {
     try {
       final offerings = await Purchases.getOfferings();
-      final offering = offerings.getOffering(_kOffering) ?? offerings.current;
+      final offering =
+          offerings.getOffering(kGachaOffering) ?? offerings.current;
 
-      if (offering == null) return ok(_fallbackBundles());
+      if (offering == null) return ok(fallbackCrystalBundles());
 
       final bundles = offering.availablePackages.map((pkg) {
-        final crystals = _crystalsForProduct(pkg.storeProduct.identifier);
+        final crystals = crystalsForProduct(pkg.storeProduct.identifier);
         return CrystalBundle(
           productId: pkg.storeProduct.identifier,
           crystals: crystals,
           displayPrice: pkg.storeProduct.priceString,
           isBestValue: pkg.packageType == PackageType.annual ||
-              pkg.storeProduct.identifier == _kProductMega,
+              pkg.storeProduct.identifier == kGachaProductMega,
         );
       }).toList()
         ..sort((a, b) => a.crystals.compareTo(b.crystals));
 
-      return ok(bundles.isEmpty ? _fallbackBundles() : bundles);
+      return ok(bundles.isEmpty ? fallbackCrystalBundles() : bundles);
     } catch (_) {
       // Don't fail hard — return static fallback so UI still shows bundles
-      return ok(_fallbackBundles());
+      return ok(fallbackCrystalBundles());
     }
   }
 
@@ -65,7 +60,8 @@ class GachaRepositoryImpl implements GachaRepository {
   }) async {
     try {
       final offerings = await Purchases.getOfferings();
-      final offering = offerings.getOffering(_kOffering) ?? offerings.current;
+      final offering =
+          offerings.getOffering(kGachaOffering) ?? offerings.current;
       if (offering == null) {
         return err(
           const AppError.network(
@@ -95,7 +91,7 @@ class GachaRepositoryImpl implements GachaRepository {
       final customerInfo = purchaseResult.customerInfo;
 
       // Count crystals to credit
-      final crystals = _crystalsForProduct(productId);
+      final crystals = crystalsForProduct(productId);
 
       // Credit via Supabase RPC (idempotent — receipt_id prevents double-credit)
       await _supabase.rpc<void>(
@@ -266,39 +262,4 @@ class GachaRepositoryImpl implements GachaRepository {
     }
     return GachaRarity.common;
   }
-
-  static int _crystalsForProduct(String productId) => switch (productId) {
-        _kProductSmall => 80,
-        _kProductMedium => 500,
-        _kProductLarge => 1800,
-        _kProductMega => 5000,
-        _ => 0,
-      };
-
-  static List<CrystalBundle> _fallbackBundles() => const [
-        CrystalBundle(
-          productId: _kProductSmall,
-          crystals: 80,
-          displayPrice: '\$0.99',
-          isBestValue: false,
-        ),
-        CrystalBundle(
-          productId: _kProductMedium,
-          crystals: 500,
-          displayPrice: '\$4.99',
-          isBestValue: false,
-        ),
-        CrystalBundle(
-          productId: _kProductLarge,
-          crystals: 1800,
-          displayPrice: '\$14.99',
-          isBestValue: false,
-        ),
-        CrystalBundle(
-          productId: _kProductMega,
-          crystals: 5000,
-          displayPrice: '\$39.99',
-          isBestValue: true,
-        ),
-      ];
 }

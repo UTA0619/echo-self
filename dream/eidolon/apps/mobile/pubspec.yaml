@@ -79,6 +79,11 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  # ── Testing ─────────────────────────────────────────────────────
+  # MockClient for driving the real Supabase/Postgrest builder chain
+  # against a fake HTTP layer in repository tests.
+  http: ^1.6.0
+
   # ── Code Generation ─────────────────────────────────────────────
   build_runner: ^2.4.13
   freezed: ^3.0.6

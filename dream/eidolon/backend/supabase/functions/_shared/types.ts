@@ -92,6 +92,34 @@ export interface RealitySyncResponse {
   worldWeather: 'clear' | 'storm' | 'fog' | 'aurora' | 'blizzard';
 }
 
+// Overnight autonomous simulation ("while you sleep" engine)
+export interface OvernightLoot {
+  name: string;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+}
+
+export interface OvernightRun {
+  id: string;
+  runDate: string; // YYYY-MM-DD
+  theme: DungeonTheme | string;
+  narrative: string;
+  highlight: string;
+  mood: EidolonMood;
+  xpGained: number;
+  loot: OvernightLoot[];
+  seen: boolean;
+}
+
+// Cron batch → { mode: 'cron', processed, skipped }
+// On-demand (JWT) → { mode: 'user', runId, alreadyExisted }
+export interface OvernightSimulateResponse {
+  mode: 'cron' | 'user';
+  processed?: number;
+  skipped?: number;
+  runId?: string;
+  alreadyExisted?: boolean;
+}
+
 // Standard API error response
 export interface ApiError {
   code: string;

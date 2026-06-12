@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/router/app_router.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/onboarding/domain/entities/onboarding_state.dart';
@@ -30,6 +31,7 @@ class OnboardingShell extends ConsumerWidget {
                 children: [
                   if (state.currentStep > 0)
                     IconButton(
+                      tooltip: context.l10n.buttonBack,
                       icon: const Icon(Icons.arrow_back_ios_new_rounded),
                       color: EidolonColors.textSecondary,
                       onPressed: () {

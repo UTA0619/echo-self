@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/home/presentation/providers/home_provider.dart';
 import 'package:flutter/material.dart';
@@ -7,16 +8,17 @@ class HomeGreetingHeader extends StatelessWidget {
   const HomeGreetingHeader({super.key, required this.state});
   final HomeState state;
 
-  String get _greeting {
+  String _greeting(BuildContext context) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return context.l10n.homeGoodMorning;
+    if (hour < 17) return context.l10n.homeGoodAfternoon;
+    return context.l10n.homeGoodEvening;
   }
 
   @override
   Widget build(BuildContext context) {
-    final name = state.player?.displayNameOrUsername ?? 'Adventurer';
+    final name =
+        state.player?.displayNameOrUsername ?? context.l10n.commonAdventurer;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
       child: Row(
@@ -26,7 +28,7 @@ class HomeGreetingHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$_greeting,',
+                  '${_greeting(context)},',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: EidolonColors.textSecondary,
                       ),

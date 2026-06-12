@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
 import 'package:eidolon/features/onboarding/presentation/providers/onboarding_provider.dart';
@@ -5,6 +6,9 @@ import 'package:eidolon/features/onboarding/presentation/widgets/eidolon_orb.dar
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Page-local ephemeral UI state (convention: Riverpod for ALL state).
+final _isAwakeningProvider = StateProvider.autoDispose<bool>((_) => false);
 
 class EidolonNamingPage extends ConsumerStatefulWidget {
   const EidolonNamingPage({super.key});
@@ -15,7 +19,6 @@ class EidolonNamingPage extends ConsumerStatefulWidget {
 
 class _EidolonNamingPageState extends ConsumerState<EidolonNamingPage> {
   final _controller = TextEditingController();
-  bool _isAwakening = false;
 
   @override
   void dispose() {
@@ -26,7 +29,7 @@ class _EidolonNamingPageState extends ConsumerState<EidolonNamingPage> {
   Future<void> _awaken() async {
     final notifier = ref.read(onboardingNotifierProvider.notifier);
 
-    setState(() => _isAwakening = true);
+    ref.read(_isAwakeningProvider.notifier).state = true;
     await Future<void>.delayed(const Duration(milliseconds: 600));
     await notifier.complete();
 
@@ -36,7 +39,7 @@ class _EidolonNamingPageState extends ConsumerState<EidolonNamingPage> {
       // Refresh auth status so GoRouter automatically redirects to /home
       await ref.read(authNotifierProvider.notifier).refreshAuth();
     } else {
-      setState(() => _isAwakening = false);
+      ref.read(_isAwakeningProvider.notifier).state = false;
     }
   }
 
@@ -58,7 +61,7 @@ class _EidolonNamingPageState extends ConsumerState<EidolonNamingPage> {
           const SizedBox(height: 8),
 
           Text(
-            'This name is bound to you forever.',
+            context.l10n.onboardingNameBound,
             style: Theme.of(context).textTheme.bodyMedium,
           ).animate(delay: 150.ms).fadeIn(),
 
@@ -67,7 +70,7 @@ class _EidolonNamingPageState extends ConsumerState<EidolonNamingPage> {
           // Orb responds to name length
           EidolonOrb(
             size: 140,
-            isAwakening: _isAwakening,
+            isAwakening: ref.watch(_isAwakeningProvider),
           ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
 
           const SizedBox(height: 40),

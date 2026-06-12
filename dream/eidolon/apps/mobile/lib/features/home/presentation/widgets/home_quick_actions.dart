@@ -15,7 +15,7 @@ class HomeQuickActions extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'QUICK ACTIONS',
+            context.l10n.homeQuickActions,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: EidolonColors.textSecondary,
                   letterSpacing: 1.5,
