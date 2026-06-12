@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
@@ -43,7 +44,7 @@ class LoginLogo extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'YOUR SOUL-TWIN AWAITS',
+          context.l10n.loginTagline,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: EidolonColors.textSecondary,
                 letterSpacing: 3,
@@ -97,7 +98,9 @@ class LoginFormCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              isCreatingAccount ? 'Create Account' : 'Welcome Back',
+              isCreatingAccount
+                  ? context.l10n.loginCreateAccount
+                  : context.l10n.loginWelcomeBack,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: EidolonColors.textPrimary,
                     fontWeight: FontWeight.bold,
@@ -109,13 +112,15 @@ class LoginFormCard extends StatelessWidget {
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
               style: const TextStyle(color: EidolonColors.textPrimary),
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email_outlined),
+              decoration: InputDecoration(
+                labelText: context.l10n.loginEmail,
+                prefixIcon: const Icon(Icons.email_outlined),
               ),
               validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Email is required';
-                if (!v.contains('@')) return 'Enter a valid email';
+                if (v == null || v.trim().isEmpty) {
+                  return context.l10n.loginEmailRequired;
+                }
+                if (!v.contains('@')) return context.l10n.loginEmailInvalid;
                 return null;
               },
             ),
@@ -127,7 +132,7 @@ class LoginFormCard extends StatelessWidget {
               onFieldSubmitted: (_) => onSubmit(),
               style: const TextStyle(color: EidolonColors.textPrimary),
               decoration: InputDecoration(
-                labelText: 'Password',
+                labelText: context.l10n.loginPassword,
                 prefixIcon: const Icon(Icons.lock_outlined),
                 suffixIcon: IconButton(
                   icon: Icon(
@@ -139,9 +144,11 @@ class LoginFormCard extends StatelessWidget {
                 ),
               ),
               validator: (v) {
-                if (v == null || v.isEmpty) return 'Password is required';
+                if (v == null || v.isEmpty) {
+                  return context.l10n.loginPasswordRequired;
+                }
                 if (isCreatingAccount && v.length < 6) {
-                  return 'Password must be at least 6 characters';
+                  return context.l10n.loginPasswordTooShort;
                 }
                 return null;
               },
@@ -158,15 +165,19 @@ class LoginFormCard extends StatelessWidget {
                         color: Colors.white,
                       ),
                     )
-                  : Text(isCreatingAccount ? 'Create Account' : 'Sign In'),
+                  : Text(
+                      isCreatingAccount
+                          ? context.l10n.loginCreateAccount
+                          : context.l10n.loginSignIn,
+                    ),
             ),
             const SizedBox(height: 12),
             TextButton(
               onPressed: isLoading ? null : onToggleMode,
               child: Text(
                 isCreatingAccount
-                    ? 'Already have an account? Sign in'
-                    : "Don't have an account? Create one",
+                    ? context.l10n.loginToggleToSignIn
+                    : context.l10n.loginToggleToCreate,
                 style: const TextStyle(color: EidolonColors.accent),
               ),
             ),
@@ -190,7 +201,7 @@ class LoginDivider extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
-            'or continue with',
+            context.l10n.loginOrContinueWith,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: EidolonColors.textSecondary,
                 ),
@@ -214,14 +225,14 @@ class LoginSocialButtons extends ConsumerWidget {
     return Column(
       children: [
         LoginSocialButton(
-          label: 'Continue with Google',
+          label: context.l10n.loginContinueGoogle,
           iconAsset: Icons.g_mobiledata_rounded,
           onTap: isLoading ? null : notifier.signInWithGoogle,
         ),
         if (Platform.isIOS) ...[
           const SizedBox(height: 12),
           LoginSocialButton(
-            label: 'Continue with Apple',
+            label: context.l10n.loginContinueApple,
             iconAsset: Icons.apple,
             onTap: isLoading ? null : notifier.signInWithApple,
           ),

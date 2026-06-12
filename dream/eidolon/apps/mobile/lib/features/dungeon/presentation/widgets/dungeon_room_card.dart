@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -71,7 +72,7 @@ class DungeonRoomCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Room $roomNumber / $totalRooms',
+                      context.l10n.dungeonRoomProgress(roomNumber, totalRooms),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: EidolonColors.textSecondary,
                           ),
@@ -122,7 +123,8 @@ class DungeonRoomCard extends StatelessWidget {
                 color: eventColor.withValues(alpha: 0.1),
               ),
               child: Text(
-                room.eventData['name'] as String? ?? 'Final Boss',
+                room.eventData['name'] as String? ??
+                    context.l10n.dungeonFinalBoss,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: eventColor,
                     ),

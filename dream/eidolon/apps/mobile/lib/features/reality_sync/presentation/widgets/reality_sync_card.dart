@@ -75,7 +75,7 @@ class _PermissionBody extends StatelessWidget {
               const Text('⚡', style: TextStyle(fontSize: 20)),
               const SizedBox(width: 8),
               Text(
-                'REALITY SYNC',
+                context.l10n.realitySyncTitle,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       letterSpacing: 1.5,
                       color: EidolonColors.accentGlow,
@@ -85,13 +85,12 @@ class _PermissionBody extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Connect Health Data',
+            context.l10n.realitySyncConnect,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 4),
           Text(
-            'Your real-world activity powers your Eidolon. '
-            'Steps, sleep, and calories convert to ATK, HP, and EXP bonuses.',
+            context.l10n.realitySyncDescription,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: EidolonColors.textSecondary,
                 ),
@@ -139,7 +138,7 @@ class _BonusBody extends StatelessWidget {
               const Text('⚡', style: TextStyle(fontSize: 16)),
               const SizedBox(width: 8),
               Text(
-                'REALITY SYNC',
+                context.l10n.realitySyncTitle,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       letterSpacing: 1.5,
                       color: EidolonColors.accentGlow,
@@ -147,7 +146,7 @@ class _BonusBody extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                'Score ${b.syncScore}',
+                context.l10n.realitySyncScore(b.syncScore),
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: _scoreColor(b.syncScore),
                       fontWeight: FontWeight.bold,

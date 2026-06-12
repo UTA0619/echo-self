@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -17,13 +18,13 @@ class PersonalitySlider extends StatelessWidget {
   final ValueChanged<int> onChanged;
   final int questionIndex;
 
-  static const _labels = [
-    'Strongly\nDisagree',
-    '',
-    'Neutral',
-    '',
-    'Strongly\nAgree',
-  ];
+  List<String> _labels(BuildContext context) => [
+        context.l10n.personalityStronglyDisagree,
+        '',
+        context.l10n.personalityNeutral,
+        '',
+        context.l10n.personalityStronglyAgree,
+      ];
   static const _colors = [
     Color(0xFF5A5AFF),
     Color(0xFF8A7AFF),
@@ -87,7 +88,7 @@ class PersonalitySlider extends StatelessWidget {
         // Labels
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: _labels
+          children: _labels(context)
               .map(
                 (l) => SizedBox(
                   width: 52,

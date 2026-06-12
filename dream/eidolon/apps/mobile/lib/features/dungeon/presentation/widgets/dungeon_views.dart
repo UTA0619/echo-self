@@ -85,7 +85,7 @@ class DungeonHubView extends ConsumerWidget {
                 const SizedBox(height: 24),
 
                 Text(
-                  'Theme',
+                  context.l10n.dungeonTheme,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: EidolonColors.textSecondary,
                       ),
@@ -146,7 +146,7 @@ class DungeonHubView extends ConsumerWidget {
 
                 if (state.selectedTheme == null)
                   Text(
-                    'No theme selected — random dungeon will be generated.',
+                    context.l10n.dungeonNoThemeSelected,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: EidolonColors.textSecondary,
                           fontStyle: FontStyle.italic,
@@ -261,7 +261,7 @@ class DungeonRunView extends ConsumerWidget {
               TextButton(
                 onPressed: notifier.abandonRun,
                 child: Text(
-                  'Abandon',
+                  context.l10n.dungeonAbandon,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: EidolonColors.error,
                       ),
@@ -316,7 +316,9 @@ class DungeonRunView extends ConsumerWidget {
                       ),
                     )
                   : Text(
-                      isLast ? 'Defeat the Boss' : 'Advance',
+                      isLast
+                          ? context.l10n.dungeonDefeatBoss
+                          : context.l10n.dungeonAdvance,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: Colors.white,
                           ),
@@ -348,7 +350,9 @@ class DungeonResultView extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              isVictory ? '⚔️ Victory!' : '💨 Retreated',
+              isVictory
+                  ? context.l10n.dungeonVictory
+                  : context.l10n.dungeonRetreated,
               style: Theme.of(context).textTheme.displaySmall,
             ).animate().fadeIn(duration: 500.ms).scaleXY(
                   begin: 0.7,
@@ -359,8 +363,10 @@ class DungeonResultView extends ConsumerWidget {
             const SizedBox(height: 16),
             Text(
               isVictory
-                  ? '${state.dungeon?.name ?? 'The dungeon'} has been conquered.\nYour Eidolon grows stronger.'
-                  : 'You escaped with your life.\nThe dungeon awaits your return.',
+                  ? context.l10n.dungeonVictoryBody(
+                      state.dungeon?.name ?? context.l10n.dungeonFallbackName,
+                    )
+                  : context.l10n.dungeonRetreatBody,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: EidolonColors.textSecondary,

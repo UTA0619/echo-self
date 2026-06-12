@@ -76,7 +76,7 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
           const SizedBox(height: 8),
 
           Text(
-            'Your Eidolon will remember this forever.',
+            context.l10n.onboardingUsernameHint,
             style: Theme.of(context).textTheme.bodyMedium,
           ).animate(delay: 150.ms).fadeIn(duration: 400.ms),
 

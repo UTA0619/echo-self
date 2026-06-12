@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/home/domain/entities/home_summary.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,7 @@ class HomeDailyStats extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "TODAY'S STATS",
+            context.l10n.homeTodaysStats,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: EidolonColors.textSecondary,
                   letterSpacing: 1.5,
@@ -30,7 +31,7 @@ class HomeDailyStats extends StatelessWidget {
               Expanded(
                 child: HomeStatTile(
                   icon: Icons.castle_outlined,
-                  label: 'Runs Today',
+                  label: context.l10n.homeRunsToday,
                   value: '$runs / 5',
                   color: EidolonColors.accent,
                 ),
@@ -39,7 +40,7 @@ class HomeDailyStats extends StatelessWidget {
               Expanded(
                 child: HomeStatTile(
                   icon: Icons.local_fire_department,
-                  label: 'Day Streak',
+                  label: context.l10n.homeDayStreak,
                   value: '$streak',
                   color: EidolonColors.gold,
                 ),

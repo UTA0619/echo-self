@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/auth/domain/entities/auth_user.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,7 @@ class SettingsProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = user?.nameOrFallback ?? 'Adventurer';
+    final name = user?.nameOrFallback ?? context.l10n.commonAdventurer;
     final email = user?.email ?? '';
     final initials = name.isNotEmpty ? name[0].toUpperCase() : '?';
 

@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
 import 'package:eidolon/features/settings/presentation/pages/legal_page.dart';
@@ -29,7 +30,7 @@ class SettingsPage extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'Settings',
+          context.l10n.settingsTitle,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         centerTitle: true,
@@ -39,37 +40,37 @@ class SettingsPage extends ConsumerWidget {
         children: [
           SettingsProfileHeader(user: user),
           const SizedBox(height: 24),
-          SettingsSectionHeader(title: 'Account'),
+          SettingsSectionHeader(title: context.l10n.settingsAccount),
           SettingsTile(
             icon: Icons.logout_rounded,
-            label: 'Sign Out',
+            label: context.l10n.settingsSignOut,
             isDestructive: true,
             onTap: () => _confirmSignOut(context, ref),
           ),
           SettingsTile(
             icon: Icons.delete_forever_rounded,
-            label: 'Delete Account',
+            label: context.l10n.settingsDeleteAccount,
             isDestructive: true,
             onTap: () => _confirmDeleteAccount(context, ref),
           ),
           const SizedBox(height: 16),
-          SettingsSectionHeader(title: 'About'),
+          SettingsSectionHeader(title: context.l10n.settingsAbout),
           versionAsync.when(
             data: (v) => SettingsTile(
               icon: Icons.info_outline_rounded,
-              label: 'Version',
+              label: context.l10n.settingsVersion,
               trailing: v,
             ),
             loading: () => SettingsTile(
               icon: Icons.info_outline_rounded,
-              label: 'Version',
+              label: context.l10n.settingsVersion,
               trailing: '…',
             ),
             error: (_, __) => const SizedBox.shrink(),
           ),
           SettingsTile(
             icon: Icons.privacy_tip_outlined,
-            label: 'Privacy Policy',
+            label: context.l10n.settingsPrivacyPolicy,
             showArrow: true,
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
@@ -79,7 +80,7 @@ class SettingsPage extends ConsumerWidget {
           ),
           SettingsTile(
             icon: Icons.article_outlined,
-            label: 'Terms of Service',
+            label: context.l10n.settingsTermsOfService,
             showArrow: true,
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
@@ -102,26 +103,25 @@ class SettingsPage extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: EidolonColors.surface,
         title: Text(
-          'Delete Account?',
+          ctx.l10n.settingsDeleteConfirmTitle,
           style: Theme.of(ctx).textTheme.titleMedium,
         ),
         content: Text(
-          'This permanently deletes your Eidolon, dungeon history, and all '
-          'data. This action cannot be undone.',
+          ctx.l10n.settingsDeleteConfirmBody,
           style: Theme.of(ctx).textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text(
-              'Cancel',
+              ctx.l10n.buttonCancel,
               style: TextStyle(color: EidolonColors.textSecondary),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
-              'Delete',
+              ctx.l10n.buttonDelete,
               style: TextStyle(color: EidolonColors.error),
             ),
           ),
@@ -150,7 +150,7 @@ class SettingsPage extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: EidolonColors.surface,
         title: Text(
-          'Confirm Identity',
+          ctx.l10n.settingsConfirmIdentityTitle,
           style: Theme.of(ctx).textTheme.titleMedium,
         ),
         content: Column(
@@ -158,8 +158,7 @@ class SettingsPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'For security, enter your password to permanently delete '
-              'your account.',
+              ctx.l10n.settingsReauthBody,
               style: Theme.of(ctx).textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
@@ -169,7 +168,7 @@ class SettingsPage extends ConsumerWidget {
               autofocus: true,
               style: const TextStyle(color: EidolonColors.textPrimary),
               decoration: InputDecoration(
-                labelText: 'Password',
+                labelText: ctx.l10n.settingsPassword,
                 labelStyle: const TextStyle(color: EidolonColors.textSecondary),
                 enabledBorder: OutlineInputBorder(
                   borderSide: const BorderSide(color: EidolonColors.border),
@@ -187,14 +186,14 @@ class SettingsPage extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text(
-              'Cancel',
+              ctx.l10n.buttonCancel,
               style: TextStyle(color: EidolonColors.textSecondary),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
-              'Delete',
+              ctx.l10n.buttonDelete,
               style: TextStyle(color: EidolonColors.error),
             ),
           ),
@@ -217,25 +216,25 @@ class SettingsPage extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: EidolonColors.surface,
         title: Text(
-          'Sign Out?',
+          ctx.l10n.settingsSignOutConfirmTitle,
           style: Theme.of(ctx).textTheme.titleMedium,
         ),
         content: Text(
-          'Your Eidolon will wait for your return.',
+          ctx.l10n.settingsSignOutConfirmBody,
           style: Theme.of(ctx).textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text(
-              'Cancel',
+              ctx.l10n.buttonCancel,
               style: TextStyle(color: EidolonColors.textSecondary),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
-              'Sign Out',
+              ctx.l10n.settingsSignOut,
               style: TextStyle(color: EidolonColors.error),
             ),
           ),

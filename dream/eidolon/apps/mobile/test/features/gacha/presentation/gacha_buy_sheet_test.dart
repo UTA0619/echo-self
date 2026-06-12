@@ -5,6 +5,8 @@ import 'package:eidolon/features/gacha/presentation/widgets/gacha_buy_sheet.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../helpers/test_app.dart';
+
 // ── Fakes ─────────────────────────────────────────────────────────────────────
 
 /// Never attached to a container — only the overridden members are used.
@@ -39,6 +41,7 @@ const _bundles = [
 
 Widget _wrap(GachaState state, _RecordingNotifier notifier) => MaterialApp(
       theme: buildEidolonTheme(),
+      localizationsDelegates: testLocalizationsDelegates,
       home: Scaffold(
         body: GachaBuyCrystalsSheet(state: state, notifier: notifier),
       ),
@@ -92,6 +95,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: buildEidolonTheme(),
+        localizationsDelegates: testLocalizationsDelegates,
         home: Builder(
           builder: (context) => Scaffold(
             body: Center(
@@ -129,6 +133,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: buildEidolonTheme(),
+        localizationsDelegates: testLocalizationsDelegates,
         home: Builder(
           builder: (context) => Scaffold(
             body: Center(

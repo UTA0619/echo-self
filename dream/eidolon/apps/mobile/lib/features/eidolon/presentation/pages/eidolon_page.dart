@@ -154,15 +154,15 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             eidolonName.isEmpty
-                ? 'Your Eidolon awaits…'
-                : '$eidolonName is ready.',
+                ? context.l10n.eidolonAwaits
+                : context.l10n.eidolonReady(eidolonName),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: EidolonColors.textSecondary,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Say something to begin.',
+            context.l10n.eidolonSaySomething,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: EidolonColors.textSecondary,
                 ),
@@ -263,7 +263,7 @@ class _RetryBody extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Could not reach your Eidolon.',
+            context.l10n.eidolonUnreachable,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),

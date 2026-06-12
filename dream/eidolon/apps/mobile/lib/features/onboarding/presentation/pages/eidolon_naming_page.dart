@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
 import 'package:eidolon/features/onboarding/presentation/providers/onboarding_provider.dart';
@@ -60,7 +61,7 @@ class _EidolonNamingPageState extends ConsumerState<EidolonNamingPage> {
           const SizedBox(height: 8),
 
           Text(
-            'This name is bound to you forever.',
+            context.l10n.onboardingNameBound,
             style: Theme.of(context).textTheme.bodyMedium,
           ).animate(delay: 150.ms).fadeIn(),
 

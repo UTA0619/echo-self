@@ -63,7 +63,7 @@ class GachaIdleView extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
               child: Text(
-                'RECENT SUMMONS',
+                context.l10n.gachaRecentSummons,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       letterSpacing: 1.5,
                     ),
@@ -171,14 +171,14 @@ class GachaBannerSection extends StatelessWidget {
                       ),
                   const SizedBox(height: 8),
                   Text(
-                    'SOUL SUMMON',
+                    context.l10n.gachaSoulSummon,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           letterSpacing: 4,
                           color: EidolonColors.accentGlow,
                         ),
                   ),
                   Text(
-                    'Discover fragments of your soul',
+                    context.l10n.gachaSoulSummonSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
@@ -206,7 +206,7 @@ Future<void> _confirmPull(
       backgroundColor: EidolonColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
-        count == 1 ? '×1 Summon' : '×10 Summon',
+        ctx.l10n.gachaSummonCount(count),
         style: Theme.of(ctx).textTheme.titleMedium,
       ),
       content: Column(
@@ -214,12 +214,12 @@ Future<void> _confirmPull(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Cost: $cost 💎  ·  Balance: $crystals 💎',
+            ctx.l10n.gachaCostBalance(cost, crystals),
             style: Theme.of(ctx).textTheme.bodyMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            'Confirm this summon?',
+            ctx.l10n.gachaConfirmSummon,
             style: Theme.of(ctx).textTheme.bodySmall,
           ),
         ],

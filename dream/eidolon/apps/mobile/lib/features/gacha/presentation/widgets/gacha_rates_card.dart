@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/gacha/domain/entities/gacha_item.dart';
 import 'package:eidolon/features/gacha/presentation/widgets/gacha_card.dart';
@@ -22,7 +23,7 @@ class GachaRatesCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'SUMMON RATES',
+              context.l10n.gachaSummonRates,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     letterSpacing: 1.5,
                   ),

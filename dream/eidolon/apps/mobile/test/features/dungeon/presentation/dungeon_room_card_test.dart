@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_types/shared_types.dart';
 
+import '../../../helpers/test_app.dart';
+
 Widget _wrap(DungeonRoom room, {int roomNumber = 1, int totalRooms = 5}) =>
     MaterialApp(
       theme: buildEidolonTheme(),
+      localizationsDelegates: testLocalizationsDelegates,
       home: Scaffold(
         body: DungeonRoomCard(
           room: room,

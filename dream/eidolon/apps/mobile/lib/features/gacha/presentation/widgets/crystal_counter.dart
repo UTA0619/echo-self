@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -15,7 +16,9 @@ class CrystalCounter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: isLoading ? 'Soul Crystals loading' : 'Soul Crystals: $count',
+      label: isLoading
+          ? context.l10n.gachaCrystalsLoading
+          : context.l10n.gachaCrystalsCount(count),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(

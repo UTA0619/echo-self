@@ -1,3 +1,4 @@
+import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -11,7 +12,14 @@ class DifficultySelector extends StatelessWidget {
   final int value;
   final ValueChanged<int> onChanged;
 
-  static const _labels = ['Novice', 'Adept', 'Expert', 'Master', 'Void'];
+  List<String> _labels(BuildContext context) => [
+        context.l10n.dungeonDifficultyNovice,
+        context.l10n.dungeonDifficultyAdept,
+        context.l10n.dungeonDifficultyExpert,
+        context.l10n.dungeonDifficultyMaster,
+        context.l10n.dungeonDifficultyVoid,
+      ];
+
   static const _colors = [
     Color(0xFF55FF99),
     Color(0xFFFFD700),
@@ -29,7 +37,7 @@ class DifficultySelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Difficulty',
+          context.l10n.dungeonDifficulty,
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
                 color: EidolonColors.textSecondary,
               ),
@@ -37,6 +45,7 @@ class DifficultySelector extends StatelessWidget {
         const SizedBox(height: 8),
         Row(
           children: List.generate(5, (i) {
+            final labels = _labels(context);
             final tier = _tiers[i];
             final selected = value == tier;
             final color = _colors[i];
@@ -68,7 +77,7 @@ class DifficultySelector extends StatelessWidget {
                             ),
                       ),
                       Text(
-                        _labels[i],
+                        labels[i],
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               fontSize: 8,
                               color: selected
