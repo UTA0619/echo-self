@@ -64,7 +64,7 @@ const clientObligations: Obligation[] = [
     id: "OBL_D6_GUARDRAILS_UI",
     doctrine: "D6",
     description:
-      "Dart: EidolonProfile risk/social fields + settings UI to tune guardrails. Needs Flutter toolchain.",
+      "Dart: settings UI to tune guardrails (EidolonProfile risk/social fields + data mapping now done). Needs UI build.",
     blocksPhase: "B_SOFT_LAUNCH",
     satisfied: false,
   },
@@ -76,5 +76,24 @@ s.risks.RISK_AI_PROVIDER.impact = 0.35;
 s.risks.RISK_AI_PROVIDER.mitigation =
   "Deterministic D5 screen + provenance assert live; template fallback labeled. (was 0.5)";
 s.risks.RISK_AI_PROVIDER.lastReview = NOW;
+
+// ── DISCOVERED D3 VIOLATION (issue #121): the meta-cognition layer catching a real
+// flaw. The live gacha catalog sells power (≈15/18 items; 13/18 power categories)
+// for real-money crystals — pay-to-win, contradicting D3 and the GDD. Encode it
+// truthfully: powerForPaySkuCount is NOT 0, so INV_NO_POWER_FOR_PAY now fires and
+// the project cannot legitimately advance until the catalog is cosmetic/story-only.
+s.metrics.powerForPaySkuCount = 13;
+s.constitutional.doctrines.D3.complianceSignal = 0;
+s.constitutional.doctrines.D3.openChallenges = 1;
+s.constitutional.doctrines.D3.lastReview = NOW;
+s.risks.RISK_GACHA_P2W = {
+  description:
+    "Gacha catalog sells gameplay power for real-money crystals (D3 violation, #121).",
+  probability: 1, // already present in the codebase
+  impact: 0.9,
+  mitigation:
+    "Audit test committed (skipped); convert catalog to cosmetic/story/convenience-only, then enforce.",
+  lastReview: NOW,
+};
 
 export const CURRENT_STATE: ProjectState = s;
