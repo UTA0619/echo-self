@@ -77,22 +77,21 @@ s.risks.RISK_AI_PROVIDER.mitigation =
   "Deterministic D5 screen + provenance assert live; template fallback labeled. (was 0.5)";
 s.risks.RISK_AI_PROVIDER.lastReview = NOW;
 
-// ── DISCOVERED D3 VIOLATION (issue #121): the meta-cognition layer catching a real
-// flaw. The live gacha catalog sells power (≈15/18 items; 13/18 power categories)
-// for real-money crystals — pay-to-win, contradicting D3 and the GDD. Encode it
-// truthfully: powerForPaySkuCount is NOT 0, so INV_NO_POWER_FOR_PAY now fires and
-// the project cannot legitimately advance until the catalog is cosmetic/story-only.
-s.metrics.powerForPaySkuCount = 13;
-s.constitutional.doctrines.D3.complianceSignal = 0;
-s.constitutional.doctrines.D3.openChallenges = 1;
+// ── D3 violation FOUND then FIXED (issue #121). The meta-cognition layer caught a
+// real pay-to-win catalog (≈15/18 items granted power); it has now been converted to
+// cosmetic/story-only and no_power_for_pay_test.dart enforces it forever, so
+// powerForPaySkuCount is back to 0 and INV_NO_POWER_FOR_PAY is satisfied.
+s.metrics.powerForPaySkuCount = 0;
+s.constitutional.doctrines.D3.complianceSignal = 95;
+s.constitutional.doctrines.D3.openChallenges = 0;
 s.constitutional.doctrines.D3.lastReview = NOW;
 s.risks.RISK_GACHA_P2W = {
   description:
-    "Gacha catalog sells gameplay power for real-money crystals (D3 violation, #121).",
-  probability: 1, // already present in the codebase
+    "Gacha selling power for real-money crystals (D3). FIXED — catalog is cosmetic/story-only (#121).",
+  probability: 0.05, // residual: a future item could regress; the audit test guards it
   impact: 0.9,
   mitigation:
-    "Audit test committed (skipped); convert catalog to cosmetic/story/convenience-only, then enforce.",
+    "Catalog converted; no_power_for_pay_test.dart enforces powerForPaySkuCount === 0 in CI.",
   lastReview: NOW,
 };
 
