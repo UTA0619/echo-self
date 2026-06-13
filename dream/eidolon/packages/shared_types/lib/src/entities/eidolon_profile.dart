@@ -23,6 +23,10 @@ abstract class EidolonProfile with _$EidolonProfile {
     @Default(50) int baseMp,
     @Default(EidolonMood.calm) EidolonMood currentMood,
     @Default('balanced') String autoStrategy,
+    // Bounded-autonomy guardrails (Doctrine D6). Conservative defaults mirror
+    // migration 014 + backend guardrails.ts so an unset value never widens autonomy.
+    @Default(40) int riskTolerance,
+    @Default(30) int socialOpenness,
     @Default({}) Map<String, dynamic> appearance,
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -34,4 +38,8 @@ abstract class EidolonProfile with _$EidolonProfile {
   double get levelProgress => xp / xpToNext;
 
   bool get isMaxLevel => level >= 100;
+
+  /// Clamp guardrails into the valid 0-100 range (defends against stray data).
+  int get safeRiskTolerance => riskTolerance.clamp(0, 100);
+  int get safeSocialOpenness => socialOpenness.clamp(0, 100);
 }
