@@ -12,6 +12,9 @@ import {
   type OvernightOutcome,
   sanitizeOutcome,
 } from '../_shared/overnight_prompt.ts';
+import { clampGuardrails, selectThemeWithinGuardrails } from '../_shared/guardrails.ts';
+import { consentSet, filterRealityByConsent } from '../_shared/consent.ts';
+import { screenNarrative, assertMemoryProvenance } from '../_shared/narrative_honesty.ts';
 import type { DungeonTheme } from '../_shared/types.ts';
 
 const THEME_FLAVORS: Record<DungeonTheme, string> = {
@@ -39,6 +42,8 @@ interface EidolonRow {
   agreeableness: number;
   neuroticism: number;
   auto_strategy: string;
+  risk_tolerance: number;
+  social_openness: number;
   // joined
   users?: { language?: string | null } | null;
 }
@@ -113,7 +118,7 @@ Deno.serve(async (req: Request) => {
 });
 
 const eidolonSelect =
-  'id, user_id, name, level, xp, openness, conscientiousness, extraversion, agreeableness, neuroticism, auto_strategy, users!inner(language)';
+  'id, user_id, name, level, xp, openness, conscientiousness, extraversion, agreeableness, neuroticism, auto_strategy, risk_tolerance, social_openness, users!inner(language)';
 
 // Generate, persist, and apply one Eidolon's overnight run. Returns the run id.
 async function simulateOne(
@@ -123,17 +128,31 @@ async function simulateOne(
 ): Promise<string> {
   const language = e.users?.language === 'ja' ? 'ja' : 'en';
 
-  // Theme: explorers/high-openness roam widely; others tend to a familiar realm.
-  const theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+  // Bounded autonomy (D6): the realm is chosen WITHIN the player's guardrails
+  // (migration 014), not by blind Math.random(). clampGuardrails defends against
+  // out-of-range values; the Dart UI to let players tune these is the owed client half.
+  const guardrails = clampGuardrails({
+    openness: e.openness,
+    autoStrategy: e.auto_strategy,
+    riskTolerance: e.risk_tolerance,
+    socialOpenness: e.social_openness,
+  });
+  const theme = selectThemeWithinGuardrails(THEMES, guardrails) as DungeonTheme;
 
-  // Optional: fold today's real-world activity into the tone.
-  const { data: sync } = await db
+  // Reality data is folded in ONLY for signals the player consented to (D4), and
+  // non-consented fields are dropped entirely, never zeroed (D8 minimization).
+  const { data: grantRows } = await db
+    .from('consent_grants')
+    .select('signal, granted')
+    .eq('user_id', e.user_id);
+  const { data: rawSync } = await db
     .from('reality_syncs')
     .select('steps, sleep_hours')
     .eq('user_id', e.user_id)
     .eq('sync_date', runDate)
     .maybeSingle();
-  const energyNote = describeEnergy(sync?.steps, sync?.sleep_hours);
+  const sync = filterRealityByConsent(rawSync, consentSet(grantRows));
+  const energyNote = describeEnergy(sync.steps, sync.sleep_hours);
 
   // Top recent memories for continuity.
   const { data: mems } = await db
@@ -176,6 +195,19 @@ async function simulateOne(
     outcome = buildOvernightFallback(e.name, theme, language);
   }
 
+  // Narrative honesty (D5): a report that solicits a purchase or manufactures
+  // urgency is inadmissible. The deterministic screen catches it; on failure we
+  // serve the safe offline narrative rather than ship a manipulative one.
+  const screen = screenNarrative(outcome);
+  if (!screen.ok) {
+    console.warn(
+      `[overnight] D5 honesty screen rejected report for eidolon ${e.id}:`,
+      screen.violations.map((v) => v.code).join(','),
+    );
+    outcome = buildOvernightFallback(e.name, theme, language);
+    modelUsed = 'local';
+  }
+
   // Persist the run (one per eidolon per night).
   const { data: run, error: insErr } = await db
     .from('overnight_runs')
@@ -202,15 +234,25 @@ async function simulateOne(
     .update({ xp: e.xp + outcome.xpGained, current_mood: outcome.mood })
     .eq('id', e.id);
 
-  await db.from('memories').insert({
+  const memory = {
     eidolon_id: e.id,
     memory_type: 'episodic',
     content: outcome.highlight,
     importance: 0.6,
     emotion_tag: outcome.mood,
     source: 'overnight_run',
-    source_ref: run.id,
-  });
+    source_ref: run.id as string,
+  };
+  // D5 provenance: every overnight memory must point back to the run that produced
+  // it, so a Morning Report can always be traced to a real event (not a fabrication).
+  const prov = assertMemoryProvenance(memory, run.id as string);
+  if (!prov.ok) {
+    console.error(
+      `[overnight] D5 provenance violation for eidolon ${e.id}:`,
+      prov.violations.map((v) => v.code).join(','),
+    );
+  }
+  await db.from('memories').insert(memory);
 
   return run.id as string;
 }
