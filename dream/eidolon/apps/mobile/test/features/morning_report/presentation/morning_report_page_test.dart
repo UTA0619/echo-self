@@ -81,8 +81,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('outwitted a sentinel'), findsOneWidget);
-      expect(find.text('+130 XP'), findsOneWidget);
+      // Highlight + XP now also appear in the shareable preview card, so they
+      // legitimately render more than once on the page.
+      expect(
+        find.textContaining('outwitted a sentinel'),
+        findsAtLeastNWidgets(1),
+      );
+      expect(find.text('+130 XP'), findsAtLeastNWidgets(1));
       expect(find.text('Sentinel Core'), findsOneWidget);
       expect(find.text('EPIC'), findsOneWidget);
       // Opening the report marks it seen.

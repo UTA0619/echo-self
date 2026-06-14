@@ -3,6 +3,7 @@ import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/morning_report/domain/entities/morning_report.dart';
 import 'package:eidolon/features/morning_report/presentation/providers/morning_report_provider.dart';
 import 'package:eidolon/features/morning_report/presentation/widgets/morning_report_mood.dart';
+import 'package:eidolon/features/morning_report/presentation/widgets/morning_share_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,8 +11,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Full-screen Morning Report — the story of the Eidolon's overnight venture,
 /// plus the XP and loot it earned. Marks the report read on open.
 class MorningReportPage extends ConsumerStatefulWidget {
-  const MorningReportPage({super.key, required this.report});
+  const MorningReportPage({super.key, required this.report, this.eidolonName});
   final MorningReport report;
+
+  /// The Eidolon's name, for the shareable card headline. Optional so the page
+  /// stays decoupled from the eidolon provider; callers pass it when available.
+  final String? eidolonName;
 
   @override
   ConsumerState<MorningReportPage> createState() => _MorningReportPageState();
@@ -105,6 +110,15 @@ class _MorningReportPageState extends ConsumerState<MorningReportPage> {
               ...r.loot.map((item) => _LootTile(loot: item)),
 
             const SizedBox(height: 32),
+            // Shareable card — the growth loop (STRATEGY Act/§10).
+            Center(
+              child: MorningShareCard(
+                report: r,
+                eidolonName: widget.eidolonName ?? 'Eidolon',
+                label: l10n.morningReportShare,
+              ),
+            ).animate(delay: 400.ms).fadeIn(),
+            const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

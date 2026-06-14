@@ -170,6 +170,7 @@
 
   "morningReportTitle": "Morning Report",
   "morningReportWhileYouSlept": "While you slept",
+  "morningReportShare": "Share this morning",
   "morningReportXp": "+{xp} XP",
   "@morningReportXp": {
     "placeholders": { "xp": { "type": "int" } }

@@ -1,5 +1,6 @@
 import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
+import 'package:eidolon/features/eidolon/presentation/providers/eidolon_provider.dart';
 import 'package:eidolon/features/morning_report/presentation/pages/morning_report_page.dart';
 import 'package:eidolon/features/morning_report/presentation/providers/morning_report_provider.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +27,10 @@ class MorningReportCard extends ConsumerWidget {
           borderRadius: BorderRadius.circular(16),
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute<void>(
-              builder: (_) => MorningReportPage(report: report),
+              builder: (_) => MorningReportPage(
+                report: report,
+                eidolonName: ref.read(eidolonNotifierProvider).eidolon?.name,
+              ),
             ),
           ),
           child: Container(
