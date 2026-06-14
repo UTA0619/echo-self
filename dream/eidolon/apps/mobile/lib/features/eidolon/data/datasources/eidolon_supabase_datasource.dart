@@ -30,13 +30,22 @@ class EidolonSupabaseDataSource {
           .from('users')
           .select('id')
           .eq('auth_uid', authUid)
-          .single();
+          .maybeSingle();
+      if (userRow == null) {
+        return err(const AppError.notFound(resource: 'user'));
+      }
 
+      // maybeSingle: a user without an Eidolon (e.g. before onboarding) returns
+      // null rather than throwing "Cannot coerce the result to a single JSON
+      // object", so the UI can show the "not yet awakened" state gracefully.
       final row = await _client
           .from('eidolons')
           .select('*')
           .eq('user_id', userRow['id'] as String)
-          .single();
+          .maybeSingle();
+      if (row == null) {
+        return err(const AppError.notFound(resource: 'eidolon'));
+      }
 
       return ok(EidolonModel.fromRow(row));
     } on PostgrestException catch (e) {
