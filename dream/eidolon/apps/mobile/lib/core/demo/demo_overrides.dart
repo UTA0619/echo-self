@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:eidolon/features/auth/domain/entities/auth_user.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
+import 'package:eidolon/features/eidolon/domain/entities/chat_message.dart';
+import 'package:eidolon/features/eidolon/presentation/providers/eidolon_provider.dart';
 import 'package:eidolon/features/gacha/domain/entities/gacha_item.dart';
 import 'package:eidolon/features/gacha/domain/entities/gacha_pull_result.dart';
 import 'package:eidolon/features/gacha/domain/repositories/gacha_repository.dart';
@@ -23,6 +25,7 @@ List<Override> demoOverrides() => [
       authNotifierProvider.overrideWith(_DemoAuthNotifier.new),
       homeNotifierProvider.overrideWith(_DemoHomeNotifier.new),
       gachaNotifierProvider.overrideWith(_DemoGachaNotifier.new),
+      eidolonNotifierProvider.overrideWith(_DemoEidolonNotifier.new),
     ];
 
 // ── Sample data ───────────────────────────────────────────────────────────────
@@ -106,6 +109,66 @@ class _DemoHomeNotifier extends HomeNotifier {
 
   @override
   Future<void> load(String authUid) async {}
+
+  @override
+  void clearError() => state = state.copyWith(errorMessage: null);
+}
+
+class _DemoEidolonNotifier extends EidolonNotifier {
+  var _counter = 0;
+
+  @override
+  EidolonState build() => EidolonState(
+        eidolon: _demoEidolon,
+        messages: [
+          ChatMessage(
+            id: 'm1',
+            text: 'You came back. I felt the distance close.',
+            isFromEidolon: true,
+            timestamp: _now.add(const Duration(minutes: -8)),
+          ),
+          ChatMessage(
+            id: 'm2',
+            text: 'I walked the forest while you slept — and I kept a fragment for you.',
+            isFromEidolon: true,
+            timestamp: _now.add(const Duration(minutes: -7)),
+          ),
+        ],
+      );
+
+  @override
+  Future<void> loadEidolon() async {}
+
+  @override
+  Future<void> sendMessage(String text) async {
+    final now = DateTime.now();
+    state = state.copyWith(
+      messages: [
+        ...state.messages,
+        ChatMessage(
+          id: 'u${_counter++}',
+          text: text,
+          isFromEidolon: false,
+          timestamp: now,
+        ),
+      ],
+      isSending: true,
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    state = state.copyWith(
+      isSending: false,
+      messages: [
+        ...state.messages,
+        ChatMessage(
+          id: 'e${_counter++}',
+          text: 'I hear you. (This is a demo reply — connect a backend for '
+              'real AI dialogue.)',
+          isFromEidolon: true,
+          timestamp: DateTime.now(),
+        ),
+      ],
+    );
+  }
 
   @override
   void clearError() => state = state.copyWith(errorMessage: null);

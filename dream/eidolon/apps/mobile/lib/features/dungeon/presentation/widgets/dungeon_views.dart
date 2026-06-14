@@ -9,6 +9,19 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_types/shared_types.dart';
 
+/// Localized display name for a dungeon theme. Avoids leaking raw enum names
+/// (e.g. "oceanDepth", "void_") into the UI.
+String _themeLabel(BuildContext context, DungeonTheme t) => switch (t) {
+      DungeonTheme.forest => context.l10n.dungeonThemeForest,
+      DungeonTheme.cave => context.l10n.dungeonThemeCave,
+      DungeonTheme.ruins => context.l10n.dungeonThemeRuins,
+      DungeonTheme.void_ => context.l10n.dungeonThemeVoid,
+      DungeonTheme.oceanDepth => context.l10n.dungeonThemeOceanDepth,
+      DungeonTheme.skyCitadel => context.l10n.dungeonThemeSkyCitadel,
+      DungeonTheme.shadowRealm => context.l10n.dungeonThemeShadowRealm,
+      DungeonTheme.crystalMaze => context.l10n.dungeonThemeCrystalMaze,
+    };
+
 // ── Hub: Choose difficulty + theme, then generate ─────────────────────────────
 
 class DungeonHubView extends ConsumerWidget {
@@ -99,7 +112,7 @@ class DungeonHubView extends ConsumerWidget {
                   children: _themes.map((t) {
                     final selected = state.selectedTheme == t;
                     final emoji = _themeEmojis[t] ?? '✨';
-                    final label = t.name.replaceAll('_', ' ');
+                    final label = _themeLabel(context, t);
                     return GestureDetector(
                       onTap: () => notifier.setTheme(selected ? null : t),
                       child: AnimatedContainer(

@@ -143,8 +143,8 @@ void main() {
       await tester.pump();
 
       expect(find.text('Theme'), findsOneWidget);
-      // At least one theme chip visible
-      expect(find.text('forest'), findsOneWidget);
+      // At least one theme chip visible (localized label, en locale)
+      expect(find.text('Forest'), findsOneWidget);
 
       await _settle(tester);
     });
@@ -180,7 +180,7 @@ void main() {
       await tester.pumpWidget(_wrapWithNotifier(notifier));
       await tester.pump();
 
-      await tester.tap(find.text('forest'));
+      await tester.tap(find.text('Forest'));
       await tester.pump();
 
       expect(notifier.lastTheme, DungeonTheme.forest);
