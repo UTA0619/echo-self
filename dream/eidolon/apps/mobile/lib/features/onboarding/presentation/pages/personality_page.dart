@@ -11,6 +11,22 @@ import 'package:go_router/go_router.dart';
 // Page-local ephemeral UI state (convention: Riverpod for ALL state).
 final _currentQuestionProvider = StateProvider.autoDispose<int>((_) => 0);
 
+/// Localized text for a Big Five question by its stable id. The English copy
+/// in [kPersonalityQuestions] is the canonical fallback; the quiz the user
+/// sees is fully localized.
+String _questionText(BuildContext context, int id) => switch (id) {
+      0 => context.l10n.personalityQ0,
+      1 => context.l10n.personalityQ1,
+      2 => context.l10n.personalityQ2,
+      3 => context.l10n.personalityQ3,
+      4 => context.l10n.personalityQ4,
+      5 => context.l10n.personalityQ5,
+      6 => context.l10n.personalityQ6,
+      7 => context.l10n.personalityQ7,
+      8 => context.l10n.personalityQ8,
+      _ => context.l10n.personalityQ9,
+    };
+
 class PersonalityPage extends ConsumerStatefulWidget {
   const PersonalityPage({super.key});
 
@@ -106,7 +122,7 @@ class _PersonalityPageState extends ConsumerState<PersonalityPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: PersonalitySlider(
                   key: ValueKey(q.id),
-                  question: q.text,
+                  question: _questionText(context, q.id),
                   value: answers[q.id] ?? 0,
                   onChanged: (v) => _answer(q.id, v),
                   questionIndex: index,

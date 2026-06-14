@@ -54,7 +54,7 @@ class _EidolonNamingPageState extends ConsumerState<EidolonNamingPage> {
           const SizedBox(height: 8),
 
           Text(
-            'Name your\nsoul-twin.',
+            context.l10n.onboardingNameTitle,
             style: Theme.of(context).textTheme.displayMedium,
           ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.2, end: 0),
 

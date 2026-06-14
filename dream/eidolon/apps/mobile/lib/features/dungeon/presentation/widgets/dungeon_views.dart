@@ -22,6 +22,15 @@ String _themeLabel(BuildContext context, DungeonTheme t) => switch (t) {
       DungeonTheme.crystalMaze => context.l10n.dungeonThemeCrystalMaze,
     };
 
+/// Localized difficulty name for a tier (1/3/5/7/10).
+String _difficultyLabel(BuildContext context, int tier) => switch (tier) {
+      1 => context.l10n.dungeonDifficultyNovice,
+      3 => context.l10n.dungeonDifficultyAdept,
+      5 => context.l10n.dungeonDifficultyExpert,
+      7 => context.l10n.dungeonDifficultyMaster,
+      _ => context.l10n.dungeonDifficultyVoid,
+    };
+
 // ── Hub: Choose difficulty + theme, then generate ─────────────────────────────
 
 class DungeonHubView extends ConsumerWidget {
@@ -165,35 +174,164 @@ class DungeonHubView extends ConsumerWidget {
                           fontStyle: FontStyle.italic,
                         ),
                   ),
+
+                const SizedBox(height: 24),
+
+                // Expedition preview — reflects the current selection and
+                // gives the otherwise-empty mid-section purpose.
+                _ExpeditionPreview(
+                  difficulty: state.selectedDifficulty,
+                  theme: state.selectedTheme,
+                ).animate(delay: 250.ms).fadeIn(),
               ],
             ),
           ),
         ),
 
-        // Enter dungeon button
+        // Enter dungeon button (+ explanatory hint when it can't be used)
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: eidolonId != null
-                  ? () => notifier.generateAndStart(eidolonId)
-                  : null,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                backgroundColor: EidolonColors.accent,
+          child: Column(
+            children: [
+              if (eidolonId == null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.info_outline_rounded,
+                        size: 16,
+                        color: EidolonColors.warning,
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          context.l10n.dungeonNoEidolonHint,
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: EidolonColors.warning,
+                                  ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: eidolonId != null
+                      ? () => notifier.generateAndStart(eidolonId)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    backgroundColor: EidolonColors.accent,
+                    disabledBackgroundColor:
+                        EidolonColors.surfaceElevated,
+                  ),
+                  child: Text(
+                    context.l10n.dungeonEnter,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                          letterSpacing: 1.5,
+                        ),
+                  ),
+                ),
               ),
-              child: Text(
-                context.l10n.dungeonEnter,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.white,
-                      letterSpacing: 1.5,
-                    ),
-              ),
-            ),
+            ],
           ).animate(delay: 300.ms).fadeIn().slideY(begin: 0.3, end: 0),
         ),
       ],
+    );
+  }
+}
+
+/// Compact summary of the chosen difficulty + theme, shown on the dungeon hub
+/// so the configuration has visible consequence before launching.
+class _ExpeditionPreview extends StatelessWidget {
+  const _ExpeditionPreview({required this.difficulty, this.theme});
+
+  final int difficulty;
+  final DungeonTheme? theme;
+
+  @override
+  Widget build(BuildContext context) {
+    final themeText =
+        theme == null ? context.l10n.dungeonThemeRandom : _themeLabel(context, theme!);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: EidolonColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: EidolonColors.accent.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.dungeonExpedition.toUpperCase(),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: EidolonColors.textSecondary,
+                  letterSpacing: 1.5,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _PreviewStat(
+                  label: context.l10n.dungeonDifficulty,
+                  value: '$difficulty · ${_difficultyLabel(context, difficulty)}',
+                ),
+              ),
+              Container(
+                width: 1,
+                height: 32,
+                color: EidolonColors.border,
+              ),
+              Expanded(
+                child: _PreviewStat(
+                  label: context.l10n.dungeonTheme,
+                  value: themeText,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PreviewStat extends StatelessWidget {
+  const _PreviewStat({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: EidolonColors.textSecondary,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: EidolonColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ],
+      ),
     );
   }
 }

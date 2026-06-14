@@ -51,6 +51,29 @@
   "personalityNeutral": "どちらでもない",
   "personalityStronglyAgree": "強く\nそう思う",
 
+  "personalityQ0": "新しいアイデアや経験を探求するのが好きだ。",
+  "personalityQ1": "目新しさよりも、決まった習慣を好む。",
+  "personalityQ2": "物事を徹底的に、予定通りにやり遂げる。",
+  "personalityQ3": "物事を途中で投げ出してしまうことが多い。",
+  "personalityQ4": "新しい人と出会い、話すのが大好きだ。",
+  "personalityQ5": "大勢の集まりより、一人で静かに過ごす方が好きだ。",
+  "personalityQ6": "他人の幸せを心から気にかけている。",
+  "personalityQ7": "他人に対して批判的で、要求が厳しくなることがある。",
+  "personalityQ8": "プレッシャーの中でも冷静でいられる。",
+  "personalityQ9": "心配性で、よく不安を感じる。",
+
+  "onboardingIdentityTitle": "あなたの\nアイデンティティを。",
+  "onboardingNameTitle": "魂の片割れに\n名前を。",
+  "usernameMinLength": "3文字以上で入力してください",
+  "usernameMaxLength": "20文字以内で入力してください",
+  "usernameInvalidChars": "英小文字・数字・_ のみ使用できます",
+  "usernameHintExample": "例：shadow_walker",
+  "usernameHelper": "英小文字・数字・アンダースコアのみ使用できます。",
+
+  "dungeonExpedition": "出撃準備",
+  "dungeonThemeRandom": "ランダム",
+  "dungeonNoEidolonHint": "ダンジョンに潜る前に、エイドロンを覚醒させてください。",
+
   "eidolonInputHint": "エイドロンに話しかける…",
   "eidolonInputConnecting": "接続中…",
 

@@ -64,6 +64,29 @@
   "personalityNeutral": "Neutral",
   "personalityStronglyAgree": "Strongly\nAgree",
 
+  "personalityQ0": "I enjoy exploring new ideas and experiences.",
+  "personalityQ1": "I prefer routine over novelty.",
+  "personalityQ2": "I complete tasks thoroughly and on schedule.",
+  "personalityQ3": "I often leave things unfinished.",
+  "personalityQ4": "I love meeting and talking to new people.",
+  "personalityQ5": "I prefer quiet time alone over social gatherings.",
+  "personalityQ6": "I genuinely care about others' wellbeing.",
+  "personalityQ7": "I can be critical and demanding of others.",
+  "personalityQ8": "I stay calm under pressure.",
+  "personalityQ9": "I worry easily and feel anxious often.",
+
+  "onboardingIdentityTitle": "Choose your\nidentity.",
+  "onboardingNameTitle": "Name your\nsoul-twin.",
+  "usernameMinLength": "At least 3 characters",
+  "usernameMaxLength": "Maximum 20 characters",
+  "usernameInvalidChars": "Lowercase letters, numbers, and _ only",
+  "usernameHintExample": "e.g. shadow_walker",
+  "usernameHelper": "Lowercase letters, numbers, and underscores only.",
+
+  "dungeonExpedition": "Expedition",
+  "dungeonThemeRandom": "Random",
+  "dungeonNoEidolonHint": "Awaken your Eidolon before you can descend.",
+
   "eidolonInputHint": "Speak to your Eidolon…",
   "eidolonInputConnecting": "Connecting…",
 

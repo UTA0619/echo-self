@@ -142,7 +142,9 @@ void main() {
       await tester.pumpWidget(_wrap());
       await tester.pump();
 
-      expect(find.text('Theme'), findsOneWidget);
+      // "Theme" appears twice: the section header and the Expedition
+      // preview card's stat label.
+      expect(find.text('Theme'), findsNWidgets(2));
       // At least one theme chip visible (localized label, en locale)
       expect(find.text('Forest'), findsOneWidget);
 

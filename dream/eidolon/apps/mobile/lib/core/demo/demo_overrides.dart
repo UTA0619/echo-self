@@ -86,11 +86,20 @@ const _demoBundles = [
 // ── Fake notifiers ──────────────────────────────────────────────────────────────
 
 class _DemoAuthNotifier extends AuthNotifier {
+  /// The demo normally lands authenticated (straight into the app), but the
+  /// entry flows can be previewed with ?demo=login or ?demo=onboarding.
   @override
-  AuthState build() => const AuthState(
-        status: AuthStatus.authenticated,
-        user: _demoUser,
-      );
+  AuthState build() {
+    final mode = Uri.base.queryParameters['demo'];
+    return switch (mode) {
+      'login' => const AuthState(status: AuthStatus.unauthenticated),
+      'onboarding' => const AuthState(
+          status: AuthStatus.onboardingRequired,
+          user: _demoUser,
+        ),
+      _ => const AuthState(status: AuthStatus.authenticated, user: _demoUser),
+    };
+  }
 
   @override
   Future<void> signOut() async {}

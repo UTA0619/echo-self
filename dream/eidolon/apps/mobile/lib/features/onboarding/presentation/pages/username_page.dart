@@ -26,12 +26,12 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
     super.dispose();
   }
 
-  String? _validate(String value) {
+  String? _validate(BuildContext context, String value) {
     if (value.isEmpty) return null;
-    if (value.length < 3) return 'At least 3 characters';
-    if (value.length > 20) return 'Maximum 20 characters';
+    if (value.length < 3) return context.l10n.usernameMinLength;
+    if (value.length > 20) return context.l10n.usernameMaxLength;
     if (!RegExp(r'^[a-z0-9_]+$').hasMatch(value)) {
-      return 'Lowercase letters, numbers, and _ only';
+      return context.l10n.usernameInvalidChars;
     }
     return null;
   }
@@ -41,11 +41,11 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
         .read(onboardingNotifierProvider.notifier)
         .setUsername(value.toLowerCase());
     ref.read(_validationErrorProvider.notifier).state =
-        _validate(value.toLowerCase());
+        _validate(context, value.toLowerCase());
   }
 
   void _proceed() {
-    final error = _validate(_controller.text.toLowerCase());
+    final error = _validate(context, _controller.text.toLowerCase());
     if (error != null) {
       ref.read(_validationErrorProvider.notifier).state = error;
       return;
@@ -69,7 +69,7 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
           const SizedBox(height: 16),
 
           Text(
-            'Choose your\nidentity.',
+            context.l10n.onboardingIdentityTitle,
             style: Theme.of(context).textTheme.displayMedium,
           ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.2, end: 0),
 
@@ -95,7 +95,7 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
                   fontWeight: FontWeight.w600,
                 ),
             decoration: InputDecoration(
-              hintText: 'e.g. shadow_walker',
+              hintText: context.l10n.usernameHintExample,
               errorText: validationError,
               prefixIcon: const Icon(
                 Icons.alternate_email_rounded,
@@ -114,7 +114,7 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
           const SizedBox(height: 12),
 
           Text(
-            'Lowercase letters, numbers, and underscores only.',
+            context.l10n.usernameHelper,
             style: Theme.of(context).textTheme.labelSmall,
           ).animate(delay: 400.ms).fadeIn(),
 
