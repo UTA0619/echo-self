@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:eidolon/core/demo/demo_overrides.dart';
 import 'package:eidolon/core/env/app_env.dart';
-import 'package:eidolon/core/firebase/firebase_service.dart';
 import 'package:eidolon/core/router/app_router.dart';
 import 'package:eidolon/core/supabase/supabase_service.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
@@ -66,11 +65,7 @@ Future<void> main() async {
 }
 
 Future<void> _initServices() async {
-  // Firebase (Crashlytics + Analytics + Remote Config)
-  await initFirebase();
-  log.i('[init] Firebase ready');
-
-  // Supabase (Auth + DB + Edge Functions)
+  // Supabase (Auth + DB + Edge Functions) — the single backend.
   await initSupabase();
   log.i('[init] Supabase ready');
 

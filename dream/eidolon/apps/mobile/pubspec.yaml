@@ -33,16 +33,7 @@ dependencies:
   # ── Local Storage ───────────────────────────────────────────────
   shared_preferences: ^2.3.3
 
-  # ── Firebase ────────────────────────────────────────────────────
-  firebase_core: ^3.8.1
-  firebase_auth: ^5.3.4
-  cloud_firestore: ^5.5.4
-  firebase_storage: ^12.3.7
-  firebase_remote_config: ^5.1.6
-  firebase_crashlytics: ^4.1.6
-  firebase_analytics: ^11.3.6
-
-  # ── Supabase ────────────────────────────────────────────────────
+  # ── Supabase (Auth + DB + Edge Functions — the single backend) ──
   supabase_flutter: ^2.8.4
 
   # ── Health / Reality Sync ───────────────────────────────────────

@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show User;
 
 class AuthUser {
   const AuthUser({
@@ -15,11 +15,15 @@ class AuthUser {
   final String? photoUrl;
   final bool isAnonymous;
 
-  factory AuthUser.fromFirebase(User user) => AuthUser(
-        uid: user.uid,
+  /// Builds an [AuthUser] from a Supabase auth [User]. Display name / avatar
+  /// live in user metadata (set by OAuth providers or our own updates).
+  factory AuthUser.fromSupabase(User user) => AuthUser(
+        uid: user.id,
         email: user.email,
-        displayName: user.displayName,
-        photoUrl: user.photoURL,
+        displayName: (user.userMetadata?['full_name'] ??
+            user.userMetadata?['name'] ??
+            user.userMetadata?['display_name']) as String?,
+        photoUrl: user.userMetadata?['avatar_url'] as String?,
         isAnonymous: user.isAnonymous,
       );
 

@@ -1,7 +1,4 @@
-import 'dart:async';
-
 import 'package:eidolon/core/error/app_error.dart';
-import 'package:eidolon/core/firebase/firebase_service.dart';
 import 'package:eidolon/features/dungeon/data/repositories/dungeon_repository_impl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:eidolon/features/dungeon/domain/entities/dungeon_generate_response.dart';
@@ -148,22 +145,6 @@ class DungeonNotifier extends _$DungeonNotifier {
       run: result.isSuccess ? result.value : run.copyWith(status: status),
       phase: DungeonPhase.result,
     );
-
-    if (status == RunStatus.completed) {
-      // Guarded: analytics must never break the run flow (e.g. Firebase not
-      // initialized in unit tests).
-      try {
-        unawaited(
-          ref.read(firebaseAnalyticsProvider).logEvent(
-            name: 'dungeon_complete',
-            parameters: {
-              'run_id': run.id,
-              'difficulty': state.selectedDifficulty,
-            },
-          ),
-        );
-      } catch (_) {/* analytics unavailable — non-fatal */}
-    }
   }
 
   void backToHub() => state = state.copyWith(

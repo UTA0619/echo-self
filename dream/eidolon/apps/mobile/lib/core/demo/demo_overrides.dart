@@ -74,13 +74,25 @@ const _demoSummary = HomeSummary(
 
 const _demoBundles = [
   CrystalBundle(
-      productId: 'demo.80', crystals: 80, displayPrice: '\$0.99', isBestValue: false),
+      productId: 'demo.80',
+      crystals: 80,
+      displayPrice: '\$0.99',
+      isBestValue: false),
   CrystalBundle(
-      productId: 'demo.500', crystals: 500, displayPrice: '\$4.99', isBestValue: false),
+      productId: 'demo.500',
+      crystals: 500,
+      displayPrice: '\$4.99',
+      isBestValue: false),
   CrystalBundle(
-      productId: 'demo.1800', crystals: 1800, displayPrice: '\$14.99', isBestValue: false),
+      productId: 'demo.1800',
+      crystals: 1800,
+      displayPrice: '\$14.99',
+      isBestValue: false),
   CrystalBundle(
-      productId: 'demo.5000', crystals: 5000, displayPrice: '\$39.99', isBestValue: true),
+      productId: 'demo.5000',
+      crystals: 5000,
+      displayPrice: '\$39.99',
+      isBestValue: true),
 ];
 
 // ── Fake notifiers ──────────────────────────────────────────────────────────────
@@ -138,7 +150,8 @@ class _DemoEidolonNotifier extends EidolonNotifier {
           ),
           ChatMessage(
             id: 'm2',
-            text: 'I walked the forest while you slept — and I kept a fragment for you.',
+            text:
+                'I walked the forest while you slept — and I kept a fragment for you.',
             isFromEidolon: true,
             timestamp: _now.add(const Duration(minutes: -7)),
           ),

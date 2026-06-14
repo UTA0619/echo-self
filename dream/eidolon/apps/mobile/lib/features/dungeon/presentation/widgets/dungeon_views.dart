@@ -226,8 +226,7 @@ class DungeonHubView extends ConsumerWidget {
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     backgroundColor: EidolonColors.accent,
-                    disabledBackgroundColor:
-                        EidolonColors.surfaceElevated,
+                    disabledBackgroundColor: EidolonColors.surfaceElevated,
                   ),
                   child: Text(
                     context.l10n.dungeonEnter,
@@ -256,8 +255,9 @@ class _ExpeditionPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeText =
-        theme == null ? context.l10n.dungeonThemeRandom : _themeLabel(context, theme!);
+    final themeText = theme == null
+        ? context.l10n.dungeonThemeRandom
+        : _themeLabel(context, theme!);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -282,7 +282,8 @@ class _ExpeditionPreview extends StatelessWidget {
               Expanded(
                 child: _PreviewStat(
                   label: context.l10n.dungeonDifficulty,
-                  value: '$difficulty · ${_difficultyLabel(context, difficulty)}',
+                  value:
+                      '$difficulty · ${_difficultyLabel(context, difficulty)}',
                 ),
               ),
               Container(
