@@ -18,6 +18,8 @@ SUITES=(
   "backend/supabase/functions/_shared/__tests__/guardrails.test.ts"
   "backend/supabase/functions/_shared/__tests__/consent.test.ts"
   "backend/supabase/functions/_shared/__tests__/narrative_honesty.test.ts"
+  "backend/supabase/functions/_shared/__tests__/cognition.test.ts"
+  "backend/supabase/functions/_shared/__tests__/reflection_prompt.test.ts"
   "docs/governance/state/soundness_check.ts"
   "docs/governance/state/current_state.test.ts"
 )

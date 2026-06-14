@@ -15,6 +15,7 @@ import {
 import { clampGuardrails, selectThemeWithinGuardrails } from '../_shared/guardrails.ts';
 import { consentSet, filterRealityByConsent } from '../_shared/consent.ts';
 import { screenNarrative, assertMemoryProvenance } from '../_shared/narrative_honesty.ts';
+import { cognitionModelForTier, tierFromValue } from '../_shared/cognition.ts';
 import type { DungeonTheme } from '../_shared/types.ts';
 
 const THEME_FLAVORS: Record<DungeonTheme, string> = {
@@ -45,7 +46,10 @@ interface EidolonRow {
   risk_tolerance: number;
   social_openness: number;
   // joined
-  users?: { language?: string | null } | null;
+  users?: {
+    language?: string | null;
+    subscriptions?: { tier?: string | null }[] | null;
+  } | null;
 }
 
 Deno.serve(async (req: Request) => {
@@ -118,7 +122,7 @@ Deno.serve(async (req: Request) => {
 });
 
 const eidolonSelect =
-  'id, user_id, name, level, xp, openness, conscientiousness, extraversion, agreeableness, neuroticism, auto_strategy, risk_tolerance, social_openness, users!inner(language)';
+  'id, user_id, name, level, xp, openness, conscientiousness, extraversion, agreeableness, neuroticism, auto_strategy, risk_tolerance, social_openness, users!inner(language, subscriptions(tier))';
 
 // Generate, persist, and apply one Eidolon's overnight run. Returns the run id.
 async function simulateOne(
@@ -127,6 +131,11 @@ async function simulateOne(
   runDate: string,
 ): Promise<string> {
   const language = e.users?.language === 'ja' ? 'ja' : 'en';
+
+  // Cognition model by tier (D3-safe monetization, STRATEGY §6): free runs on the
+  // cheap model so heavy nightly compute is spent on payers — the unit-economics fix.
+  const tier = tierFromValue(e.users?.subscriptions?.[0]?.tier);
+  const cognitionModel = cognitionModelForTier(tier);
 
   // Bounded autonomy (D6): the realm is chosen WITHIN the player's guardrails
   // (migration 014), not by blind Math.random(). clampGuardrails defends against
@@ -185,7 +194,7 @@ async function simulateOne(
     const res = await generateWithFallback({
       system,
       user: `Narrate ${e.name}'s overnight venture into the ${theme}.`,
-      model: 'claude-sonnet-4-5', // quality matters most here
+      model: cognitionModel, // tier-based: Sonnet for payers, Haiku for free
       maxTokens: 1024,
     });
     modelUsed = res.modelUsed;
