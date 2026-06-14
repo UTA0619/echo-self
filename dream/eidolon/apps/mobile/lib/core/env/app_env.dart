@@ -42,4 +42,11 @@ abstract final class AppEnv {
       String.fromEnvironment('APP_ENV', defaultValue: 'development');
   static bool get isProduction => environment == 'production';
   static bool get isDevelopment => environment == 'development';
+
+  /// True when the backend credentials were never injected (no
+  /// --dart-define-from-file). In this state the real Firebase/Supabase
+  /// clients cannot initialize, so the app boots into a self-contained
+  /// DEMO build with sample data. A production build always provides these
+  /// values, so demo mode is never reachable in a real release.
+  static bool get isDemoMode => supabaseUrl.isEmpty || firebaseProjectId.isEmpty;
 }

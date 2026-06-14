@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
+import 'package:eidolon/core/demo/demo_overrides.dart';
 import 'package:eidolon/core/env/app_env.dart';
 import 'package:eidolon/core/firebase/firebase_service.dart';
 import 'package:eidolon/core/router/app_router.dart';
@@ -33,6 +34,19 @@ Future<void> main() async {
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
+
+  // DEMO build: no backend credentials were injected, so skip all real
+  // service initialization and run with sample-data provider overrides.
+  if (AppEnv.isDemoMode) {
+    log.i('[init] DEMO MODE — backend disabled, using sample data');
+    runApp(
+      ProviderScope(
+        overrides: demoOverrides(),
+        child: const EidolonApp(),
+      ),
+    );
+    return;
+  }
 
   await _initServices();
 
@@ -108,6 +122,15 @@ class EidolonApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: buildEidolonTheme(),
       routerConfig: router,
+      // Show a corner ribbon in demo builds so it's never mistaken for real data.
+      builder: AppEnv.isDemoMode
+          ? (context, child) => Banner(
+                message: 'DEMO',
+                location: BannerLocation.topEnd,
+                color: EidolonColors.accent,
+                child: child ?? const SizedBox.shrink(),
+              )
+          : null,
       // ── Localizations ─────────────────────────────────────────────
       localizationsDelegates: const [
         AppLocalizations.delegate,
