@@ -61,12 +61,18 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
     );
     final validationError = ref.watch(_validationErrorProvider);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 16),
+    // Scrollable so the on-screen keyboard can't overflow the column
+    // (the Spacer keeps the button pinned to the bottom when there's room).
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: IntrinsicHeight(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
 
           Text(
             context.l10n.onboardingIdentityTitle,
@@ -132,8 +138,11 @@ class _UsernamePageState extends ConsumerState<UsernamePage> {
               .fadeIn(duration: 400.ms)
               .slideY(begin: 0.3, end: 0),
 
-          const SizedBox(height: 40),
-        ],
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

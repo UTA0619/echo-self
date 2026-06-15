@@ -47,11 +47,17 @@ class _EidolonNamingPageState extends ConsumerState<EidolonNamingPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(onboardingNotifierProvider);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        children: [
-          const SizedBox(height: 8),
+    // Scrollable so the on-screen keyboard can't overflow the column
+    // (the Spacer keeps the button pinned to the bottom when there's room).
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: IntrinsicHeight(
+            child: Column(
+              children: [
+                const SizedBox(height: 8),
 
           Text(
             context.l10n.onboardingNameTitle,
@@ -175,8 +181,11 @@ class _EidolonNamingPageState extends ConsumerState<EidolonNamingPage> {
               .fadeIn(duration: 400.ms)
               .slideY(begin: 0.3, end: 0),
 
-          const SizedBox(height: 40),
-        ],
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
