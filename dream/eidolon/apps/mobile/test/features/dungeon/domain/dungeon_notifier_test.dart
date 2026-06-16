@@ -62,6 +62,14 @@ class _FakeDungeonRepo implements DungeonRepository {
     RunStatus finalStatus,
   ) async =>
       finishResult ?? ok(_makeRun().copyWith(status: finalStatus));
+
+  @override
+  Future<Result<void>> grantCrystals({
+    required String authUid,
+    required int amount,
+    required String receiptId,
+  }) async =>
+      ok(null);
 }
 
 // ── Factories ─────────────────────────────────────────────────────────────────

@@ -1,4 +1,5 @@
 import 'package:eidolon/core/error/app_error.dart';
+import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
 import 'package:eidolon/features/dungeon/data/repositories/dungeon_repository_impl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:eidolon/features/dungeon/domain/entities/dungeon_generate_response.dart';
@@ -27,6 +28,9 @@ abstract class DungeonState with _$DungeonState {
     @Default(1) int selectedDifficulty,
     DungeonTheme? selectedTheme,
     @Default(false) bool isLoading,
+    @Default(0) int crystalsEarned,
+    @Default(0) int xpEarned,
+    @Default(false) bool awaitingNext,
     String? errorMessage,
   }) = _DungeonState;
 }
@@ -101,8 +105,53 @@ class DungeonNotifier extends _$DungeonNotifier {
       phase: DungeonPhase.run,
       dungeon: generated.dungeon,
       run: runResult.value,
+      crystalsEarned: 0,
+      xpEarned: 0,
+      awaitingNext: false,
       errorMessage: null,
     );
+  }
+
+  /// Resolve the outcome of the current room's battle. On a win we bank the
+  /// room's reward and pause on a "next" beat; on a loss the run ends.
+  void onBattleResult(bool victory) {
+    final run = state.run;
+    final dungeon = state.dungeon;
+    if (run == null || dungeon == null || state.awaitingNext) return;
+    if (!victory) {
+      _finish(RunStatus.failed);
+      return;
+    }
+    final idx = run.currentRoom;
+    final isLast = idx >= dungeon.rooms.length - 1;
+    final d = state.selectedDifficulty;
+    final crystals = 4 + d * 2 + idx + (isLast ? d * 3 : 0);
+    final xp = 12 + d * 6 + idx * 4 + (isLast ? d * 8 : 0);
+    state = state.copyWith(
+      crystalsEarned: state.crystalsEarned + crystals,
+      xpEarned: state.xpEarned + xp,
+      awaitingNext: true,
+    );
+  }
+
+  /// Tapped "next" after a won battle — advance (or finish the run).
+  Future<void> continueAfterWin() async {
+    state = state.copyWith(awaitingNext: false);
+    await advanceRoom();
+  }
+
+  /// Re-roll a fresh dungeon at the same difficulty — the "one more run" loop.
+  Future<void> retry(String eidolonId) async {
+    state = state.copyWith(
+      phase: DungeonPhase.hub,
+      dungeon: null,
+      run: null,
+      crystalsEarned: 0,
+      xpEarned: 0,
+      awaitingNext: false,
+      errorMessage: null,
+    );
+    await generateAndStart(eidolonId);
   }
 
   Future<void> advanceRoom() async {
@@ -136,9 +185,22 @@ class DungeonNotifier extends _$DungeonNotifier {
     final run = state.run;
     if (run == null) return;
 
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, awaitingNext: false);
     final Result<DungeonRun> result =
         await ref.read(finishRunUseCaseProvider).call(run.id, status);
+
+    // Bank the crystals earned this run (idempotent per run id), so the dungeon
+    // feeds the gacha economy — the reason to keep coming back.
+    if (state.crystalsEarned > 0) {
+      final authUid = ref.read(authNotifierProvider).user?.uid;
+      if (authUid != null) {
+        await ref.read(dungeonRepositoryProvider).grantCrystals(
+              authUid: authUid,
+              amount: state.crystalsEarned,
+              receiptId: 'run-${run.id}',
+            );
+      }
+    }
 
     state = state.copyWith(
       isLoading: false,
@@ -151,6 +213,9 @@ class DungeonNotifier extends _$DungeonNotifier {
         phase: DungeonPhase.hub,
         dungeon: null,
         run: null,
+        crystalsEarned: 0,
+        xpEarned: 0,
+        awaitingNext: false,
         errorMessage: null,
       );
 

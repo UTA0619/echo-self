@@ -190,5 +190,11 @@
   "dungeonRetreated": "💨 撤退",
   "dungeonFallbackName": "ダンジョン",
   "dungeonVictoryBody": "{name} を制覇しました。\nエイドロンがさらに強くなりました。",
-  "dungeonRetreatBody": "命からがら脱出しました。\nダンジョンはあなたの帰還を待っています。"
+  "dungeonRetreatBody": "命からがら脱出しました。\nダンジョンはあなたの帰還を待っています。",
+  "dungeonRoomCleared": "部屋クリア！",
+  "dungeonNextRoom": "次へ",
+  "dungeonRetry": "もう一度挑戦",
+  "dungeonRewards": "獲得報酬",
+  "dungeonEnemyMinion": "影の眷属",
+  "dungeonBoss": "守護者"
 }

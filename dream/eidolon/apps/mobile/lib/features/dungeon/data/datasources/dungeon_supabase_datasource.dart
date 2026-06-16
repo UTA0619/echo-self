@@ -156,4 +156,43 @@ class DungeonSupabaseDataSource {
       return err(AppError.unknown(error: e, stackTrace: st));
     }
   }
+
+  /// Credits dungeon reward crystals to the caller's wallet via the
+  /// SECURITY DEFINER `credit_crystals` RPC (keyed by users.id, idempotent on
+  /// [receiptId]). [authUid] is the Supabase auth uid; we resolve users.id.
+  Future<Result<void>> grantCrystals({
+    required String authUid,
+    required int amount,
+    required String receiptId,
+  }) async {
+    try {
+      final userRow = await _client
+          .from('users')
+          .select('id')
+          .eq('auth_uid', authUid)
+          .maybeSingle();
+      final userId = userRow?['id'] as String?;
+      if (userId == null) {
+        return err(const AppError.notFound(resource: 'user'));
+      }
+      await _client.rpc<void>(
+        'credit_crystals',
+        params: {
+          'p_user_id': userId,
+          'p_amount': amount,
+          'p_receipt_id': receiptId,
+        },
+      );
+      return ok(null);
+    } on PostgrestException catch (e) {
+      return err(
+        AppError.network(
+          message: e.message,
+          statusCode: int.tryParse(e.code ?? ''),
+        ),
+      );
+    } catch (e, st) {
+      return err(AppError.unknown(error: e, stackTrace: st));
+    }
+  }
 }

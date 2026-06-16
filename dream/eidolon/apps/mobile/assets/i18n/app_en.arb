@@ -236,5 +236,11 @@
   "@dungeonVictoryBody": {
     "placeholders": { "name": { "type": "String" } }
   },
-  "dungeonRetreatBody": "You escaped with your life.\nThe dungeon awaits your return."
+  "dungeonRetreatBody": "You escaped with your life.\nThe dungeon awaits your return.",
+  "dungeonRoomCleared": "Room cleared!",
+  "dungeonNextRoom": "Next",
+  "dungeonRetry": "One more run",
+  "dungeonRewards": "Rewards earned",
+  "dungeonEnemyMinion": "Shade",
+  "dungeonBoss": "Warden"
 }

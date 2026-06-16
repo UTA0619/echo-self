@@ -1,9 +1,10 @@
 import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/dungeon/presentation/providers/dungeon_provider.dart';
+import 'package:eidolon/features/dungeon/presentation/widgets/battle_scene.dart';
 import 'package:eidolon/features/dungeon/presentation/widgets/difficulty_selector.dart';
-import 'package:eidolon/features/dungeon/presentation/widgets/dungeon_room_card.dart';
 import 'package:eidolon/features/eidolon/presentation/providers/eidolon_provider.dart';
+import 'package:eidolon/features/eidolon/presentation/widgets/avatar_genes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -376,13 +377,16 @@ class DungeonRunView extends ConsumerWidget {
 
     final rooms = dungeon.rooms;
     final currentIdx = run.currentRoom.clamp(0, rooms.length - 1);
-    final room = rooms[currentIdx];
-    final notifier = ref.read(dungeonNotifierProvider.notifier);
     final isLast = currentIdx >= rooms.length - 1;
+    final notifier = ref.read(dungeonNotifierProvider.notifier);
+    final eidolon = ref.watch(eidolonNotifierProvider.select((s) => s.eidolon));
+    final genes = eidolon == null
+        ? AvatarGenes.fallback
+        : AvatarGenes.fromPersonality(eidolon.personality, seed: eidolon.id);
 
     return Column(
       children: [
-        // Top bar
+        // Top bar: dungeon name, room progress, abandon.
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
           child: Row(
@@ -397,6 +401,7 @@ class DungeonRunView extends ConsumerWidget {
                             color: EidolonColors.accentGlow,
                           ),
                     ),
+                    const SizedBox(height: 4),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(3),
                       child: LinearProgressIndicator(
@@ -423,62 +428,144 @@ class DungeonRunView extends ConsumerWidget {
           ),
         ),
 
-        // Narrative intro (first room only)
-        if (currentIdx == 0)
+        if (currentIdx == 0 && !state.awaitingNext)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
             child: Text(
               dungeon.narrativeIntro,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: EidolonColors.textSecondary,
                     fontStyle: FontStyle.italic,
-                    height: 1.6,
+                    height: 1.5,
                   ),
             ).animate().fadeIn(duration: 600.ms),
           ),
 
-        // Room card
         Expanded(
           child: Center(
-            child: DungeonRoomCard(
-              room: room,
-              roomNumber: currentIdx + 1,
-              totalRooms: rooms.length,
-            ),
-          ),
-        ),
-
-        // Action buttons
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: state.isLoading ? null : notifier.advanceRoom,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 18),
-              ),
-              child: state.isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
+            child: state.isLoading
+                ? const CircularProgressIndicator(color: EidolonColors.accent)
+                : state.awaitingNext
+                    ? _RoomClearedBeat(
+                        crystals: state.crystalsEarned,
+                        xp: state.xpEarned,
+                        isLast: isLast,
+                        onContinue: notifier.continueAfterWin,
+                      )
+                    : BattleScene(
+                        key: ValueKey('battle-${run.id}-$currentIdx'),
+                        playerGenes: genes,
+                        playerName: eidolon?.name ?? context.l10n.eidolonAwaits,
+                        enemyName: isLast
+                            ? context.l10n.dungeonBoss
+                            : context.l10n.dungeonEnemyMinion,
+                        difficulty: state.selectedDifficulty,
+                        onFinished: notifier.onBattleResult,
                       ),
-                    )
-                  : Text(
-                      isLast
-                          ? context.l10n.dungeonDefeatBoss
-                          : context.l10n.dungeonAdvance,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.white,
-                          ),
-                    ),
-            ),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The dopamine beat between rooms: room cleared, here's your loot, tap on.
+class _RoomClearedBeat extends StatelessWidget {
+  const _RoomClearedBeat({
+    required this.crystals,
+    required this.xp,
+    required this.isLast,
+    required this.onContinue,
+  });
+
+  final int crystals;
+  final int xp;
+  final bool isLast;
+  final VoidCallback onContinue;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            context.l10n.dungeonRoomCleared,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: EidolonColors.success,
+                  fontWeight: FontWeight.bold,
+                ),
+          ).animate().scaleXY(
+                begin: 0.6,
+                end: 1.0,
+                curve: Curves.elasticOut,
+                duration: 700.ms,
+              ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _RewardChip(icon: Icons.diamond_outlined, value: '+$crystals'),
+              const SizedBox(width: 14),
+              _RewardChip(icon: Icons.auto_awesome, value: '+$xp XP'),
+            ],
+          ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.3, end: 0),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: onContinue,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: EidolonColors.accent,
+              ),
+              child: Text(
+                isLast
+                    ? context.l10n.dungeonDefeatBoss
+                    : context.l10n.dungeonNextRoom,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.white,
+                    ),
+              ),
+            ),
+          ).animate(delay: 350.ms).fadeIn(),
+        ],
+      ),
+    );
+  }
+}
+
+class _RewardChip extends StatelessWidget {
+  const _RewardChip({required this.icon, required this.value});
+  final IconData icon;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: EidolonColors.surfaceElevated,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: EidolonColors.accent.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: EidolonColors.gold, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: EidolonColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -495,9 +582,13 @@ class DungeonResultView extends ConsumerWidget {
     final isVictory = run?.status == RunStatus.completed;
     final notifier = ref.read(dungeonNotifierProvider.notifier);
 
+    final eidolonId = ref.watch(
+      eidolonNotifierProvider.select((s) => s.eidolon?.id),
+    );
+
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -512,27 +603,78 @@ class DungeonResultView extends ConsumerWidget {
                   curve: Curves.elasticOut,
                   duration: 800.ms,
                 ),
-            const SizedBox(height: 16),
-            Text(
-              isVictory
-                  ? context.l10n.dungeonVictoryBody(
-                      state.dungeon?.name ?? context.l10n.dungeonFallbackName,
-                    )
-                  : context.l10n.dungeonRetreatBody,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: EidolonColors.textSecondary,
-                    height: 1.7,
+            const SizedBox(height: 24),
+
+            // Spoils — the numbers that make "one more run" irresistible.
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+              decoration: BoxDecoration(
+                color: EidolonColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: EidolonColors.accent.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    context.l10n.dungeonRewards.toUpperCase(),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: EidolonColors.textSecondary,
+                          letterSpacing: 1.5,
+                        ),
                   ),
-            ).animate(delay: 300.ms).fadeIn(),
-            const SizedBox(height: 40),
+                  const SizedBox(height: 14),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _RewardChip(
+                        icon: Icons.diamond_outlined,
+                        value: '+${state.crystalsEarned}',
+                      ),
+                      const SizedBox(width: 14),
+                      _RewardChip(
+                        icon: Icons.auto_awesome,
+                        value: '+${state.xpEarned} XP',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ).animate(delay: 300.ms).fadeIn().slideY(begin: 0.2, end: 0),
+
+            const SizedBox(height: 28),
+
+            // Primary CTA: go again, same difficulty, one tap.
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: notifier.backToHub,
-                child: Text(context.l10n.buttonReturnToHub),
+                onPressed: eidolonId == null
+                    ? null
+                    : () => notifier.retry(eidolonId),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: EidolonColors.accent,
+                ),
+                child: Text(
+                  context.l10n.dungeonRetry,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                      ),
+                ),
               ),
-            ).animate(delay: 500.ms).fadeIn().slideY(begin: 0.3, end: 0),
+            ).animate(delay: 450.ms).fadeIn().slideY(begin: 0.3, end: 0),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: notifier.backToHub,
+              child: Text(
+                context.l10n.buttonReturnToHub,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: EidolonColors.textSecondary,
+                    ),
+              ),
+            ).animate(delay: 550.ms).fadeIn(),
           ],
         ),
       ),

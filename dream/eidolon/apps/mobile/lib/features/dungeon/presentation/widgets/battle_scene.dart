@@ -15,12 +15,16 @@ class BattleScene extends StatefulWidget {
     this.playerGenes = AvatarGenes.fallback,
     this.playerName = 'Eidolon',
     this.enemyName = 'Shade',
+    this.difficulty = 1,
     this.onFinished,
   });
 
   final AvatarGenes playerGenes;
   final String playerName;
   final String enemyName;
+
+  /// 1–10. Scales enemy HP and damage so higher tiers carry real risk.
+  final int difficulty;
   final void Function(bool victory)? onFinished;
 
   @override
@@ -42,8 +46,10 @@ class _BattleSceneState extends State<BattleScene>
   final _rng = math.Random();
   late final AnimationController _c;
 
-  double _playerHp = 100, _enemyHp = 84;
-  final double _maxPlayer = 100, _maxEnemy = 84;
+  late double _playerHp = _maxPlayer;
+  late double _enemyHp = _maxEnemy;
+  final double _maxPlayer = 100;
+  late final double _maxEnemy = 56 + widget.difficulty * 9.0;
   bool _playerTurn = true;
   bool _finished = false;
   bool _victory = false;
@@ -80,7 +86,9 @@ class _BattleSceneState extends State<BattleScene>
   }
 
   void _resolveTurn() {
-    final dmg = _playerTurn ? 13 + _rng.nextInt(12) : 8 + _rng.nextInt(9);
+    final dmg = _playerTurn
+        ? 14 + _rng.nextInt(13)
+        : 5 + (widget.difficulty * 1.4).round() + _rng.nextInt(7);
     _hitAmount = dmg;
     _hitOnPlayer = !_playerTurn;
     if (_playerTurn) {

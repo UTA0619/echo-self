@@ -28,4 +28,12 @@ abstract interface class DungeonRepository {
 
   /// Mark a run as completed or abandoned.
   Future<Result<DungeonRun>> finishRun(String runId, RunStatus finalStatus);
+
+  /// Credit reward crystals earned in a run to the caller's wallet.
+  /// [authUid] is the Supabase auth uid; [receiptId] makes it idempotent.
+  Future<Result<void>> grantCrystals({
+    required String authUid,
+    required int amount,
+    required String receiptId,
+  });
 }
