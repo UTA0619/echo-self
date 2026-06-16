@@ -22,11 +22,11 @@ Map<String, dynamic> _runRow() => {
       'eidolon_id': 'eid-1',
       'dungeon_id': 'dun-1',
       'current_room': 0,
-      'run_status': 'in_progress',
+      'status': 'in_progress',
       'atk_bonus': 0,
       'hp_modifier': 0,
       'started_at': '2026-06-01T10:00:00Z',
-      'ended_at': null,
+      'completed_at': null,
     };
 
 void main() {
@@ -63,24 +63,24 @@ void main() {
     );
   });
 
-  test('startRun delegates to the dungeon_runs table', () async {
+  test('startRun delegates to the runs table', () async {
     final q = SupabaseQueue()..enqueue(201, _runRow());
 
     final result = await _repo(q).startRun(eidolonId: 'eid-1', dungeonId: 'd');
 
     expect(result.value!.id, 'run-1');
-    expect(q.requests.single.url.path, endsWith('/dungeon_runs'));
+    expect(q.requests.single.url.path, endsWith('/runs'));
     expect(q.requests.single.method, 'POST');
   });
 
-  test('getActiveRun delegates to a filtered dungeon_runs query', () async {
+  test('getActiveRun delegates to a filtered runs query', () async {
     final q = SupabaseQueue()..enqueue(200, [_runRow()]);
 
     final result = await _repo(q).getActiveRun('eid-1');
 
     expect(result.value!.id, 'run-1');
     expect(
-      q.requests.single.url.queryParameters['run_status'],
+      q.requests.single.url.queryParameters['status'],
       'eq.in_progress',
     );
   });

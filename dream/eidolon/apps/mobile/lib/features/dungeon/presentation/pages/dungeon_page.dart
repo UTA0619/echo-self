@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/dungeon/presentation/providers/dungeon_provider.dart';
 import 'package:eidolon/features/dungeon/presentation/widgets/dungeon_views.dart';
@@ -16,13 +18,22 @@ class _DungeonPageState extends ConsumerState<DungeonPage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(_checkForActiveRun);
+    unawaited(Future.microtask(_checkForActiveRun));
   }
 
-  void _checkForActiveRun() {
-    final eidolonId = ref.read(eidolonNotifierProvider).eidolon?.id;
+  Future<void> _checkForActiveRun() async {
+    // The dungeon tab can be opened directly (e.g. after a fresh launch /
+    // session restore) before the Eidolon tab has loaded the companion. Without
+    // this, eidolon?.id is null and the hub wrongly shows "awaken your Eidolon".
+    var eidolonId = ref.read(eidolonNotifierProvider).eidolon?.id;
+    if (eidolonId == null) {
+      await ref.read(eidolonNotifierProvider.notifier).loadEidolon();
+      eidolonId = ref.read(eidolonNotifierProvider).eidolon?.id;
+    }
     if (eidolonId != null) {
-      ref.read(dungeonNotifierProvider.notifier).checkForActiveRun(eidolonId);
+      await ref
+          .read(dungeonNotifierProvider.notifier)
+          .checkForActiveRun(eidolonId);
     }
   }
 

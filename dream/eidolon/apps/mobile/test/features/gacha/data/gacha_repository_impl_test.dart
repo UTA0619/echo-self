@@ -69,6 +69,7 @@ void main() {
   group('pull', () {
     test('single pull deducts 100 and records one result', () async {
       final q = _SupabaseQueue()
+        ..enqueue(200, {'id': 'uid-1'}) // resolve auth uid → users.id
         ..enqueue(200, 'null') // rpc deduct_crystals
         ..enqueue(201, const []); // insert gacha_pulls
 
@@ -81,16 +82,18 @@ void main() {
       // Rolled item must come from the canonical catalog.
       expect(kGachaCatalog.map((i) => i.id), contains(pull.items.single.id));
 
-      expect(q.requests, hasLength(2));
-      final rpcReq = q.requests[0];
+      expect(q.requests, hasLength(3));
+      final rpcReq = q.requests[1];
       expect(rpcReq.url.path, endsWith('/rpc/deduct_crystals'));
       final rpcBody = jsonDecode(rpcReq.body) as Map<String, dynamic>;
-      expect(rpcBody['p_user_id'], 'u1');
+      // RPC is keyed by users.id, not the auth uid.
+      expect(rpcBody['p_user_id'], 'uid-1');
       expect(rpcBody['p_amount'], 100);
 
-      final insertReq = q.requests[1];
+      final insertReq = q.requests[2];
       expect(insertReq.url.path, endsWith('/gacha_pulls'));
       final insertBody = jsonDecode(insertReq.body) as Map<String, dynamic>;
+      expect(insertBody['user_id'], 'uid-1');
       expect(insertBody['count'], 1);
       expect(insertBody['currency_spent'], 100);
       final results = insertBody['results'] as List<dynamic>;
@@ -101,6 +104,7 @@ void main() {
 
     test('ten pull costs 900 and rolls ten catalog items', () async {
       final q = _SupabaseQueue()
+        ..enqueue(200, {'id': 'uid-1'}) // resolve auth uid → users.id
         ..enqueue(200, 'null')
         ..enqueue(201, const []);
 
@@ -117,6 +121,7 @@ void main() {
 
     test('insufficient crystals (P0001) → friendly 422', () async {
       final q = _SupabaseQueue()
+        ..enqueue(200, {'id': 'uid-1'}) // resolve auth uid → users.id
         ..enqueue(400, {'message': 'insufficient crystals', 'code': 'P0001'});
 
       final result = await _repo(q).pull(userId: 'u1', count: 1);
@@ -125,11 +130,14 @@ void main() {
       final e = result.error! as NetworkError;
       expect(e.message, 'Not enough Soul Crystals.');
       expect(e.statusCode, 422);
-      expect(q.requests, hasLength(1)); // roll/insert never happened
+      // resolve + deduct; roll/insert never happened
+      expect(q.requests, hasLength(2));
     });
 
     test('other Postgrest failure → NetworkError with parsed code', () async {
-      final q = _SupabaseQueue()..enqueue(500, _pgError);
+      final q = _SupabaseQueue()
+        ..enqueue(200, {'id': 'uid-1'}) // resolve auth uid → users.id
+        ..enqueue(500, _pgError); // deduct_crystals RPC fails
 
       final result = await _repo(q).pull(userId: 'u1', count: 1);
 
@@ -147,7 +155,8 @@ void main() {
 
       expect(result.error, isNull);
       expect(result.value, 420);
-      expect(q.requests.single.url.queryParameters['id'], 'eq.u1');
+      // Resolved against the auth uid, not the users PK.
+      expect(q.requests.single.url.queryParameters['auth_uid'], 'eq.u1');
     });
 
     test('null balance is treated as zero', () async {
@@ -170,6 +179,7 @@ void main() {
   group('getPullHistory', () {
     test('resolves item ids through the catalog, skipping unknowns', () async {
       final q = _SupabaseQueue()
+        ..enqueue(200, {'id': 'uid-1'}) // resolve auth uid → users.id
         ..enqueue(200, [
           {
             'results': [
@@ -190,8 +200,8 @@ void main() {
       expect(result.error, isNull);
       expect(result.value!.map((i) => i.id), ['leg_001', 'epc_001']);
 
-      final params = q.requests.single.url.queryParameters;
-      expect(params['user_id'], 'eq.u1');
+      final params = q.requests[1].url.queryParameters;
+      expect(params['user_id'], 'eq.uid-1');
       expect(params['limit'], '10');
       expect(params['order'], contains('pulled_at'));
     });
@@ -202,6 +212,7 @@ void main() {
         (_) => {'item_id': 'leg_001', 'rarity': 'legendary'},
       );
       final q = _SupabaseQueue()
+        ..enqueue(200, {'id': 'uid-1'}) // resolve auth uid → users.id
         ..enqueue(
           200,
           List.generate(4, (_) => {'results': tenLegendaries}),

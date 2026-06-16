@@ -44,11 +44,11 @@ class DungeonSupabaseDataSource {
   }) async {
     try {
       final row = await _client
-          .from('dungeon_runs')
+          .from('runs')
           .insert({
             'eidolon_id': eidolonId,
             'dungeon_id': dungeonId,
-            'run_status': 'in_progress',
+            'status': 'in_progress',
             'current_room': 0,
           })
           .select()
@@ -69,10 +69,10 @@ class DungeonSupabaseDataSource {
   Future<Result<DungeonRun?>> getActiveRun(String eidolonId) async {
     try {
       final rows = await _client
-          .from('dungeon_runs')
+          .from('runs')
           .select('*')
           .eq('eidolon_id', eidolonId)
-          .eq('run_status', 'in_progress')
+          .eq('status', 'in_progress')
           .order('started_at', ascending: false)
           .limit(1);
 
@@ -95,7 +95,7 @@ class DungeonSupabaseDataSource {
     try {
       // Fetch current room first
       final current = await _client
-          .from('dungeon_runs')
+          .from('runs')
           .select('current_room')
           .eq('id', runId)
           .single();
@@ -103,7 +103,7 @@ class DungeonSupabaseDataSource {
       final nextRoom = ((current['current_room'] as num?) ?? 0).toInt() + 1;
 
       final row = await _client
-          .from('dungeon_runs')
+          .from('runs')
           .update({'current_room': nextRoom})
           .eq('id', runId)
           .select()
@@ -135,10 +135,10 @@ class DungeonSupabaseDataSource {
       };
 
       final row = await _client
-          .from('dungeon_runs')
+          .from('runs')
           .update({
-            'run_status': statusStr,
-            'ended_at': DateTime.now().toIso8601String(),
+            'status': statusStr,
+            'completed_at': DateTime.now().toIso8601String(),
           })
           .eq('id', runId)
           .select()

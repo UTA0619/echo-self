@@ -23,6 +23,19 @@ class GachaRepositoryImpl implements GachaRepository {
 
   static final _rng = Random.secure();
 
+  /// The gacha layer is called with the Supabase **auth uid**, but the `users`
+  /// table PK, the `credit_crystals`/`deduct_crystals` RPCs (`where id =
+  /// p_user_id`) and `gacha_pulls.user_id` are all keyed by `users.id`. Map the
+  /// auth uid to the public `users.id` once. Returns null if the row is missing.
+  Future<String?> _resolveUserId(String authUid) async {
+    final row = await _supabase
+        .from('users')
+        .select('id')
+        .eq('auth_uid', authUid)
+        .maybeSingle();
+    return row?['id'] as String?;
+  }
+
   // ── Crystal bundles ───────────────────────────────────────────────────────
 
   @override
@@ -93,11 +106,16 @@ class GachaRepositoryImpl implements GachaRepository {
       // Count crystals to credit
       final crystals = crystalsForProduct(productId);
 
+      final uid = await _resolveUserId(userId);
+      if (uid == null) {
+        return err(const AppError.auth(message: 'User not found'));
+      }
+
       // Credit via Supabase RPC (idempotent — receipt_id prevents double-credit)
       await _supabase.rpc<void>(
         'credit_crystals',
         params: {
-          'p_user_id': userId,
+          'p_user_id': uid,
           'p_amount': crystals,
           'p_receipt_id': customerInfo.originalAppUserId,
         },
@@ -133,10 +151,15 @@ class GachaRepositoryImpl implements GachaRepository {
     final cost = count == 1 ? kSinglePullCost : kTenPullCost;
 
     try {
+      final uid = await _resolveUserId(userId);
+      if (uid == null) {
+        return err(const AppError.auth(message: 'User not found'));
+      }
+
       // 1. Deduct crystals atomically via RPC
       await _supabase.rpc<void>(
         'deduct_crystals',
-        params: {'p_user_id': userId, 'p_amount': cost},
+        params: {'p_user_id': uid, 'p_amount': cost},
       );
 
       // 2. Roll items locally using catalog + weighted random
@@ -145,7 +168,7 @@ class GachaRepositoryImpl implements GachaRepository {
       // 3. Persist pull record (one row per pull, results as JSONB array)
       final now = DateTime.now();
       await _supabase.from('gacha_pulls').insert({
-        'user_id': userId,
+        'user_id': uid,
         'pool_id': 'standard',
         'count': count,
         'results': items
@@ -187,12 +210,15 @@ class GachaRepositoryImpl implements GachaRepository {
   @override
   Future<Result<int>> getCrystals(String userId) async {
     try {
+      // `userId` here is the Supabase auth uid; the column lives on the row
+      // whose auth_uid matches. maybeSingle() avoids "Cannot coerce the result
+      // to a single JSON object" before the user row is provisioned.
       final row = await _supabase
           .from('users')
           .select('soul_crystals')
-          .eq('id', userId)
-          .single();
-      return ok((row['soul_crystals'] as int?) ?? 0);
+          .eq('auth_uid', userId)
+          .maybeSingle();
+      return ok((row?['soul_crystals'] as num?)?.toInt() ?? 0);
     } on PostgrestException catch (e) {
       return err(
         AppError.network(
@@ -208,10 +234,14 @@ class GachaRepositoryImpl implements GachaRepository {
   @override
   Future<Result<List<GachaItem>>> getPullHistory(String userId) async {
     try {
+      // `gacha_pulls.user_id` is keyed by users.id, not the auth uid.
+      final uid = await _resolveUserId(userId);
+      if (uid == null) return ok(<GachaItem>[]);
+
       final rows = await _supabase
           .from('gacha_pulls')
           .select('results')
-          .eq('user_id', userId)
+          .eq('user_id', uid)
           .order('pulled_at', ascending: false)
           .limit(10); // 10 pulls × up to 10 items = 100 items max
 
