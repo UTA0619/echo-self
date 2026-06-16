@@ -1,5 +1,6 @@
 import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
+import 'package:eidolon/features/eidolon/presentation/widgets/avatar_genes.dart';
 import 'package:eidolon/features/eidolon/presentation/widgets/eidolon_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_types/shared_types.dart';
@@ -75,7 +76,14 @@ class HomeEidolonCardContent extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            EidolonAvatar(mood: mood, size: 72),
+            EidolonAvatar(
+              mood: mood,
+              size: 72,
+              genes: AvatarGenes.fromPersonality(
+                eidolon.personality,
+                seed: eidolon.id,
+              ),
+            ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(

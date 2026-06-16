@@ -1,24 +1,26 @@
 import 'dart:math' as math;
 
-import 'package:eidolon/core/theme/app_theme.dart';
+import 'package:eidolon/features/eidolon/presentation/widgets/avatar_genes.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_types/shared_types.dart';
 
-/// A living, expressive embodiment of the Eidolon.
+/// A living, one-of-a-kind embodiment of the Eidolon.
 ///
-/// Unlike the static [EidolonOrb], this draws a little creature with a face
-/// whose expression reflects the Eidolon's [mood], and which breathes, floats
-/// and blinks so it reads as alive rather than as a stat readout. Pure
+/// [genes] (derived from the owner's personality) decide the *identity* — body
+/// shape, colour, crown and markings — so no two companions look alike, while
+/// [mood] drives the *expression*. It breathes, floats and blinks. Pure
 /// [CustomPaint] + a single ticker — no image assets, no [setState].
 class EidolonAvatar extends StatefulWidget {
   const EidolonAvatar({
     super.key,
     this.mood = EidolonMood.calm,
     this.size = 96,
+    this.genes = AvatarGenes.fallback,
   });
 
   final EidolonMood mood;
   final double size;
+  final AvatarGenes genes;
 
   @override
   State<EidolonAvatar> createState() => _EidolonAvatarState();
@@ -43,7 +45,6 @@ class _EidolonAvatarState extends State<EidolonAvatar>
     super.dispose();
   }
 
-  // Eyes stay open, with two quick blinks per loop. Some moods rest narrower.
   double _eyeOpen(double t) {
     final base = switch (widget.mood) {
       EidolonMood.tired => 0.42,
@@ -61,7 +62,7 @@ class _EidolonAvatarState extends State<EidolonAvatar>
 
   @override
   Widget build(BuildContext context) {
-    final box = widget.size * 1.18;
+    final box = widget.size * 1.2;
     return SizedBox(
       width: box,
       height: box,
@@ -82,6 +83,7 @@ class _EidolonAvatarState extends State<EidolonAvatar>
                   size: Size.square(widget.size),
                   painter: _EidolonFacePainter(
                     mood: widget.mood,
+                    genes: widget.genes,
                     eyeOpen: _eyeOpen(t),
                     glowPulse: 0.5 + 0.5 * math.sin(t * 2 * math.pi),
                   ),
@@ -98,32 +100,24 @@ class _EidolonAvatarState extends State<EidolonAvatar>
 class _EidolonFacePainter extends CustomPainter {
   _EidolonFacePainter({
     required this.mood,
+    required this.genes,
     required this.eyeOpen,
     required this.glowPulse,
   });
 
   final EidolonMood mood;
+  final AvatarGenes genes;
   final double eyeOpen;
   final double glowPulse;
-
-  Color get _accent => switch (mood) {
-        EidolonMood.calm => const Color(0xFF45D8C0),
-        EidolonMood.excited => EidolonColors.gold,
-        EidolonMood.anxious => const Color(0xFF6FA8FF),
-        EidolonMood.tired => const Color(0xFF8E86C9),
-        EidolonMood.focused => EidolonColors.accent,
-        EidolonMood.melancholic => const Color(0xFF5C6BC0),
-      };
 
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
     final cx = w / 2;
-    final accent = _accent;
-    final dark = Color.lerp(accent, Colors.black, 0.45)!;
+    final primary = genes.primary;
+    final dark = genes.secondary;
 
-    // Soul glow behind the body.
     final glowR = w * (0.52 + 0.05 * glowPulse);
     canvas.drawCircle(
       Offset(cx, h * 0.52),
@@ -131,101 +125,57 @@ class _EidolonFacePainter extends CustomPainter {
       Paint()
         ..shader = RadialGradient(
           colors: [
-            accent.withValues(alpha: 0.30),
-            accent.withValues(alpha: 0.0),
+            primary.withValues(alpha: 0.32),
+            primary.withValues(alpha: 0.0),
           ],
         ).createShader(
           Rect.fromCircle(center: Offset(cx, h * 0.52), radius: glowR),
         ),
     );
 
-    // Floating shadow.
     canvas.drawOval(
       Rect.fromCenter(center: Offset(cx, h * 0.92), width: w * 0.5, height: 9),
       Paint()..color = Colors.black.withValues(alpha: 0.35),
     );
 
-    final bodyRect = Rect.fromCenter(
-      center: Offset(cx, h * 0.54),
-      width: w * 0.7,
-      height: h * 0.66,
+    _drawCrown(canvas, w, h, cx, primary, dark);
+
+    final bodyRect = _bodyRect(w, h, cx);
+    canvas.drawPath(_bodyPath(bodyRect), Paint()..color = dark);
+    canvas.drawPath(
+      _bodyPath(bodyRect.deflate(w * 0.035).translate(0, -h * 0.015)),
+      Paint()..color = primary,
     );
 
-    // Ears / horns.
-    final earPaint = Paint()..color = dark;
-    for (final sign in const [-1, 1]) {
-      final bx = cx + sign * w * 0.16;
-      canvas.drawPath(
-        Path()
-          ..moveTo(bx - 9, h * 0.30)
-          ..lineTo(bx + sign * 4, h * 0.10)
-          ..lineTo(bx + 9, h * 0.30)
-          ..close(),
-        earPaint,
+    _drawMarking(canvas, bodyRect, primary, dark);
+
+    for (var i = 0; i < genes.sparkles; i++) {
+      final a = i * 2.3 + 0.6;
+      _drawSparkle(
+        canvas,
+        Offset(cx + math.cos(a) * w * 0.26, h * 0.34 + math.sin(a) * h * 0.16),
+        w * 0.045,
+        Colors.white.withValues(alpha: 0.85),
       );
     }
 
-    // Body (two-tone for a little volume).
-    canvas.drawOval(bodyRect, Paint()..color = dark);
-    canvas.drawOval(
-      bodyRect.deflate(w * 0.04).translate(0, -h * 0.02),
-      Paint()..color = accent,
-    );
-
-    // Sparkle mark.
-    _drawSparkle(
-      canvas,
-      Offset(cx + w * 0.18, h * 0.30),
-      w * 0.05,
-      Colors.white.withValues(alpha: 0.85),
-    );
-
     final eyeY = h * (mood == EidolonMood.anxious ? 0.48 : 0.50);
-    final eyeDx = w * 0.13;
+    final eyeDx = w * genes.eyeSpacing;
     final eyeR = w * 0.085;
-
     _drawEye(canvas, Offset(cx - eyeDx, eyeY), eyeR);
     _drawEye(canvas, Offset(cx + eyeDx, eyeY), eyeR);
+    _drawBrows(canvas, cx, eyeDx, eyeR, eyeY, dark);
 
-    // Brows convey worry / determination / sadness.
-    final browPaint = Paint()
-      ..color = dark
-      ..strokeWidth = 2.4
-      ..strokeCap = StrokeCap.round;
-    final browY = eyeY - eyeR - h * 0.04;
-    switch (mood) {
-      case EidolonMood.anxious:
-      case EidolonMood.melancholic:
-        for (final sign in const [-1, 1]) {
-          canvas.drawLine(
-            Offset(cx + sign * (eyeDx - eyeR), browY + 3),
-            Offset(cx + sign * (eyeDx + eyeR), browY - 2),
-            browPaint,
-          );
-        }
-      case EidolonMood.focused:
-        for (final sign in const [-1, 1]) {
-          canvas.drawLine(
-            Offset(cx + sign * (eyeDx - eyeR), browY - 2),
-            Offset(cx + sign * (eyeDx + eyeR), browY + 3),
-            browPaint,
-          );
-        }
-      default:
-        break;
-    }
-
-    // Cheeks (only when content).
     if (mood == EidolonMood.calm || mood == EidolonMood.excited) {
       final cheek = Paint()
         ..color = const Color(0xFFF0997B).withValues(alpha: 0.5);
       canvas.drawCircle(
-        Offset(cx - w * 0.20, eyeY + eyeR * 1.6),
+        Offset(cx - eyeDx * 1.5, eyeY + eyeR * 1.6),
         w * 0.045,
         cheek,
       );
       canvas.drawCircle(
-        Offset(cx + w * 0.20, eyeY + eyeR * 1.6),
+        Offset(cx + eyeDx * 1.5, eyeY + eyeR * 1.6),
         w * 0.045,
         cheek,
       );
@@ -234,10 +184,203 @@ class _EidolonFacePainter extends CustomPainter {
     _drawMouth(canvas, Offset(cx, eyeY + h * 0.16), w, dark);
   }
 
+  Rect _bodyRect(double w, double h, double cx) {
+    final size = switch (genes.body) {
+      BodyForm.round => const Size(0.70, 0.66),
+      BodyForm.chubby => const Size(0.80, 0.62),
+      BodyForm.slim => const Size(0.58, 0.72),
+      BodyForm.teardrop => const Size(0.68, 0.68),
+    };
+    return Rect.fromCenter(
+      center: Offset(cx, h * 0.54),
+      width: w * size.width,
+      height: h * size.height,
+    );
+  }
+
+  Path _bodyPath(Rect r) {
+    if (genes.body != BodyForm.teardrop) {
+      return Path()..addOval(r);
+    }
+    // Teardrop: a pointed crown of the head with a round body.
+    return Path()
+      ..moveTo(r.center.dx, r.top - r.height * 0.12)
+      ..quadraticBezierTo(r.right, r.top, r.right, r.center.dy)
+      ..quadraticBezierTo(r.right, r.bottom, r.center.dx, r.bottom)
+      ..quadraticBezierTo(r.left, r.bottom, r.left, r.center.dy)
+      ..quadraticBezierTo(r.left, r.top, r.center.dx, r.top - r.height * 0.12)
+      ..close();
+  }
+
+  void _drawCrown(
+    Canvas canvas,
+    double w,
+    double h,
+    double cx,
+    Color primary,
+    Color dark,
+  ) {
+    final p = Paint()..color = dark;
+    switch (genes.crown) {
+      case CrownType.none:
+        break;
+      case CrownType.ears:
+        for (final s in const [-1, 1]) {
+          final bx = cx + s * w * 0.16;
+          canvas.drawPath(
+            Path()
+              ..moveTo(bx - 9, h * 0.30)
+              ..lineTo(bx + s * 4, h * 0.11)
+              ..lineTo(bx + 9, h * 0.30)
+              ..close(),
+            p,
+          );
+        }
+      case CrownType.horns:
+        for (final s in const [-1, 1]) {
+          final bx = cx + s * w * 0.18;
+          canvas.drawPath(
+            Path()
+              ..moveTo(bx - 7, h * 0.32)
+              ..quadraticBezierTo(bx + s * 16, h * 0.10, bx + s * 22, h * 0.02)
+              ..quadraticBezierTo(bx + s * 10, h * 0.16, bx + 7, h * 0.32)
+              ..close(),
+            p,
+          );
+        }
+      case CrownType.antennae:
+        final stalk = Paint()
+          ..color = dark
+          ..strokeWidth = 3
+          ..strokeCap = StrokeCap.round;
+        for (final s in const [-1, 1]) {
+          final bx = cx + s * w * 0.12;
+          canvas.drawLine(
+            Offset(bx, h * 0.30),
+            Offset(bx + s * 8, h * 0.06),
+            stalk,
+          );
+          canvas.drawCircle(
+            Offset(bx + s * 8, h * 0.05),
+            w * 0.045,
+            Paint()..color = primary,
+          );
+        }
+      case CrownType.halo:
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: Offset(cx, h * 0.12),
+            width: w * 0.42,
+            height: h * 0.10,
+          ),
+          Paint()
+            ..color = const Color(0xFFFFD479)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 3.5,
+        );
+    }
+  }
+
+  void _drawMarking(Canvas canvas, Rect body, Color primary, Color dark) {
+    switch (genes.marking) {
+      case Marking.none:
+        break;
+      case Marking.spots:
+        final c = Paint()..color = dark.withValues(alpha: 0.55);
+        for (final o in const [
+          Offset(-0.18, 0.10),
+          Offset(0.16, 0.02),
+          Offset(0.0, 0.22),
+        ]) {
+          canvas.drawCircle(
+            body.center.translate(o.dx * body.width, o.dy * body.height),
+            body.width * 0.06,
+            c,
+          );
+        }
+      case Marking.belly:
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: body.center.translate(0, body.height * 0.20),
+            width: body.width * 0.5,
+            height: body.height * 0.4,
+          ),
+          Paint()
+            ..color =
+                Color.lerp(primary, Colors.white, 0.4)!.withValues(alpha: 0.7),
+        );
+      case Marking.stripe:
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromCenter(
+              center: body.center.translate(0, body.height * 0.05),
+              width: body.width * 0.14,
+              height: body.height * 0.7,
+            ),
+            const Radius.circular(6),
+          ),
+          Paint()..color = dark.withValues(alpha: 0.45),
+        );
+      case Marking.constellation:
+        final dot = Paint()..color = Colors.white.withValues(alpha: 0.9);
+        final line = Paint()
+          ..color = Colors.white.withValues(alpha: 0.35)
+          ..strokeWidth = 1.2;
+        const stars = [
+          Offset(-0.16, 0.18),
+          Offset(0.02, 0.06),
+          Offset(0.18, 0.20),
+        ];
+        Offset at(Offset o) =>
+            body.center.translate(o.dx * body.width, o.dy * body.height);
+        for (var i = 0; i < stars.length - 1; i++) {
+          canvas.drawLine(at(stars[i]), at(stars[i + 1]), line);
+        }
+        for (final s in stars) {
+          canvas.drawCircle(at(s), 2, dot);
+        }
+    }
+  }
+
+  void _drawBrows(
+    Canvas canvas,
+    double cx,
+    double eyeDx,
+    double eyeR,
+    double eyeY,
+    Color dark,
+  ) {
+    final paint = Paint()
+      ..color = dark
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round;
+    final browY = eyeY - eyeR - eyeR * 0.6;
+    switch (mood) {
+      case EidolonMood.anxious:
+      case EidolonMood.melancholic:
+        for (final s in const [-1, 1]) {
+          canvas.drawLine(
+            Offset(cx + s * (eyeDx - eyeR), browY + 3),
+            Offset(cx + s * (eyeDx + eyeR), browY - 2),
+            paint,
+          );
+        }
+      case EidolonMood.focused:
+        for (final s in const [-1, 1]) {
+          canvas.drawLine(
+            Offset(cx + s * (eyeDx - eyeR), browY - 2),
+            Offset(cx + s * (eyeDx + eyeR), browY + 3),
+            paint,
+          );
+        }
+      default:
+        break;
+    }
+  }
+
   void _drawEye(Canvas canvas, Offset c, double r) {
     final open = eyeOpen.clamp(0.0, 1.0);
     if (open < 0.12) {
-      // Closed: a calm downward arc.
       canvas.drawArc(
         Rect.fromCircle(center: c, radius: r),
         0.15 * math.pi,
@@ -252,9 +395,8 @@ class _EidolonFacePainter extends CustomPainter {
       return;
     }
     final narrow = mood == EidolonMood.focused ? 0.7 : 1.0;
-    final scleraH = r * 2 * open;
     canvas.drawOval(
-      Rect.fromCenter(center: c, width: r * 2 * narrow, height: scleraH),
+      Rect.fromCenter(center: c, width: r * 2 * narrow, height: r * 2 * open),
       Paint()..color = Colors.white,
     );
     final pupilR = r * 0.55 * open;
@@ -271,19 +413,10 @@ class _EidolonFacePainter extends CustomPainter {
   }
 
   void _drawMouth(Canvas canvas, Offset c, double w, Color color) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
     final half = w * 0.10;
-
     if (mood == EidolonMood.excited) {
-      // Open, happy mouth.
-      final rect =
-          Rect.fromCenter(center: c, width: half * 1.6, height: half * 1.4);
       canvas.drawArc(
-        rect,
+        Rect.fromCenter(center: c, width: half * 1.6, height: half * 1.4),
         0,
         math.pi,
         true,
@@ -291,26 +424,26 @@ class _EidolonFacePainter extends CustomPainter {
       );
       return;
     }
-
     final curve = switch (mood) {
       EidolonMood.calm => 0.7,
-      EidolonMood.focused => 0.0,
       EidolonMood.tired => -0.15,
       EidolonMood.anxious => -0.2,
       EidolonMood.melancholic => -0.6,
-      EidolonMood.excited => 0.0,
+      _ => 0.0,
     };
-    final dip = half * curve;
     canvas.drawPath(
       Path()
         ..moveTo(c.dx - half, c.dy)
-        ..quadraticBezierTo(c.dx, c.dy + dip, c.dx + half, c.dy),
-      paint,
+        ..quadraticBezierTo(c.dx, c.dy + half * curve, c.dx + half, c.dy),
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..strokeCap = StrokeCap.round,
     );
   }
 
   void _drawSparkle(Canvas canvas, Offset c, double r, Color color) {
-    final p = Paint()..color = color;
     canvas.drawPath(
       Path()
         ..moveTo(c.dx, c.dy - r)
@@ -319,11 +452,14 @@ class _EidolonFacePainter extends CustomPainter {
         ..quadraticBezierTo(c.dx, c.dy, c.dx - r, c.dy)
         ..quadraticBezierTo(c.dx, c.dy, c.dx, c.dy - r)
         ..close(),
-      p,
+      Paint()..color = color,
     );
   }
 
   @override
   bool shouldRepaint(_EidolonFacePainter old) =>
-      old.eyeOpen != eyeOpen || old.glowPulse != glowPulse || old.mood != mood;
+      old.eyeOpen != eyeOpen ||
+      old.glowPulse != glowPulse ||
+      old.mood != mood ||
+      old.genes != genes;
 }
