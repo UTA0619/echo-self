@@ -1,5 +1,6 @@
 import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
+import 'package:eidolon/features/eidolon/presentation/widgets/eidolon_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_types/shared_types.dart';
 
@@ -72,53 +73,72 @@ class HomeEidolonCardContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            EidolonAvatar(mood: mood, size: 72),
+            const SizedBox(width: 14),
             Expanded(
-              child: Text(
-                eidolon.name,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: EidolonColors.textPrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: EidolonColors.background,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: EidolonColors.accent.withValues(alpha: 0.4),
-                ),
-              ),
-              child: Text(
-                'Lv. ${eidolon.level}',
-                style: const TextStyle(
-                  color: EidolonColors.accent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Text(
-              moodIcons[mood] ?? '✨',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              moodLabel(context, mood),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: EidolonColors.textSecondary,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          eidolon.name,
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: EidolonColors.textPrimary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: EidolonColors.background,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: EidolonColors.accent.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Text(
+                          'Lv. ${eidolon.level}',
+                          style: const TextStyle(
+                            color: EidolonColors.accent,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text(
+                        moodIcons[mood] ?? '✨',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        moodLabel(context, mood),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: EidolonColors.textSecondary,
+                            ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
