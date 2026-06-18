@@ -196,5 +196,9 @@
   "dungeonRetry": "もう一度挑戦",
   "dungeonRewards": "獲得報酬",
   "dungeonEnemyMinion": "影の眷属",
-  "dungeonBoss": "守護者"
+  "dungeonBoss": "守護者",
+  "dungeonLevelUp": "レベルアップ！  Lv.{level}",
+  "@dungeonLevelUp": {
+    "placeholders": { "level": { "type": "int" } }
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:eidolon/core/error/app_error.dart';
+import 'package:eidolon/features/eidolon/data/repositories/eidolon_repository_impl.dart';
 import 'package:eidolon/features/eidolon/domain/entities/chat_message.dart';
 import 'package:eidolon/features/eidolon/domain/usecases/get_chat_history_usecase.dart';
 import 'package:eidolon/features/eidolon/domain/usecases/get_eidolon_usecase.dart';
@@ -108,6 +109,19 @@ class EidolonNotifier extends _$EidolonNotifier {
         },
       );
     }
+  }
+
+  /// Applies dungeon-earned [amount] XP, persists the resulting level-up, and
+  /// returns the number of levels gained (for the result-screen celebration).
+  Future<int> gainXp(int amount) async {
+    final current = state.eidolon;
+    if (current == null || amount <= 0) return 0;
+    final leveled = current.gainXp(amount);
+    final result =
+        await ref.read(eidolonRepositoryProvider).persistProgression(leveled);
+    final saved = result.isSuccess ? result.value! : leveled;
+    state = state.copyWith(eidolon: saved);
+    return saved.level - current.level;
   }
 
   void clearError() => state = state.copyWith(errorMessage: null);

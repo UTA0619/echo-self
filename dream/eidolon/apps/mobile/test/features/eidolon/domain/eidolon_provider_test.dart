@@ -33,6 +33,12 @@ class _FakeEidolonRepo implements EidolonRepository {
     int limit = 50,
   }) async =>
       history ?? ok(<ChatMessage>[]);
+
+  @override
+  Future<Result<EidolonProfile>> persistProgression(
+    EidolonProfile profile,
+  ) async =>
+      ok(profile);
 }
 
 class _FakeRespondRepo implements EidolonRespondRepository {

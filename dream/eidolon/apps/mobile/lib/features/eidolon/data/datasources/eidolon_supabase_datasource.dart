@@ -120,4 +120,37 @@ class EidolonSupabaseDataSource {
       return err(AppError.unknown(error: e, stackTrace: st));
     }
   }
+
+  /// Persists level/XP/stat progression for [profile] (after a level-up
+  /// calculation). RLS `eidolons_update_own` limits this to the owner's row.
+  Future<Result<EidolonProfile>> persistProgression(
+    EidolonProfile profile,
+  ) async {
+    try {
+      final row = await _client
+          .from('eidolons')
+          .update({
+            'level': profile.level,
+            'xp': profile.xp,
+            'xp_to_next': profile.xpToNext,
+            'base_atk': profile.baseAtk,
+            'base_def': profile.baseDef,
+            'base_hp': profile.baseHp,
+            'base_mp': profile.baseMp,
+          })
+          .eq('id', profile.id)
+          .select()
+          .single();
+      return ok(EidolonModel.fromRow(row));
+    } on PostgrestException catch (e) {
+      return err(
+        AppError.network(
+          message: e.message,
+          statusCode: int.tryParse(e.code ?? ''),
+        ),
+      );
+    } catch (e, st) {
+      return err(AppError.unknown(error: e, stackTrace: st));
+    }
+  }
 }

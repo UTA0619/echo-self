@@ -462,6 +462,8 @@ class DungeonRunView extends ConsumerWidget {
                             ? context.l10n.dungeonBoss
                             : context.l10n.dungeonEnemyMinion,
                         difficulty: state.selectedDifficulty,
+                        playerMaxHp: eidolon?.baseHp ?? 100,
+                        playerAtk: eidolon?.baseAtk ?? 12,
                         onFinished: notifier.onBattleResult,
                       ),
           ),
@@ -585,6 +587,9 @@ class DungeonResultView extends ConsumerWidget {
     final eidolonId = ref.watch(
       eidolonNotifierProvider.select((s) => s.eidolon?.id),
     );
+    final eidolonLevel = ref.watch(
+      eidolonNotifierProvider.select((s) => s.eidolon?.level ?? 1),
+    );
 
     return Center(
       child: SingleChildScrollView(
@@ -643,6 +648,36 @@ class DungeonResultView extends ConsumerWidget {
                 ],
               ),
             ).animate(delay: 300.ms).fadeIn().slideY(begin: 0.2, end: 0),
+
+            if (state.levelsGained > 0) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: EidolonColors.gold.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: EidolonColors.gold),
+                ),
+                child: Text(
+                  context.l10n.dungeonLevelUp(eidolonLevel),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: EidolonColors.gold,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                ),
+              )
+                  .animate(delay: 600.ms)
+                  .fadeIn()
+                  .scaleXY(
+                    begin: 0.5,
+                    end: 1.0,
+                    curve: Curves.elasticOut,
+                    duration: 800.ms,
+                  ),
+            ],
 
             const SizedBox(height: 28),
 

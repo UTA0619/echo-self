@@ -11,6 +11,39 @@ void main() {
         updatedAt: DateTime.utc(2026, 1, 1),
       );
 
+  group('EidolonProfile.gainXp progression', () {
+    test('xp below the threshold accrues without a level-up', () {
+      final e = base().gainXp(100);
+      expect(e.level, 1);
+      expect(e.xp, 100);
+      expect(e.baseAtk, 10);
+      expect(e.xpToNext, EidolonProfile.xpToNextForLevel(1));
+    });
+
+    test('reaching the threshold levels up once and grows stats', () {
+      final e = base().gainXp(EidolonProfile.xpToNextForLevel(1));
+      expect(e.level, 2);
+      expect(e.xp, 0);
+      expect(e.baseAtk, 13); // +3
+      expect(e.baseHp, 125); // +25
+      expect(e.xpToNext, EidolonProfile.xpToNextForLevel(2));
+    });
+
+    test('a large grant cascades multiple level-ups', () {
+      final l1 = EidolonProfile.xpToNextForLevel(1);
+      final l2 = EidolonProfile.xpToNextForLevel(2);
+      final e = base().gainXp(l1 + l2 + 50);
+      expect(e.level, 3);
+      expect(e.xp, 50);
+      expect(e.baseAtk, 16); // +3 per level
+    });
+
+    test('non-positive amounts are a no-op', () {
+      expect(base().gainXp(0).level, 1);
+      expect(base().gainXp(-100).xp, 0);
+    });
+  });
+
   group('EidolonProfile guardrails (D6)', () {
     test('conservative defaults when unset', () {
       final e = base();

@@ -242,5 +242,9 @@
   "dungeonRetry": "One more run",
   "dungeonRewards": "Rewards earned",
   "dungeonEnemyMinion": "Shade",
-  "dungeonBoss": "Warden"
+  "dungeonBoss": "Warden",
+  "dungeonLevelUp": "LEVEL UP!  Lv.{level}",
+  "@dungeonLevelUp": {
+    "placeholders": { "level": { "type": "int" } }
+  }
 }

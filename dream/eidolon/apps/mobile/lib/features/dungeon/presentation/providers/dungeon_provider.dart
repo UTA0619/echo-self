@@ -10,6 +10,7 @@ import 'package:eidolon/features/dungeon/domain/usecases/finish_run_usecase.dart
 import 'package:eidolon/features/dungeon/domain/usecases/generate_dungeon_usecase.dart';
 import 'package:eidolon/features/dungeon/domain/usecases/get_active_run_usecase.dart';
 import 'package:eidolon/features/dungeon/domain/usecases/start_run_usecase.dart';
+import 'package:eidolon/features/eidolon/presentation/providers/eidolon_provider.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_types/shared_types.dart';
@@ -30,6 +31,7 @@ abstract class DungeonState with _$DungeonState {
     @Default(false) bool isLoading,
     @Default(0) int crystalsEarned,
     @Default(0) int xpEarned,
+    @Default(0) int levelsGained,
     @Default(false) bool awaitingNext,
     String? errorMessage,
   }) = _DungeonState;
@@ -107,6 +109,7 @@ class DungeonNotifier extends _$DungeonNotifier {
       run: runResult.value,
       crystalsEarned: 0,
       xpEarned: 0,
+      levelsGained: 0,
       awaitingNext: false,
       errorMessage: null,
     );
@@ -148,6 +151,7 @@ class DungeonNotifier extends _$DungeonNotifier {
       run: null,
       crystalsEarned: 0,
       xpEarned: 0,
+      levelsGained: 0,
       awaitingNext: false,
       errorMessage: null,
     );
@@ -202,9 +206,18 @@ class DungeonNotifier extends _$DungeonNotifier {
       }
     }
 
+    // Apply earned XP to the Eidolon — real, persisted growth: level-ups raise
+    // its stats, so the next run is genuinely easier.
+    var levelsGained = 0;
+    if (state.xpEarned > 0) {
+      levelsGained =
+          await ref.read(eidolonNotifierProvider.notifier).gainXp(state.xpEarned);
+    }
+
     state = state.copyWith(
       isLoading: false,
       run: result.isSuccess ? result.value : run.copyWith(status: status),
+      levelsGained: levelsGained,
       phase: DungeonPhase.result,
     );
   }
@@ -215,6 +228,7 @@ class DungeonNotifier extends _$DungeonNotifier {
         run: null,
         crystalsEarned: 0,
         xpEarned: 0,
+        levelsGained: 0,
         awaitingNext: false,
         errorMessage: null,
       );

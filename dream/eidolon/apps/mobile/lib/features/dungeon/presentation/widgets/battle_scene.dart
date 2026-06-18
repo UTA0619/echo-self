@@ -16,6 +16,8 @@ class BattleScene extends StatefulWidget {
     this.playerName = 'Eidolon',
     this.enemyName = 'Shade',
     this.difficulty = 1,
+    this.playerMaxHp = 100,
+    this.playerAtk = 12,
     this.onFinished,
   });
 
@@ -25,6 +27,11 @@ class BattleScene extends StatefulWidget {
 
   /// 1–10. Scales enemy HP and damage so higher tiers carry real risk.
   final int difficulty;
+
+  /// The Eidolon's stats — leveling these up is what makes battles winnable
+  /// at higher difficulty (the felt reward of progression).
+  final int playerMaxHp;
+  final int playerAtk;
   final void Function(bool victory)? onFinished;
 
   @override
@@ -48,7 +55,7 @@ class _BattleSceneState extends State<BattleScene>
 
   late double _playerHp = _maxPlayer;
   late double _enemyHp = _maxEnemy;
-  final double _maxPlayer = 100;
+  late final double _maxPlayer = widget.playerMaxHp.toDouble();
   late final double _maxEnemy = 56 + widget.difficulty * 9.0;
   bool _playerTurn = true;
   bool _finished = false;
@@ -87,7 +94,7 @@ class _BattleSceneState extends State<BattleScene>
 
   void _resolveTurn() {
     final dmg = _playerTurn
-        ? 14 + _rng.nextInt(13)
+        ? (widget.playerAtk - 3).clamp(1, 999) + _rng.nextInt(7)
         : 5 + (widget.difficulty * 1.4).round() + _rng.nextInt(7);
     _hitAmount = dmg;
     _hitOnPlayer = !_playerTurn;

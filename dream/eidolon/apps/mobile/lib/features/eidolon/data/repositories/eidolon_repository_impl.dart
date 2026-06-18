@@ -33,4 +33,8 @@ class EidolonRepositoryImpl implements EidolonRepository {
     int limit = 50,
   }) =>
       _source.getChatHistory(eidolonId: eidolonId, limit: limit);
+
+  @override
+  Future<Result<EidolonProfile>> persistProgression(EidolonProfile profile) =>
+      _source.persistProgression(profile);
 }

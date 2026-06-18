@@ -42,4 +42,37 @@ abstract class EidolonProfile with _$EidolonProfile {
   /// Clamp guardrails into the valid 0-100 range (defends against stray data).
   int get safeRiskTolerance => riskTolerance.clamp(0, 100);
   int get safeSocialOpenness => socialOpenness.clamp(0, 100);
+
+  /// XP required to advance *from* [level] to the next. Cheap early levels for
+  /// a fast first payoff, then a gently growing curve.
+  static int xpToNextForLevel(int level) => 300 + (level - 1) * 450;
+
+  /// Returns a copy with [amount] XP applied, cascading any level-ups. Each
+  /// level grants stat growth so the player visibly gets stronger. Pure — the
+  /// single source of truth for progression, so it can be unit-tested.
+  EidolonProfile gainXp(int amount) {
+    if (amount <= 0) return this;
+    var lvl = level;
+    var remaining = xp + amount;
+    var atk = baseAtk, def = baseDef, hp = baseHp, mp = baseMp;
+    var toNext = xpToNextForLevel(lvl);
+    while (lvl < 100 && remaining >= toNext) {
+      remaining -= toNext;
+      lvl++;
+      atk += 3;
+      def += 2;
+      hp += 25;
+      mp += 10;
+      toNext = xpToNextForLevel(lvl);
+    }
+    return copyWith(
+      level: lvl,
+      xp: lvl >= 100 ? 0 : remaining,
+      xpToNext: toNext,
+      baseAtk: atk,
+      baseDef: def,
+      baseHp: hp,
+      baseMp: mp,
+    );
+  }
 }
