@@ -1,4 +1,5 @@
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
+import 'package:eidolon/features/eidolon/presentation/providers/eidolon_provider.dart';
 import 'package:eidolon/features/home/presentation/providers/home_provider.dart';
 import 'package:eidolon/features/home/presentation/widgets/home_active_run_banner.dart';
 import 'package:eidolon/features/home/presentation/widgets/home_daily_stats.dart';
@@ -37,6 +38,12 @@ class _HomeHubPageState extends ConsumerState<HomeHubPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(homeNotifierProvider);
+    // Prefer the live Eidolon (mutated by dungeon level-ups) so the card and
+    // its avatar reflect progression the instant the player returns home.
+    final eidolon = ref.watch(
+          eidolonNotifierProvider.select((s) => s.eidolon),
+        ) ??
+        state.eidolon;
 
     if (state.isLoading && state.player == null) {
       return const Scaffold(
@@ -61,7 +68,7 @@ class _HomeHubPageState extends ConsumerState<HomeHubPage> {
               ),
               const SliverToBoxAdapter(child: MorningReportCard()),
               SliverToBoxAdapter(
-                child: HomeEidolonCard(eidolon: state.eidolon),
+                child: HomeEidolonCard(eidolon: eidolon),
               ),
               if (state.summary?.hasActiveRun == true)
                 SliverToBoxAdapter(
