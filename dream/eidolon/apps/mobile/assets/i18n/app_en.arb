@@ -253,5 +253,11 @@
   "dailyRewardStreak": "Day {n}",
   "@dailyRewardStreak": {
     "placeholders": { "n": { "type": "int" } }
-  }
+  },
+  "bondLabel": "Bond",
+  "bondTierStranger": "Newly met",
+  "bondTierAcquaintance": "Acquainted",
+  "bondTierTrusted": "Trusted",
+  "bondTierCloseFriend": "Close friends",
+  "bondTierSoulmate": "Soulmates"
 }

@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:eidolon/core/error/app_error.dart';
+import 'package:eidolon/features/bond/presentation/bond_provider.dart';
 import 'package:eidolon/features/eidolon/data/repositories/eidolon_repository_impl.dart';
 import 'package:eidolon/features/eidolon/domain/entities/chat_message.dart';
 import 'package:eidolon/features/eidolon/domain/usecases/get_chat_history_usecase.dart';
@@ -98,6 +101,8 @@ class EidolonNotifier extends _$EidolonNotifier {
         messages: [...state.messages, eidolonMsg],
         isSending: false,
       );
+      // Talking together deepens the bond.
+      unawaited(ref.read(bondNotifierProvider.notifier).addPoints(5));
     } else {
       state = state.copyWith(
         isSending: false,

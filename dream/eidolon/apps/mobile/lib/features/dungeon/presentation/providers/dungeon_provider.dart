@@ -1,5 +1,6 @@
 import 'package:eidolon/core/error/app_error.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
+import 'package:eidolon/features/bond/presentation/bond_provider.dart';
 import 'package:eidolon/features/dungeon/data/repositories/dungeon_repository_impl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:eidolon/features/dungeon/domain/entities/dungeon_generate_response.dart';
@@ -212,6 +213,11 @@ class DungeonNotifier extends _$DungeonNotifier {
     if (state.xpEarned > 0) {
       levelsGained =
           await ref.read(eidolonNotifierProvider.notifier).gainXp(state.xpEarned);
+    }
+
+    // Conquering a dungeon together deepens the bond.
+    if (status == RunStatus.completed) {
+      await ref.read(bondNotifierProvider.notifier).addPoints(10);
     }
 
     state = state.copyWith(

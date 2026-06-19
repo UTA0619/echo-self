@@ -207,5 +207,11 @@
   "dailyRewardStreak": "{n}日目",
   "@dailyRewardStreak": {
     "placeholders": { "n": { "type": "int" } }
-  }
+  },
+  "bondLabel": "絆",
+  "bondTierStranger": "出会ったばかり",
+  "bondTierAcquaintance": "顔なじみ",
+  "bondTierTrusted": "信頼の仲",
+  "bondTierCloseFriend": "親友",
+  "bondTierSoulmate": "ソウルメイト"
 }

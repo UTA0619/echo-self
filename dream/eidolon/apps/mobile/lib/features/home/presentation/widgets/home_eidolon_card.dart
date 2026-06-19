@@ -1,5 +1,6 @@
 import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
+import 'package:eidolon/features/bond/presentation/bond_meter.dart';
 import 'package:eidolon/features/eidolon/presentation/widgets/avatar_genes.dart';
 import 'package:eidolon/features/eidolon/presentation/widgets/level_up_avatar.dart';
 import 'package:flutter/material.dart';
@@ -181,6 +182,8 @@ class HomeEidolonCardContent extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(height: 14),
+        const BondMeter(),
       ],
     );
   }
