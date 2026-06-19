@@ -246,5 +246,12 @@
   "dungeonLevelUp": "LEVEL UP!  Lv.{level}",
   "@dungeonLevelUp": {
     "placeholders": { "level": { "type": "int" } }
+  },
+  "dailyRewardTitle": "Daily bonus",
+  "dailyRewardClaim": "Claim",
+  "dailyRewardFlavor": "Nova has been waiting for you.",
+  "dailyRewardStreak": "Day {n}",
+  "@dailyRewardStreak": {
+    "placeholders": { "n": { "type": "int" } }
   }
 }

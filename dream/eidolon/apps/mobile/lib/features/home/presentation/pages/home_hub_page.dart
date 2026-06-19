@@ -1,4 +1,5 @@
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
+import 'package:eidolon/features/daily_reward/presentation/daily_reward_card.dart';
 import 'package:eidolon/features/eidolon/presentation/providers/eidolon_provider.dart';
 import 'package:eidolon/features/home/presentation/providers/home_provider.dart';
 import 'package:eidolon/features/home/presentation/widgets/home_active_run_banner.dart';
@@ -66,6 +67,7 @@ class _HomeHubPageState extends ConsumerState<HomeHubPage> {
               SliverToBoxAdapter(
                 child: HomeGreetingHeader(state: state),
               ),
+              const SliverToBoxAdapter(child: DailyRewardCard()),
               const SliverToBoxAdapter(child: MorningReportCard()),
               SliverToBoxAdapter(
                 child: HomeEidolonCard(eidolon: eidolon),

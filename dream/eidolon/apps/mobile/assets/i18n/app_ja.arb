@@ -200,5 +200,12 @@
   "dungeonLevelUp": "レベルアップ！  Lv.{level}",
   "@dungeonLevelUp": {
     "placeholders": { "level": { "type": "int" } }
+  },
+  "dailyRewardTitle": "デイリーボーナス",
+  "dailyRewardClaim": "受け取る",
+  "dailyRewardFlavor": "Novaがあなたを待っていました。",
+  "dailyRewardStreak": "{n}日目",
+  "@dailyRewardStreak": {
+    "placeholders": { "n": { "type": "int" } }
   }
 }
