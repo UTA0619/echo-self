@@ -43,6 +43,33 @@ class AvatarGenes {
     eyeSpacing: 0.13,
   );
 
+  /// Genes from an arbitrary [seed] (e.g. a gacha item id) — derives a
+  /// pseudo-personality from the hash so each item gets a distinct creature.
+  factory AvatarGenes.fromSeed(String seed) {
+    final h = _fnv1a(seed);
+    return AvatarGenes.fromPersonality(
+      PersonalityProfile(
+        openness: h % 101,
+        conscientiousness: (h >> 4) % 101,
+        extraversion: (h >> 8) % 101,
+        agreeableness: (h >> 12) % 101,
+        neuroticism: (h >> 16) % 101,
+      ),
+      seed: seed,
+    );
+  }
+
+  /// Same creature, recoloured — used to stamp a gacha item with its rarity hue.
+  AvatarGenes withPalette(Color primary, Color secondary) => AvatarGenes(
+        primary: primary,
+        secondary: secondary,
+        body: body,
+        crown: crown,
+        marking: marking,
+        sparkles: sparkles,
+        eyeSpacing: eyeSpacing,
+      );
+
   factory AvatarGenes.fromPersonality(
     PersonalityProfile p, {
     String seed = '',

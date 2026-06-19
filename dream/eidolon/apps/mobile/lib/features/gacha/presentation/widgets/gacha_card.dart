@@ -1,5 +1,6 @@
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/gacha/domain/entities/gacha_item.dart';
+import 'package:eidolon/features/gacha/presentation/widgets/gacha_item_sprite.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -58,7 +59,7 @@ class GachaCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(item.iconEmoji, style: const TextStyle(fontSize: 40)),
+          GachaItemSprite(item: item, size: 52),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -122,7 +123,7 @@ class _CompactCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Text(item.iconEmoji, style: const TextStyle(fontSize: 20)),
+          GachaItemSprite(item: item, size: 30),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
