@@ -259,5 +259,14 @@
   "bondTierAcquaintance": "Acquainted",
   "bondTierTrusted": "Trusted",
   "bondTierCloseFriend": "Close friends",
-  "bondTierSoulmate": "Soulmates"
+  "bondTierSoulmate": "Soulmates",
+  "awayReportTitle": "Welcome back",
+  "awayReportClaim": "Collect",
+  "awayReportBody": "While you were away ({hours}h), Nova adventured and bested {enemies} foes.",
+  "@awayReportBody": {
+    "placeholders": {
+      "hours": { "type": "int" },
+      "enemies": { "type": "int" }
+    }
+  }
 }

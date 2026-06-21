@@ -213,5 +213,14 @@
   "bondTierAcquaintance": "顔なじみ",
   "bondTierTrusted": "信頼の仲",
   "bondTierCloseFriend": "親友",
-  "bondTierSoulmate": "ソウルメイト"
+  "bondTierSoulmate": "ソウルメイト",
+  "awayReportTitle": "おかえりなさい",
+  "awayReportClaim": "受け取る",
+  "awayReportBody": "留守の{hours}時間、Novaが冒険して{enemies}体の魔物を倒しました。",
+  "@awayReportBody": {
+    "placeholders": {
+      "hours": { "type": "int" },
+      "enemies": { "type": "int" }
+    }
+  }
 }
