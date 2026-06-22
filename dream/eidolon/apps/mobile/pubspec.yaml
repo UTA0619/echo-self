@@ -43,12 +43,12 @@ dependencies:
   purchases_flutter: ^10.1.1
 
   # ── Analytics / Monitoring ──────────────────────────────────────
-  sentry_flutter: ^8.11.0
+  sentry_flutter: ^9.22.0
   mixpanel_flutter: ^2.3.4
   app_tracking_transparency: ^2.0.7
 
   # ── Fonts ───────────────────────────────────────────────────────
-  google_fonts: ^6.2.1
+  google_fonts: ^8.1.0
 
   # ── Internal packages ───────────────────────────────────────────
   shared_types:
@@ -56,7 +56,7 @@ dependencies:
 
   # ── Utilities ───────────────────────────────────────────────────
   uuid: ^4.5.1
-  intl: ^0.19.0
+  intl: ^0.20.2
   logger: ^2.5.0
   path_provider: ^2.1.5
   url_launcher: ^6.3.1

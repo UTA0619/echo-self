@@ -74,25 +74,29 @@ const _demoSummary = HomeSummary(
 
 const _demoBundles = [
   CrystalBundle(
-      productId: 'demo.80',
-      crystals: 80,
-      displayPrice: '\$0.99',
-      isBestValue: false),
+    productId: 'demo.80',
+    crystals: 80,
+    displayPrice: '\$0.99',
+    isBestValue: false,
+  ),
   CrystalBundle(
-      productId: 'demo.500',
-      crystals: 500,
-      displayPrice: '\$4.99',
-      isBestValue: false),
+    productId: 'demo.500',
+    crystals: 500,
+    displayPrice: '\$4.99',
+    isBestValue: false,
+  ),
   CrystalBundle(
-      productId: 'demo.1800',
-      crystals: 1800,
-      displayPrice: '\$14.99',
-      isBestValue: false),
+    productId: 'demo.1800',
+    crystals: 1800,
+    displayPrice: '\$14.99',
+    isBestValue: false,
+  ),
   CrystalBundle(
-      productId: 'demo.5000',
-      crystals: 5000,
-      displayPrice: '\$39.99',
-      isBestValue: true),
+    productId: 'demo.5000',
+    crystals: 5000,
+    displayPrice: '\$39.99',
+    isBestValue: true,
+  ),
 ];
 
 // ── Fake notifiers ──────────────────────────────────────────────────────────────

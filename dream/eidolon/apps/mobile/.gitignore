@@ -59,3 +59,8 @@ ios/fastlane/report.xml
 ios/fastlane/Preview.html
 ios/fastlane/screenshots
 ios/fastlane/test_output
+
+# FVM Version Cache
+.fvm/
+# Generated localizations
+/lib/l10n/

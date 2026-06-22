@@ -60,11 +60,13 @@ class AuthRepositoryImpl implements AuthRepository {
       // If the project requires email confirmation, signUp returns a user but
       // no session — surface a clear message instead of silently failing.
       if (res.session == null) {
-        return err(const AppError.auth(
-          message: 'Check your email to confirm your account, then sign in. '
-              '(For development, disable "Confirm email" in Supabase → '
-              'Authentication → Providers → Email.)',
-        ));
+        return err(
+          const AppError.auth(
+            message: 'Check your email to confirm your account, then sign in. '
+                '(For development, disable "Confirm email" in Supabase → '
+                'Authentication → Providers → Email.)',
+          ),
+        );
       }
       return ok(AuthUser.fromSupabase(user));
     } on AuthException catch (e) {
@@ -90,9 +92,11 @@ class AuthRepositoryImpl implements AuthRepository {
       await _auth.signInWithOAuth(provider);
       final user = _auth.currentUser;
       if (user == null) {
-        return err(const AppError.auth(
-          message: 'Continue in the browser to finish signing in.',
-        ));
+        return err(
+          const AppError.auth(
+            message: 'Continue in the browser to finish signing in.',
+          ),
+        );
       }
       return ok(AuthUser.fromSupabase(user));
     } on AuthException catch (e) {
@@ -130,10 +134,12 @@ class AuthRepositoryImpl implements AuthRepository {
       await _auth.signOut();
       return ok(null);
     } on PostgrestException catch (e) {
-      return err(AppError.network(
-        message: e.message,
-        statusCode: int.tryParse(e.code ?? ''),
-      ));
+      return err(
+        AppError.network(
+          message: e.message,
+          statusCode: int.tryParse(e.code ?? ''),
+        ),
+      );
     } catch (e, st) {
       return err(AppError.unknown(error: e, stackTrace: st));
     }

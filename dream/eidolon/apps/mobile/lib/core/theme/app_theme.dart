@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -108,7 +109,7 @@ ThemeData buildEidolonTheme() {
       labelLarge: EidolonTextStyles.labelLarge,
       labelSmall: EidolonTextStyles.labelSmall,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: EidolonColors.surface,
       elevation: 0,
       shape: RoundedRectangleBorder(

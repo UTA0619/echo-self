@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:eidolon/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
@@ -77,6 +77,7 @@ Future<void> _initServices() async {
           ..dsn = AppEnv.sentryDsn
           ..environment = AppEnv.environment
           ..tracesSampleRate = AppEnv.isProduction ? 0.2 : 1.0
+          // ignore: experimental_member_use
           ..profilesSampleRate = AppEnv.isProduction ? 0.1 : 0.0;
       },
     );
