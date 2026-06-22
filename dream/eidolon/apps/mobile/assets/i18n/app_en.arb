@@ -212,6 +212,7 @@
   "@overnightDispatchInProgress": {
     "placeholders": { "name": { "type": "String" } }
   },
+  "overnightDispatchFailed": "Couldn't send them off. Please try again.",
 
   "eidolonAwaits": "Your Eidolon awaits…",
   "eidolonReady": "{name} is ready.",

@@ -1,5 +1,6 @@
 import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
+import 'package:eidolon/features/away_report/presentation/away_report_provider.dart';
 import 'package:eidolon/features/eidolon/presentation/providers/eidolon_provider.dart';
 import 'package:eidolon/features/morning_report/presentation/providers/morning_report_provider.dart';
 import 'package:flutter/material.dart';
@@ -19,9 +20,18 @@ class OvernightDispatchCard extends ConsumerWidget {
     final eidolon = ref.watch(
       eidolonNotifierProvider.select((s) => s.eidolon),
     );
+    // Don't stack two "Nova adventured" prompts: while an away-reward is waiting
+    // to be claimed, let the player deal with that first — the dispatch prompt
+    // returns on the next load once the away card is gone.
+    final awayClaimable = ref.watch(
+          awayReportNotifierProvider.select((s) => s.valueOrNull?.claimable),
+        ) ??
+        false;
     // Need an awakened Eidolon, and either an idle dispatchable state or an
     // in-flight venture to show the "adventuring…" beat.
-    if (eidolon == null || (!state.canDispatch && !state.isDispatching)) {
+    if (eidolon == null ||
+        awayClaimable ||
+        (!state.canDispatch && !state.isDispatching)) {
       return const SizedBox.shrink();
     }
     final name = eidolon.name;
@@ -100,6 +110,27 @@ class OvernightDispatchCard extends ConsumerWidget {
                       ),
               ),
             ),
+            if (!state.isDispatching && state.errorMessage != null) ...[
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.error_outline_rounded,
+                    color: EidolonColors.error,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      context.l10n.overnightDispatchFailed,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: EidolonColors.error,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.15, end: 0),

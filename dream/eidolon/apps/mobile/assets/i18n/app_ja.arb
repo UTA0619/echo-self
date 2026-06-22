@@ -172,6 +172,7 @@
   "@overnightDispatchInProgress": {
     "placeholders": { "name": { "type": "String" } }
   },
+  "overnightDispatchFailed": "送り出しに失敗しました。もう一度お試しください。",
 
   "eidolonAwaits": "エイドロンが待っています…",
   "eidolonReady": "{name} の準備ができました。",
