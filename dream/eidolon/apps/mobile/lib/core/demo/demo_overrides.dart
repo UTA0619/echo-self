@@ -10,6 +10,8 @@ import 'package:eidolon/features/gacha/domain/repositories/gacha_repository.dart
 import 'package:eidolon/features/gacha/presentation/providers/gacha_provider.dart';
 import 'package:eidolon/features/home/domain/entities/home_summary.dart';
 import 'package:eidolon/features/home/presentation/providers/home_provider.dart';
+import 'package:eidolon/features/morning_report/domain/entities/morning_report.dart';
+import 'package:eidolon/features/morning_report/presentation/providers/morning_report_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_types/shared_types.dart';
 
@@ -26,6 +28,7 @@ List<Override> demoOverrides() => [
       homeNotifierProvider.overrideWith(_DemoHomeNotifier.new),
       gachaNotifierProvider.overrideWith(_DemoGachaNotifier.new),
       eidolonNotifierProvider.overrideWith(_DemoEidolonNotifier.new),
+      morningReportNotifierProvider.overrideWith(_DemoMorningReportNotifier.new),
     ];
 
 // ── Sample data ───────────────────────────────────────────────────────────────
@@ -254,5 +257,46 @@ class _DemoGachaNotifier extends GachaNotifier {
     }
     final pool = kGachaCatalog.where((i) => i.rarity == rarity).toList();
     return pool[_rng.nextInt(pool.length)];
+  }
+}
+
+class _DemoMorningReportNotifier extends MorningReportNotifier {
+  /// Start dispatchable (no run yet) so the on-demand "send Nova off" prompt is
+  /// visible in the demo.
+  @override
+  MorningReportState build() => const MorningReportState();
+
+  @override
+  Future<void> refresh() async {}
+
+  @override
+  Future<void> loadLatest() async {}
+
+  /// Fake the round-trip: a brief "venturing…" beat, then a sample report so
+  /// the Morning Report card takes over from the dispatch prompt.
+  @override
+  Future<void> simulateNow() async {
+    state = state.copyWith(isDispatching: true);
+    await Future<void>.delayed(const Duration(milliseconds: 900));
+    state = state.copyWith(
+      isDispatching: false,
+      todayRunExists: true,
+      report: MorningReport(
+        id: 'demo-run',
+        runDate: DateTime(2026, 6, 22),
+        theme: 'forest',
+        narrative:
+            'Under a bruised-violet sky, Lyra slipped between the glowing '
+            'fungi of the old forest, trading riddles with a shrine-spirit and '
+            'coaxing a sliver of moonlight into her satchel.',
+        highlight: 'Lyra outwitted a shrine-spirit and pocketed moonlight.',
+        mood: EidolonMood.focused,
+        xpGained: 120,
+        loot: const [
+          OvernightLoot(name: 'Sliver of Moonlight', rarity: LootRarity.epic),
+        ],
+        seen: false,
+      ),
+    );
   }
 }

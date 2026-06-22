@@ -162,6 +162,17 @@
   "morningReportLootTitle": "夜の戦利品",
   "morningReportNoLoot": "手ぶらで帰ってきた。",
 
+  "overnightDispatchTitle": "今夜の冒険",
+  "overnightDispatchBody": "{name}を夜の世界へ送り出しましょう。ひとりで冒険し、物語と戦利品を持ち帰ります。",
+  "@overnightDispatchBody": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "overnightDispatchButton": "送り出す",
+  "overnightDispatchInProgress": "{name}が夜を旅しています…",
+  "@overnightDispatchInProgress": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+
   "eidolonAwaits": "エイドロンが待っています…",
   "eidolonReady": "{name} の準備ができました。",
   "eidolonSaySomething": "話しかけて始めましょう。",

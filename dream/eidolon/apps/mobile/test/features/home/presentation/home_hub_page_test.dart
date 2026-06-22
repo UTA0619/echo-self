@@ -259,4 +259,7 @@ class _FakeMorningReportNotifier extends MorningReportNotifier {
 
   @override
   Future<void> loadLatest() async {}
+
+  @override
+  Future<void> refresh() async {}
 }

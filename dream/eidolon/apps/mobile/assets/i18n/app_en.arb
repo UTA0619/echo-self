@@ -202,6 +202,17 @@
   "morningReportLootTitle": "Spoils of the night",
   "morningReportNoLoot": "Returned empty-handed.",
 
+  "overnightDispatchTitle": "Tonight's venture",
+  "overnightDispatchBody": "Send {name} into the night to adventure alone — they'll bring back a story and rewards.",
+  "@overnightDispatchBody": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "overnightDispatchButton": "Send off",
+  "overnightDispatchInProgress": "{name} is venturing through the night…",
+  "@overnightDispatchInProgress": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+
   "eidolonAwaits": "Your Eidolon awaits…",
   "eidolonReady": "{name} is ready.",
   "@eidolonReady": {

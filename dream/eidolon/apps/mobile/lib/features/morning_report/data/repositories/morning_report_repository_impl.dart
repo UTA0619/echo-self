@@ -20,6 +20,9 @@ class MorningReportRepositoryImpl implements MorningReportRepository {
   Future<Result<MorningReport?>> getLatestUnseen() => _ds.getLatestUnseen();
 
   @override
+  Future<Result<bool>> hasRunToday() => _ds.hasRunToday();
+
+  @override
   Future<Result<void>> markSeen(String runId) => _ds.markSeen(runId);
 
   @override

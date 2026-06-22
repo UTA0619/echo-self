@@ -21,6 +21,9 @@ class _RecordingRepo implements MorningReportRepository {
       ok<MorningReport?>(null);
 
   @override
+  Future<Result<bool>> hasRunToday() async => ok(false);
+
+  @override
   Future<Result<void>> markSeen(String runId) async {
     seenId = runId;
     return ok(null);

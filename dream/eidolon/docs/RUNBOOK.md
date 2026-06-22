@@ -73,6 +73,55 @@ supabase db reset --linked  # WARNING: destructive on staging only
 
 ---
 
+## Overnight Autonomous Runs (真の留守番) — Activation
+
+The "while you sleep" engine: a nightly `pg_cron` job calls the `overnight-simulate`
+Edge Function, which adventures every Eidolon and writes one `overnight_runs` row that
+the app surfaces as a Morning Report. The same function also serves an on-demand mode
+(JWT) so a player can tap **送り出す / Send off** on the home screen and get a report
+immediately — wired client-side via `MorningReportNotifier.simulateNow()`.
+
+All the code ships in the repo; these are the **environment steps** (run once per
+environment — values live in Supabase, never in git):
+
+```bash
+# 1. Apply the schema + cron job (migration 011) and the RLS write policies (016)
+#    — via the Supabase SQL Editor or the CLI, same as prior migrations.
+supabase db push            # or paste 011_overnight_runs.sql + 016_*.sql into SQL Editor
+
+# 2. Deploy the Edge Function
+supabase functions deploy overnight-simulate --use-api
+
+# 3. Give the function its secrets (Anthropic key drives generation; the cron
+#    secret authenticates the nightly POST; OpenAI is the fallback chain).
+supabase secrets set ANTHROPIC_API_KEY=<key> OPENAI_API_KEY=<key> CRON_SECRET=<random>
+
+# 4. Tell Postgres where to POST and which secret to send (read by
+#    trigger_overnight_simulation() — MUST match CRON_SECRET from step 3).
+#    Run in the SQL Editor:
+#      alter database postgres set app.settings.edge_base_url = 'https://<ref>.supabase.co/functions/v1';
+#      alter database postgres set app.settings.cron_secret   = '<same random as CRON_SECRET>';
+```
+
+**Verify:**
+- On-demand: open the app with an awakened Eidolon → home shows the 🌙 *Tonight's
+  venture* card → tap **送り出す / Send off** → a Morning Report appears within a few seconds.
+- Cron: `select * from cron.job where jobname = 'overnight-simulation';` (should be
+  scheduled `0 5 * * *`); after a fire, `select count(*) from overnight_runs where run_date = current_date;`
+- Manual fire (no waiting for 05:00 UTC): `select public.trigger_overnight_simulation();`
+
+**Cost control:** generation model is tier-based (`cognitionModelForTier`) — payers get
+Sonnet, free users Haiku — so the nightly fan-out spends heavy compute on payers. The
+on-demand path is idempotent per Eidolon per UTC day, so repeated taps cost nothing extra.
+
+**Gotchas:**
+- If `app.settings.edge_base_url` / `cron_secret` are unset, the cron logs a notice and
+  no-ops (no error) — reports simply never appear. Check `cron.job_run_details`.
+- The dispatch card is hidden once a run exists for today (`hasRunToday()`), so it won't
+  step on the cron or double-charge.
+
+---
+
 ## Monitoring Checklist (Daily)
 
 - [ ] Sentry error rate < 0.5%

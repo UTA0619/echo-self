@@ -12,13 +12,16 @@ class _FakeRepo implements MorningReportRepository {
     Result<MorningReport?>? latest,
     Result<void>? seen,
     Result<String>? sim,
+    Result<bool>? ranToday,
   })  : _latest = latest ?? ok<MorningReport?>(null),
         _seen = seen ?? ok(null),
-        _sim = sim ?? ok('run-x');
+        _sim = sim ?? ok('run-x'),
+        _ranToday = ranToday ?? ok(false);
 
   Result<MorningReport?> _latest;
   final Result<void> _seen;
   final Result<String> _sim;
+  final Result<bool> _ranToday;
 
   String? seenId;
   int loadCalls = 0;
@@ -32,6 +35,9 @@ class _FakeRepo implements MorningReportRepository {
     loadCalls++;
     return _latest;
   }
+
+  @override
+  Future<Result<bool>> hasRunToday() async => _ranToday;
 
   @override
   Future<Result<void>> markSeen(String runId) async {
