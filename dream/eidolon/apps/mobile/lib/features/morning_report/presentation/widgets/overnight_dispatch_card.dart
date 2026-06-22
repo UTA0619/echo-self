@@ -1,3 +1,4 @@
+import 'package:eidolon/core/analytics/analytics.dart';
 import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/away_report/presentation/away_report_provider.dart';
@@ -87,7 +88,14 @@ class OvernightDispatchCard extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: state.isDispatching ? null : notifier.simulateNow,
+                onPressed: state.isDispatching
+                    ? null
+                    : () {
+                        ref
+                            .read(analyticsProvider)
+                            .track(AppEvents.overnightDispatchTapped);
+                        notifier.simulateNow();
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: EidolonColors.accent,
                   padding: const EdgeInsets.symmetric(vertical: 12),

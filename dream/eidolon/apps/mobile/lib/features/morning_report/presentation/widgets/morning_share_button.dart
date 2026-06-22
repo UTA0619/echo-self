@@ -59,6 +59,8 @@ class MorningShareCard extends StatefulWidget {
     required this.label,
     this.shareText = 'My Eidolon adventured while I slept. 🌙 #Eidolon',
     this.sharer = const SharePlusMorningSharer(),
+    this.onShareInitiated,
+    this.onShareCompleted,
   });
 
   final MorningReport report;
@@ -66,6 +68,13 @@ class MorningShareCard extends StatefulWidget {
   final String label;
   final String shareText;
   final MorningSharer sharer;
+
+  /// Fired when the player taps share (intent) — top of the viral funnel.
+  final VoidCallback? onShareInitiated;
+
+  /// Fired after the share pipeline runs; [success] is false if the card could
+  /// not be captured — bottom of the viral funnel.
+  final ValueChanged<bool>? onShareCompleted;
 
   @override
   State<MorningShareCard> createState() => _MorningShareCardState();
@@ -77,14 +86,17 @@ class _MorningShareCardState extends State<MorningShareCard> {
 
   Future<void> _share() async {
     if (_busy) return;
+    widget.onShareInitiated?.call();
     setState(() => _busy = true);
+    var ok = false;
     try {
-      await captureAndShare(
+      ok = await captureAndShare(
         boundaryKey: _cardKey,
         sharer: widget.sharer,
         text: widget.shareText,
       );
     } finally {
+      widget.onShareCompleted?.call(ok);
       if (mounted) setState(() => _busy = false);
     }
   }
