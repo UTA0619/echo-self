@@ -47,7 +47,10 @@ void main() {
         ),
       ),
     );
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump();
+    // Crack the hatch open so the ten-pull grid actually lays out.
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump(const Duration(milliseconds: 400));
 
     // A RenderFlex/box overflow surfaces as a thrown exception during layout.
     expect(tester.takeException(), isNull);

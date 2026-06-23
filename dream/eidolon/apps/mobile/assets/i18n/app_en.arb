@@ -185,6 +185,7 @@
   "gachaBuyCrystals": "Buy Soul Crystals",
   "gachaSummonRates": "SUMMON RATES",
   "gachaSummoning": "Summoning…",
+  "gachaTapToOpen": "Tap to open",
   "gachaCrystalsLoading": "Soul Crystals loading",
   "gachaCrystalsCount": "Soul Crystals: {count}",
   "@gachaCrystalsCount": {

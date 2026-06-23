@@ -152,7 +152,9 @@ void main() {
           ),
         ),
       );
-      // Single frame — widgets exist in tree even before animations complete
+      await tester.pump();
+      // The reveal opens with a hatch beat; let it crack open (auto-reveal).
+      await tester.pump(const Duration(seconds: 3));
       await tester.pump();
 
       expect(find.text(item.name), findsOneWidget);
@@ -200,6 +202,9 @@ void main() {
         ),
       );
       await tester.pump(); // one frame — widget is in tree
+      // Crack the hatch open so the Continue button appears.
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pump();
 
       await tester.tap(find.text('Continue'));
       await tester.pump();
