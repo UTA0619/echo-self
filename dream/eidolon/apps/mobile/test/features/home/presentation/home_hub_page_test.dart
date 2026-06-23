@@ -108,6 +108,40 @@ void main() {
       await _settle(tester);
     });
 
+    testWidgets('home content scrolls when it overflows the viewport',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 500));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        _wrap(
+          homeState: const HomeState(
+            summary: HomeSummary(
+              hasActiveRun: false,
+              dungeonRunsToday: 2,
+              currentStreak: 7,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final scrollable =
+          tester.state<ScrollableState>(find.byType(Scrollable).first);
+      expect(scrollable.position.pixels, 0);
+
+      await tester.drag(
+        find.byType(CustomScrollView),
+        const Offset(0, -250),
+      );
+      await tester.pump();
+
+      // A working scroll view moves its offset past 0.
+      expect(scrollable.position.pixels, greaterThan(0));
+
+      await _settle(tester);
+    });
+
     testWidgets('shows streak badge when summary is present', (tester) async {
       await tester.pumpWidget(
         _wrap(

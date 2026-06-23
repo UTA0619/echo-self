@@ -1,5 +1,6 @@
 import 'package:eidolon/core/error/app_error.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
+import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
 import 'package:eidolon/features/morning_report/data/repositories/morning_report_repository_impl.dart';
 import 'package:eidolon/features/morning_report/domain/entities/morning_report.dart';
 import 'package:eidolon/features/morning_report/domain/repositories/morning_report_repository.dart';
@@ -42,6 +43,12 @@ class _FakeNotifier extends MorningReportNotifier {
   MorningReportState build() => _initial;
 }
 
+/// Signed-out auth so the page's referral lookup stays offline in tests.
+class _FakeAuth extends AuthNotifier {
+  @override
+  AuthState build() => const AuthState();
+}
+
 MorningReport _report({List<OvernightLoot> loot = const []}) => MorningReport(
       id: 'run-1',
       runDate: DateTime(2026, 6, 12),
@@ -74,6 +81,7 @@ void main() {
             morningReportNotifierProvider.overrideWith(
               () => _FakeNotifier(MorningReportState(report: report)),
             ),
+            authNotifierProvider.overrideWith(_FakeAuth.new),
           ],
           child: MaterialApp(
             theme: buildEidolonTheme(),
@@ -103,6 +111,7 @@ void main() {
         ProviderScope(
           overrides: [
             morningReportRepositoryProvider.overrideWithValue(_RecordingRepo()),
+            authNotifierProvider.overrideWith(_FakeAuth.new),
           ],
           child: MaterialApp(
             theme: buildEidolonTheme(),

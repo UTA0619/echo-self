@@ -51,6 +51,41 @@ void main() {
     expect(find.byIcon(Icons.ios_share), findsOneWidget);
   });
 
+  testWidgets('tapping share fires the viral-funnel callbacks', (tester) async {
+    var initiated = 0;
+    bool? completedSuccess;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: MorningShareCard(
+              report: _report(),
+              eidolonName: 'Aria',
+              label: 'Share this morning',
+              sharer: _FakeSharer(),
+              onShareInitiated: () => initiated++,
+              onShareCompleted: (s) => completedSuccess = s,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.runAsync(() async {
+      await tester.tap(find.byIcon(Icons.ios_share));
+      await tester
+          .pump(); // start _share (fires onShareInitiated synchronously)
+      // Let the off-thread RepaintBoundary.toImage() capture resolve.
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      await tester.pump(); // process the completion setState + callback
+    });
+
+    expect(initiated, 1); // top of funnel
+    expect(completedSuccess, isNotNull); // bottom of funnel fired
+    expect(completedSuccess, true); // card captured + handed to the sharer
+  });
+
   testWidgets('captureAndShare turns the visible card into a valid PNG',
       (tester) async {
     final key = GlobalKey();
