@@ -78,6 +78,11 @@ class AppEvents {
   const AppEvents._();
 
   static const appOpened = 'app_opened';
+
+  /// Activation — the player awakened their Eidolon (finished onboarding).
+  /// Retention cohorts are anchored on this, not just install.
+  static const eidolonAwakened = 'eidolon_awakened';
+
   static const morningReportViewed = 'morning_report_viewed';
   static const overnightDispatchTapped = 'overnight_dispatch_tapped';
   static const morningShareInitiated = 'morning_share_initiated';
