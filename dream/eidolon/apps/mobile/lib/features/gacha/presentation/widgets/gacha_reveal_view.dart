@@ -37,17 +37,12 @@ class _GachaRevealViewState extends State<GachaRevealView> {
       .map((e) => e.rarity)
       .reduce((a, b) => a.index >= b.index ? a : b);
 
+  _RarityFx get _fx => _RarityFx.of(_topRarity);
+
   @override
   void initState() {
     super.initState();
-    // A rarer pull holds the suspense longer — the "is this a big one?" beat.
-    final ms = switch (_topRarity) {
-      GachaRarity.legendary => 2300,
-      GachaRarity.epic => 1900,
-      GachaRarity.rare => 1500,
-      GachaRarity.common => 1100,
-    };
-    _timer = Timer(Duration(milliseconds: ms), _reveal);
+    _timer = Timer(Duration(milliseconds: _fx.buildUpMs), _reveal);
   }
 
   @override
@@ -63,59 +58,101 @@ class _GachaRevealViewState extends State<GachaRevealView> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 450),
-      child: _revealed ? _buildReveal(context) : _buildHatch(context),
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 450),
+            child: _revealed ? _buildReveal(context) : _buildHatch(context),
+          ),
+        ),
+        // Burst of white light at the moment of the crack — brighter for rarer
+        // pulls. Plays once when the reveal mounts.
+        if (_revealed && _fx.flash > 0)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: ColoredBox(color: Colors.white)
+                  .animate()
+                  .fade(begin: _fx.flash, end: 0, duration: 600.ms),
+            ),
+          ),
+      ],
     );
   }
 
   Widget _buildHatch(BuildContext context) {
     final color = GachaCard.rarityColor(_topRarity);
+    Widget egg = CustomPaint(
+      size: Size.square(_fx.eggSize),
+      painter: _EggPainter(color),
+    )
+        .animate(onPlay: (c) => c.repeat(reverse: true))
+        .scaleXY(begin: 0.97, end: 1.06, duration: 620.ms)
+        .animate(onPlay: (c) => c.repeat())
+        .shimmer(
+          duration: 1300.ms,
+          color: Colors.white.withValues(alpha: 0.5),
+        );
+    if (_fx.shake > 0) {
+      egg = egg
+          .animate(onPlay: (c) => c.repeat())
+          .shake(duration: 700.ms, hz: 5, rotation: _fx.shake);
+    }
+
     return GestureDetector(
       key: const ValueKey('gacha-hatch'),
       onTap: _reveal,
       behavior: HitTestBehavior.opaque,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 240,
-              height: 240,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  CustomPaint(
-                    size: const Size.square(240),
-                    painter: _RaysPainter(color),
-                  )
-                      .animate(onPlay: (c) => c.repeat())
-                      .rotate(duration: 10.seconds),
-                  CustomPaint(
-                    size: const Size.square(150),
-                    painter: _EggPainter(color),
-                  )
-                      .animate(onPlay: (c) => c.repeat(reverse: true))
-                      .scaleXY(begin: 0.97, end: 1.06, duration: 620.ms)
-                      .animate(onPlay: (c) => c.repeat())
-                      .shimmer(
-                        duration: 1300.ms,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
-                ],
-              ),
+      child: Stack(
+        children: [
+          // Higher rarity dims the room to spotlight the egg.
+          if (_fx.dim > 0)
+            Positioned.fill(
+              child: ColoredBox(color: Colors.black.withValues(alpha: _fx.dim))
+                  .animate()
+                  .fadeIn(duration: 500.ms),
             ),
-            const SizedBox(height: 20),
-            Text(
-              context.l10n.gachaTapToOpen,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: EidolonColors.textSecondary,
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 260,
+                  height: 260,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Layered counter-rotating auras — more rings = rarer.
+                      for (var i = 0; i < _fx.rings; i++)
+                        CustomPaint(
+                          size: Size.square(260.0 - i * 26),
+                          painter: _RaysPainter(color),
+                        )
+                            .animate(onPlay: (c) => c.repeat())
+                            .rotate(
+                              duration: Duration(seconds: 9 + i * 4),
+                              begin: 0,
+                              end: i.isEven ? 1 : -1,
+                            ),
+                      egg,
+                    ],
                   ),
-            )
-                .animate(onPlay: (c) => c.repeat(reverse: true))
-                .fadeIn(begin: 0.4, duration: 800.ms),
-          ],
-        ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  context.l10n.gachaTapToOpen,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: _fx.dim > 0.3
+                            ? Colors.white70
+                            : EidolonColors.textSecondary,
+                      ),
+                )
+                    .animate(onPlay: (c) => c.repeat(reverse: true))
+                    .fadeIn(begin: 0.4, duration: 800.ms),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -130,7 +167,7 @@ class _GachaRevealViewState extends State<GachaRevealView> {
         const SizedBox(height: 8),
         Expanded(
           child: isSingle
-              ? _SingleReveal(item: items.first)
+              ? _SingleReveal(item: items.first, fx: _fx)
               : Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Center(
@@ -169,31 +206,105 @@ class _GachaRevealViewState extends State<GachaRevealView> {
   }
 }
 
+/// Per-rarity production values, so a Legendary pull feels nothing like a
+/// Common one. Everything escalates together: aura rings, screen dimming, egg
+/// shake, the crack flash, the particle burst, the wait, and the banner.
+class _RarityFx {
+  const _RarityFx({
+    required this.rings,
+    required this.dim,
+    required this.shake,
+    required this.flash,
+    required this.sparkles,
+    required this.buildUpMs,
+    required this.bannerScale,
+    required this.eggSize,
+  });
+
+  final int rings; // counter-rotating aura layers
+  final double dim; // backdrop darkening, 0..1
+  final double shake; // egg shake amplitude (radians)
+  final double flash; // peak white crack-flash opacity
+  final int sparkles; // burst particle count
+  final int buildUpMs; // suspense before auto-hatch
+  final double bannerScale; // rarity banner size multiplier
+  final double eggSize;
+
+  static _RarityFx of(GachaRarity r) => switch (r) {
+        GachaRarity.common => const _RarityFx(
+            rings: 0,
+            dim: 0,
+            shake: 0,
+            flash: 0,
+            sparkles: 0,
+            buildUpMs: 1000,
+            bannerScale: 1.0,
+            eggSize: 140,
+          ),
+        GachaRarity.rare => const _RarityFx(
+            rings: 1,
+            dim: 0.18,
+            shake: 0.012,
+            flash: 0.30,
+            sparkles: 10,
+            buildUpMs: 1500,
+            bannerScale: 1.08,
+            eggSize: 150,
+          ),
+        GachaRarity.epic => const _RarityFx(
+            rings: 2,
+            dim: 0.42,
+            shake: 0.025,
+            flash: 0.55,
+            sparkles: 20,
+            buildUpMs: 1950,
+            bannerScale: 1.20,
+            eggSize: 158,
+          ),
+        GachaRarity.legendary => const _RarityFx(
+            rings: 3,
+            dim: 0.65,
+            shake: 0.045,
+            flash: 0.92,
+            sparkles: 34,
+            buildUpMs: 2500,
+            bannerScale: 1.42,
+            eggSize: 168,
+          ),
+      };
+}
+
 class _SingleReveal extends StatelessWidget {
-  const _SingleReveal({required this.item});
+  const _SingleReveal({required this.item, required this.fx});
   final GachaItem item;
+  final _RarityFx fx;
 
   @override
   Widget build(BuildContext context) {
     final color = GachaCard.rarityColor(item.rarity);
+    final rayLayers = fx.rings == 0 ? 1 : fx.rings;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 280,
-            height: 280,
+            width: 300,
+            height: 300,
             child: Stack(
               alignment: Alignment.center,
               children: [
-                CustomPaint(
-                  size: const Size.square(280),
-                  painter: _RaysPainter(color),
-                )
-                    .animate(onPlay: (c) => c.repeat())
-                    .rotate(duration: 14.seconds)
-                    .animate(onPlay: (c) => c.repeat(reverse: true))
-                    .scaleXY(begin: 0.95, end: 1.06, duration: 2.seconds),
+                for (var i = 0; i < rayLayers; i++)
+                  CustomPaint(
+                    size: Size.square(300.0 - i * 32),
+                    painter: _RaysPainter(color),
+                  )
+                      .animate(onPlay: (c) => c.repeat())
+                      .rotate(
+                        duration: Duration(seconds: 14 + i * 5),
+                        begin: 0,
+                        end: i.isEven ? 1 : -1,
+                      ),
+                if (fx.sparkles > 0) _Burst(color: color, count: fx.sparkles),
                 GachaItemSprite(item: item, size: 150)
                     .animate()
                     .scaleXY(
@@ -206,27 +317,9 @@ class _SingleReveal extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: color),
-            ),
-            child: Text(
-              item.rarity.label.toUpperCase(),
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: color,
-                    letterSpacing: 2,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-          )
-              .animate(delay: 350.ms)
-              .fadeIn(duration: 400.ms)
-              .scaleXY(begin: 0.7, end: 1.0, curve: Curves.elasticOut),
           const SizedBox(height: 10),
+          _RarityBanner(rarity: item.rarity, color: color, fx: fx),
+          const SizedBox(height: 12),
           Text(
             item.name,
             textAlign: TextAlign.center,
@@ -238,6 +331,75 @@ class _SingleReveal extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// The rarity readout: a row of stars (1 = common … 4 = legendary) above the
+/// label, scaled and glowing for higher tiers, so the rarity is unmistakable.
+class _RarityBanner extends StatelessWidget {
+  const _RarityBanner({
+    required this.rarity,
+    required this.color,
+    required this.fx,
+  });
+  final GachaRarity rarity;
+  final Color color;
+  final _RarityFx fx;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = fx.bannerScale;
+    final stars = rarity.index + 1;
+    final banner = Container(
+      padding: EdgeInsets.symmetric(horizontal: 20 * s, vertical: 7 * s),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: color, width: 1.5),
+        boxShadow: fx.flash > 0.4
+            ? [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.6),
+                  blurRadius: 20 * s,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < stars; i++)
+                Icon(Icons.star_rounded, color: color, size: 16 * s),
+            ],
+          ),
+          SizedBox(height: 2 * s),
+          Text(
+            rarity.label.toUpperCase(),
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: color,
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13 * s,
+                ),
+          ),
+        ],
+      ),
+    );
+
+    final animated = banner
+        .animate(delay: 350.ms)
+        .fadeIn(duration: 400.ms)
+        .scaleXY(begin: 0.6, end: 1.0, curve: Curves.elasticOut);
+    // Legendary keeps shimmering — it earned the spotlight.
+    return rarity == GachaRarity.legendary
+        ? animated
+            .animate(onPlay: (c) => c.repeat(), delay: 900.ms)
+            .shimmer(duration: 1600.ms, color: Colors.white.withValues(alpha: 0.7))
+        : animated;
   }
 }
 
@@ -288,6 +450,52 @@ class _GridTile extends StatelessWidget {
           duration: 450.ms,
         );
   }
+}
+
+/// A one-shot burst of sparks flying outward from the centre when the egg
+/// cracks. More (and longer-flying) sparks for rarer pulls.
+class _Burst extends StatelessWidget {
+  const _Burst({required this.color, required this.count});
+  final Color color;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 900),
+      curve: Curves.easeOut,
+      builder: (_, t, __) => CustomPaint(
+        size: const Size.square(300),
+        painter: _BurstPainter(t, color, count),
+      ),
+    );
+  }
+}
+
+class _BurstPainter extends CustomPainter {
+  _BurstPainter(this.t, this.color, this.count);
+  final double t;
+  final Color color;
+  final int count;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = Offset(size.width / 2, size.height / 2);
+    final maxR = size.width * 0.52;
+    final rnd = math.Random(7);
+    final paint = Paint()..color = color.withValues(alpha: (1 - t).clamp(0, 1));
+    for (var i = 0; i < count; i++) {
+      final a = i / count * 2 * math.pi + rnd.nextDouble() * 0.4;
+      final dist = maxR * (0.35 + 0.65 * rnd.nextDouble()) * t;
+      final pos = c + Offset(math.cos(a), math.sin(a)) * dist;
+      final r = (3.5 * (1 - t)).clamp(0.6, 3.5);
+      canvas.drawCircle(pos, r, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_BurstPainter old) => old.t != t || old.count != count;
 }
 
 /// The "soul egg" shown during the suspense beat — an egg shape in the rarity

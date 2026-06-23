@@ -247,12 +247,22 @@ class _DemoGachaNotifier extends GachaNotifier {
     state = state.copyWith(crystals: state.crystals + bundle.crystals);
   }
 
+  // Showcase odds (DEMO ONLY): the real GachaNotifier uses the true rates
+  // (legendary ~1%). Here we bias high so a reviewer reliably sees every
+  // rarity's reveal — including the Legendary spectacle — without grinding.
+  static const _demoWeights = {
+    GachaRarity.common: 35,
+    GachaRarity.rare: 30,
+    GachaRarity.epic: 22,
+    GachaRarity.legendary: 13,
+  };
+
   GachaItem _rollItem() {
-    final roll = _rng.nextInt(10000);
+    final roll = _rng.nextInt(100);
     var cumulative = 0;
     var rarity = GachaRarity.common;
     for (final r in GachaRarity.values.reversed) {
-      cumulative += r.weight;
+      cumulative += _demoWeights[r]!;
       if (roll < cumulative) {
         rarity = r;
         break;
