@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:eidolon/features/auth/domain/entities/auth_user.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
+import 'package:eidolon/features/dungeon/domain/entities/dungeon_run.dart';
+import 'package:eidolon/features/dungeon/presentation/providers/dungeon_provider.dart';
 import 'package:eidolon/features/eidolon/domain/entities/chat_message.dart';
 import 'package:eidolon/features/eidolon/presentation/providers/eidolon_provider.dart';
 import 'package:eidolon/features/gacha/domain/entities/gacha_item.dart';
@@ -29,6 +31,7 @@ List<Override> demoOverrides() => [
       gachaNotifierProvider.overrideWith(_DemoGachaNotifier.new),
       eidolonNotifierProvider.overrideWith(_DemoEidolonNotifier.new),
       morningReportNotifierProvider.overrideWith(_DemoMorningReportNotifier.new),
+      dungeonNotifierProvider.overrideWith(_DemoDungeonNotifier.new),
     ];
 
 // ── Sample data ───────────────────────────────────────────────────────────────
@@ -298,5 +301,115 @@ class _DemoMorningReportNotifier extends MorningReportNotifier {
         seen: false,
       ),
     );
+  }
+}
+
+/// Runs the whole dungeon loop locally — generate → battle each room → result —
+/// with no Edge Function, so the demo doesn't hang on "drawing the dungeon…".
+/// Mirrors the real reward math but skips all backend persistence.
+class _DemoDungeonNotifier extends DungeonNotifier {
+  @override
+  Future<void> checkForActiveRun(String eidolonId) async {
+    state = state.copyWith(phase: DungeonPhase.hub, isLoading: false);
+  }
+
+  @override
+  Future<void> generateAndStart(String eidolonId) async {
+    state = state.copyWith(phase: DungeonPhase.generating, errorMessage: null);
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    final now = DateTime.now();
+    final theme = state.selectedTheme ?? DungeonTheme.forest;
+    final dungeon = Dungeon(
+      id: 'demo-dungeon-${now.microsecondsSinceEpoch}',
+      theme: theme,
+      difficulty: state.selectedDifficulty,
+      name: 'デモダンジョン',
+      narrativeIntro: 'サンプルの冒険です。実際の冒険ではAIが毎回物語を描きます。',
+      rooms: const [
+        DungeonRoom(index: 0, description: '影が蠢く回廊', eventType: 'combat'),
+        DungeonRoom(index: 1, description: '苔むした広間', eventType: 'combat'),
+        DungeonRoom(index: 2, description: '守護者の間', eventType: 'boss'),
+      ],
+      createdAt: now,
+      expiresAt: now.add(const Duration(days: 1)),
+    );
+    state = state.copyWith(
+      phase: DungeonPhase.run,
+      dungeon: dungeon,
+      run: DungeonRun(
+        id: 'demo-run-${now.microsecondsSinceEpoch}',
+        eidolonId: eidolonId,
+        dungeonId: dungeon.id,
+        startedAt: now,
+      ),
+      crystalsEarned: 0,
+      xpEarned: 0,
+      levelsGained: 0,
+      awaitingNext: false,
+      errorMessage: null,
+    );
+  }
+
+  @override
+  void onBattleResult(bool victory) {
+    final run = state.run;
+    final dungeon = state.dungeon;
+    if (run == null || dungeon == null || state.awaitingNext) return;
+    if (!victory) {
+      state = state.copyWith(
+        phase: DungeonPhase.result,
+        run: run.copyWith(status: RunStatus.failed),
+        isLoading: false,
+      );
+      return;
+    }
+    final idx = run.currentRoom;
+    final isLast = idx >= dungeon.rooms.length - 1;
+    final d = state.selectedDifficulty;
+    final crystals = 4 + d * 2 + idx + (isLast ? d * 3 : 0);
+    final xp = 12 + d * 6 + idx * 4 + (isLast ? d * 8 : 0);
+    state = state.copyWith(
+      crystalsEarned: state.crystalsEarned + crystals,
+      xpEarned: state.xpEarned + xp,
+      awaitingNext: true,
+    );
+  }
+
+  @override
+  Future<void> advanceRoom() async {
+    final run = state.run;
+    final dungeon = state.dungeon;
+    if (run == null || dungeon == null) return;
+    if (run.currentRoom >= dungeon.rooms.length - 1) {
+      state = state.copyWith(
+        phase: DungeonPhase.result,
+        run: run.copyWith(status: RunStatus.completed),
+      );
+      return;
+    }
+    state = state.copyWith(run: run.copyWith(currentRoom: run.currentRoom + 1));
+  }
+
+  @override
+  Future<void> abandonRun() async {
+    final run = state.run;
+    state = state.copyWith(
+      phase: DungeonPhase.result,
+      run: run?.copyWith(status: RunStatus.abandoned),
+    );
+  }
+
+  @override
+  Future<void> retry(String eidolonId) async {
+    state = state.copyWith(
+      phase: DungeonPhase.hub,
+      dungeon: null,
+      run: null,
+      crystalsEarned: 0,
+      xpEarned: 0,
+      levelsGained: 0,
+      awaitingNext: false,
+    );
+    await generateAndStart(eidolonId);
   }
 }

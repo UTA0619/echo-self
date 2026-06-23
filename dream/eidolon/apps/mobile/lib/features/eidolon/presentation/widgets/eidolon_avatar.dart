@@ -278,6 +278,36 @@ class _EidolonFacePainter extends CustomPainter {
             ..style = PaintingStyle.stroke
             ..strokeWidth = 3.5,
         );
+      case CrownType.fin:
+        // A dorsal fin: a small wavy crest in a lighter shade of the body.
+        final finPaint = Paint()
+          ..color = Color.lerp(primary, const Color(0xFFFFFFFF), 0.25)!;
+        canvas.drawPath(
+          Path()
+            ..moveTo(cx - w * 0.15, h * 0.27)
+            ..quadraticBezierTo(cx - w * 0.10, h * 0.05, cx - w * 0.02, h * 0.15)
+            ..quadraticBezierTo(cx, h * 0.03, cx + w * 0.04, h * 0.15)
+            ..quadraticBezierTo(cx + w * 0.11, h * 0.05, cx + w * 0.15, h * 0.27)
+            ..close(),
+          finPaint,
+        );
+      case CrownType.leaf:
+        // Two sprouting leaves — the nature archetype.
+        const leafGreen = Color(0xFF7CB342);
+        for (final s in const [-1, 1]) {
+          canvas.drawPath(
+            Path()
+              ..moveTo(cx, h * 0.22)
+              ..quadraticBezierTo(
+                cx + s * w * 0.02, h * 0.03, cx + s * w * 0.17, h * 0.06,
+              )
+              ..quadraticBezierTo(
+                cx + s * w * 0.06, h * 0.16, cx, h * 0.22,
+              )
+              ..close(),
+            Paint()..color = leafGreen,
+          );
+        }
     }
   }
 

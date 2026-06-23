@@ -42,13 +42,13 @@ class GachaRevealView extends StatelessWidget {
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 5,
-                        childAspectRatio: 0.72,
+                        childAspectRatio: 0.78,
                         crossAxisSpacing: 8,
                         mainAxisSpacing: 8,
                       ),
                       itemCount: items.length,
                       itemBuilder: (ctx, i) =>
-                          GachaCard(item: items[i], index: i),
+                          _GridTile(item: items[i], index: i),
                     ),
                   ),
                 ),
@@ -140,6 +140,55 @@ class _SingleReveal extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// A single cell in the ten-pull grid: a rarity-bordered creature with its name
+/// below, sized to fit the grid cell (no overflow). Distinct from the big
+/// [GachaCard] used elsewhere.
+class _GridTile extends StatelessWidget {
+  const _GridTile({required this.item, required this.index});
+
+  final GachaItem item;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = GachaCard.rarityColor(item.rarity);
+    return Container(
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: EidolonColors.surfaceElevated,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.6), width: 1.4),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GachaItemSprite(item: item, size: 42),
+          const SizedBox(height: 3),
+          Text(
+            item.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  fontSize: 9,
+                  color: EidolonColors.textSecondary,
+                ),
+          ),
+        ],
+      ),
+    )
+        .animate(delay: Duration(milliseconds: 90 * index))
+        .fadeIn(duration: 300.ms)
+        .scaleXY(
+          begin: 0.6,
+          end: 1.0,
+          curve: Curves.easeOutBack,
+          duration: 450.ms,
+        );
   }
 }
 

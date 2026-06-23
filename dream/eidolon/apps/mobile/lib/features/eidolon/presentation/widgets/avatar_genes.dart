@@ -3,9 +3,15 @@ import 'package:shared_types/shared_types.dart';
 
 enum BodyForm { round, teardrop, chubby, slim }
 
-enum CrownType { none, ears, horns, antennae, halo }
+enum CrownType { none, ears, horns, antennae, halo, fin, leaf }
 
 enum Marking { none, spots, belly, stripe, constellation }
+
+/// Elemental archetype for collectible creatures. Each maps to a distinct
+/// silhouette + colour family so a pull reads at a glance — fire creatures are
+/// red and horned, water ones blue and finned, nature green and leafy, etc.
+/// This is what gives the gacha collectible variety across all ages.
+enum CreatureElement { water, fire, nature, demon, robot, arcane }
 
 /// Deterministic "visual DNA" for an Eidolon.
 ///
@@ -56,6 +62,65 @@ class AvatarGenes {
         neuroticism: (h >> 16) % 101,
       ),
       seed: seed,
+    );
+  }
+
+  /// A creature themed to an elemental [element] — distinct shape + colour
+  /// family per element, with per-[seed] variation so two fire creatures still
+  /// differ. This is what makes the gacha feel collectible.
+  factory AvatarGenes.forElement(CreatureElement element, {String seed = ''}) {
+    final h = _fnv1a('$seed:${element.name}');
+    double jitter(int shift, double range) =>
+        (((h >> shift) & 0xFF) / 255.0 - 0.5) * range;
+
+    final (
+      double baseHue,
+      double sat,
+      double light,
+      BodyForm body,
+      CrownType crown,
+      Marking marking,
+      int sparkles,
+    ) = switch (element) {
+      CreatureElement.water => (
+          200.0, 0.62, 0.58, BodyForm.teardrop, CrownType.fin, Marking.belly, 1,
+        ),
+      CreatureElement.fire => (
+          16.0, 0.82, 0.55, BodyForm.slim, CrownType.horns, Marking.stripe, 2,
+        ),
+      CreatureElement.nature => (
+          100.0, 0.55, 0.50, BodyForm.chubby, CrownType.leaf, Marking.spots, 1,
+        ),
+      CreatureElement.demon => (
+          282.0, 0.52, 0.48, BodyForm.slim, CrownType.horns, Marking.stripe, 0,
+        ),
+      CreatureElement.robot => (
+          205.0, 0.12, 0.60, BodyForm.round, CrownType.antennae,
+          Marking.stripe, 0,
+        ),
+      CreatureElement.arcane => (
+          45.0, 0.78, 0.58, BodyForm.round, CrownType.halo,
+          Marking.constellation, 3,
+        ),
+    };
+
+    final hue = (baseHue + jitter(5, 22)) % 360;
+    final primary = HSLColor.fromAHSL(1, hue, sat, light).toColor();
+    final secondary = HSLColor.fromAHSL(
+      1,
+      hue,
+      (sat * 0.95).clamp(0.0, 1.0),
+      (light * 0.5).clamp(0.0, 1.0),
+    ).toColor();
+
+    return AvatarGenes(
+      primary: primary,
+      secondary: secondary,
+      body: body,
+      crown: crown,
+      marking: marking,
+      sparkles: sparkles,
+      eyeSpacing: 0.12 + ((h >> 14) & 7) / 100,
     );
   }
 
