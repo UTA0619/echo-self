@@ -14,6 +14,8 @@ import 'package:eidolon/features/morning_report/presentation/providers/morning_r
 import 'package:eidolon/features/morning_report/presentation/widgets/morning_report_card.dart';
 import 'package:eidolon/features/morning_report/presentation/widgets/overnight_dispatch_card.dart';
 import 'package:eidolon/features/reality_sync/presentation/widgets/reality_sync_card.dart';
+import 'package:eidolon/features/weekly_reflection/presentation/providers/weekly_reflection_provider.dart';
+import 'package:eidolon/features/weekly_reflection/presentation/widgets/weekly_reflection_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -36,6 +38,8 @@ class _HomeHubPageState extends ConsumerState<HomeHubPage> {
       // Surface last night's autonomous run, and learn whether tonight's run
       // already happened (gates the on-demand dispatch prompt).
       ref.read(morningReportNotifierProvider.notifier).refresh();
+      // Surface this week's "what I noticed about you" reflection, if any.
+      ref.read(weeklyReflectionNotifierProvider.notifier).loadLatest();
     });
   }
 
@@ -73,6 +77,7 @@ class _HomeHubPageState extends ConsumerState<HomeHubPage> {
               const SliverToBoxAdapter(child: AwayReportCard()),
               const SliverToBoxAdapter(child: DailyRewardCard()),
               const SliverToBoxAdapter(child: MorningReportCard()),
+              const SliverToBoxAdapter(child: WeeklyReflectionCard()),
               const SliverToBoxAdapter(child: OvernightDispatchCard()),
               SliverToBoxAdapter(
                 child: HomeEidolonCard(eidolon: eidolon),

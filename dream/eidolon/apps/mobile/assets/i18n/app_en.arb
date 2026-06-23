@@ -202,6 +202,13 @@
   "morningReportLootTitle": "Spoils of the night",
   "morningReportNoLoot": "Returned empty-handed.",
 
+  "weeklyReflectionTitle": "What I noticed about you",
+  "weeklyReflectionCardTeaser": "Your Eidolon has a reflection on your week.",
+  "weeklyReflectionObservationHeading": "One thing I noticed",
+  "weeklyReflectionNudgeHeading": "A gentle thought",
+  "weeklyReflectionLockedTitle": "Weekly reflection",
+  "weeklyReflectionLockedBody": "Your Eidolon writes a weekly reflection on your week — a relationship perk of the Bond tier.",
+
   "overnightDispatchTitle": "Tonight's venture",
   "overnightDispatchBody": "Send {name} into the night to adventure alone — they'll bring back a story and rewards.",
   "@overnightDispatchBody": {

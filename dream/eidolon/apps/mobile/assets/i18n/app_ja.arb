@@ -162,6 +162,13 @@
   "morningReportLootTitle": "夜の戦利品",
   "morningReportNoLoot": "手ぶらで帰ってきた。",
 
+  "weeklyReflectionTitle": "あなたについて気づいたこと",
+  "weeklyReflectionCardTeaser": "エイドロンがあなたの一週間を振り返っています。",
+  "weeklyReflectionObservationHeading": "気づいたこと",
+  "weeklyReflectionNudgeHeading": "そっと一言",
+  "weeklyReflectionLockedTitle": "週次リフレクション",
+  "weeklyReflectionLockedBody": "エイドロンがあなたの一週間を振り返ります — Bondティアの関係性特典です。",
+
   "overnightDispatchTitle": "今夜の冒険",
   "overnightDispatchBody": "{name}を夜の世界へ送り出しましょう。ひとりで冒険し、物語と戦利品を持ち帰ります。",
   "@overnightDispatchBody": {

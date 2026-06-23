@@ -6,6 +6,7 @@ import 'package:eidolon/features/home/presentation/pages/home_hub_page.dart';
 import 'package:eidolon/features/home/presentation/providers/home_provider.dart';
 import 'package:eidolon/features/morning_report/presentation/providers/morning_report_provider.dart';
 import 'package:eidolon/features/reality_sync/presentation/providers/reality_sync_provider.dart';
+import 'package:eidolon/features/weekly_reflection/presentation/providers/weekly_reflection_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,6 +45,9 @@ Widget _wrap({HomeState? homeState, AuthState? authState}) {
       ),
       morningReportNotifierProvider.overrideWith(
         _FakeMorningReportNotifier.new,
+      ),
+      weeklyReflectionNotifierProvider.overrideWith(
+        _FakeWeeklyReflectionNotifier.new,
       ),
     ],
     child: MaterialApp.router(
@@ -262,4 +266,12 @@ class _FakeMorningReportNotifier extends MorningReportNotifier {
 
   @override
   Future<void> refresh() async {}
+}
+
+class _FakeWeeklyReflectionNotifier extends WeeklyReflectionNotifier {
+  @override
+  WeeklyReflectionState build() => const WeeklyReflectionState();
+
+  @override
+  Future<void> loadLatest() async {}
 }
