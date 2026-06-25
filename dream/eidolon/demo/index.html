@@ -5,62 +5,77 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Eidolon — playable demo</title>
 <style>
+  /* "Dawn" palette — warm morning light, for a companion you wake up to.
+     Not dark/neon (the AI cliché). Cream base · sunrise coral · warm gold ·
+     a whisper of dawn periwinkle · warm ink text. */
   :root{
-    --bg:#09090F; --surface:#13141E; --elev:#1C1D2A; --accent:#7B5CF6;
-    --accentDim:#4C3699; --glow:#AB8FFF; --gold:#FFB347; --tp:#F0F0FF;
-    --ts:#9898B8; --tm:#5A5A78; --td:#3D3D58; --line:rgba(255,255,255,.07);
+    --bg:#FBF4EA; --bg2:#FAEFE0; --surface:#FFFFFF; --soft:#FFFAF3; --elev:#F5EADC;
+    --coral:#EC8A5C; --coralDeep:#C75F2E; --coralSoft:#FBE3D3;
+    --gold:#C98A2E; --twin:#8C7BD6; --twinSoft:#ECE7FB;
+    --ink:#2E2A27; --ink2:#6E635C; --ink3:#A6998D; --line:rgba(70,45,30,.10); --line2:rgba(70,45,30,.16);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  body{background:var(--bg);color:var(--tp);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  body{background:#F3E9DB;color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans",sans-serif;
     display:flex;justify-content:center;min-height:100vh;padding:24px 14px}
   #phone{width:100%;max-width:430px;background:var(--bg);border:1px solid var(--line);
-    border-radius:28px;overflow:hidden;position:relative;min-height:780px;
-    box-shadow:0 0 80px rgba(123,92,246,.10)}
+    border-radius:30px;overflow:hidden;position:relative;min-height:780px;
+    box-shadow:0 24px 70px rgba(120,70,40,.16)}
+  /* soft sunrise wash at the top */
+  #phone::before{content:"";position:absolute;top:0;left:0;right:0;height:240px;z-index:0;
+    background:linear-gradient(180deg,#FCE7D2 0%,#FBF4EA 100%);pointer-events:none}
+  #app{position:relative;z-index:1}
   .pad{padding:22px}
-  .muted{color:var(--ts)} .dim{color:var(--tm)} .accent{color:var(--glow)} .gold{color:var(--gold)}
-  h1{font-size:30px;font-weight:700;letter-spacing:-.5px;line-height:1.1}
+  .muted{color:var(--ink2)} .dim{color:var(--ink3)} .accent{color:var(--coralDeep)} .gold{color:var(--gold)}
+  .twin{color:var(--twin)}
+  h1{font-size:30px;font-weight:700;letter-spacing:-.5px;line-height:1.12}
   h2{font-size:20px;font-weight:600} h3{font-size:15px;font-weight:600}
-  .small{font-size:13px} .tiny{font-size:11.5px} .wordmark{letter-spacing:4px;font-weight:600;font-size:13px;color:var(--glow)}
-  button{font-family:inherit;cursor:pointer;border:none;border-radius:14px;font-size:15px;font-weight:600;
-    padding:15px 18px;width:100%;transition:transform .08s ease,opacity .2s}
-  button:active{transform:scale(.98)}
-  .btn{background:var(--accent);color:#fff} .btn:hover{background:#8b6ef8}
-  .btnGhost{background:transparent;color:var(--glow);border:1px solid var(--accentDim)}
-  .btnSm{width:auto;padding:10px 16px;font-size:13px;border-radius:11px}
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px}
-  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--elev);border:1px solid var(--line);
-    border-radius:999px;padding:6px 12px;font-size:12.5px;color:var(--ts)}
+  .small{font-size:13px} .tiny{font-size:11.5px}
+  .wordmark{letter-spacing:3px;font-weight:700;font-size:13px;color:var(--coralDeep)}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:16px;font-size:15px;font-weight:600;
+    padding:15px 18px;width:100%;transition:transform .08s ease,filter .2s}
+  button:active{transform:scale(.985)}
+  .btn{background:var(--coral);color:#fff;box-shadow:0 8px 18px rgba(236,138,92,.32)} .btn:hover{filter:brightness(1.04)}
+  .btnGhost{background:#fff;color:var(--coralDeep);border:1px solid var(--coralSoft)} .btnGhost:hover{background:var(--soft)}
+  .btnSm{width:auto;padding:9px 15px;font-size:13px;border-radius:12px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;
+    box-shadow:0 6px 18px rgba(120,70,40,.05)}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line2);
+    border-radius:999px;padding:7px 13px;font-size:12.5px;color:var(--ink2);font-weight:500}
   .row{display:flex;gap:10px;align-items:center}
   .col{display:flex;flex-direction:column}
   .sep{height:1px;background:var(--line);margin:16px 0}
-  .pick{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface);cursor:pointer;transition:.15s}
-  .pick:hover{border-color:var(--accentDim)} .pick.sel{border-color:var(--accent);background:#191436}
-  input{width:100%;background:var(--elev);border:1px solid var(--line);border-radius:12px;color:var(--tp);
-    font-size:16px;padding:14px;font-family:inherit;outline:none}
-  input:focus{border-color:var(--accent)}
-  .meter{height:8px;background:var(--elev);border-radius:6px;overflow:hidden}
-  .meter>span{display:block;height:100%;background:linear-gradient(90deg,var(--accentDim),var(--glow));transition:width .6s ease}
-  .overlay{position:absolute;inset:0;background:rgba(5,5,10,.72);display:flex;align-items:flex-end;
-    z-index:30;animation:fade .2s ease}
-  .sheet{background:var(--bg);border-top:1px solid var(--line);border-radius:24px 24px 0 0;width:100%;
-    max-height:92%;overflow:auto;padding:22px;animation:up .28s cubic-bezier(.2,.8,.2,1)}
+  .pick{border:1px solid var(--line);border-radius:16px;padding:14px;background:#fff;cursor:pointer;transition:.15s}
+  .pick:hover{border-color:var(--coralSoft);transform:translateY(-1px)}
+  .pick.sel{border-color:var(--coral);background:var(--coralSoft)}
+  input{width:100%;background:#fff;border:1px solid var(--line2);border-radius:14px;color:var(--ink);
+    font-size:16px;padding:15px;font-family:inherit;outline:none}
+  input::placeholder{color:var(--ink3)}
+  input:focus{border-color:var(--coral);box-shadow:0 0 0 3px var(--coralSoft)}
+  .meter{height:9px;background:var(--elev);border-radius:6px;overflow:hidden}
+  .meter>span{display:block;height:100%;border-radius:6px;
+    background:linear-gradient(90deg,var(--twin),var(--coral));transition:width .6s ease}
+  .overlay{position:absolute;inset:0;background:rgba(70,45,28,.34);display:flex;align-items:flex-end;
+    z-index:30;animation:fade .2s ease;backdrop-filter:blur(2px)}
+  .sheet{background:var(--bg);border-top:1px solid var(--line);border-radius:26px 26px 0 0;width:100%;
+    max-height:92%;overflow:auto;padding:22px;animation:up .28s cubic-bezier(.2,.8,.2,1);
+    box-shadow:0 -16px 50px rgba(120,70,40,.18)}
   @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:translateY(0);opacity:1}}
   @keyframes fade{from{opacity:0}to{opacity:1}}
   .fade{animation:fade .35s ease}
-  .share{background:var(--bg);border:1.5px solid var(--accentDim);border-radius:22px;padding:22px}
-  .toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:var(--elev);
-    border:1px solid var(--accentDim);color:var(--tp);padding:12px 18px;border-radius:12px;font-size:13.5px;
-    z-index:40;animation:fade .2s ease;max-width:88%;text-align:center}
-  .tag{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--tm)}
+  /* the shareable artifact — warm, light, premium, feed-friendly */
+  .share{background:linear-gradient(165deg,#FFFCF8 0%,#FFF1E5 100%);border:1px solid var(--coralSoft);
+    border-radius:24px;padding:22px;box-shadow:0 10px 30px rgba(200,110,60,.14)}
+  .toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);
+    color:#FFF6EE;padding:12px 18px;border-radius:14px;font-size:13.5px;
+    z-index:40;animation:fade .2s ease;max-width:88%;text-align:center;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+  .tag{font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--ink3);font-weight:600}
   .pillRow{display:flex;gap:10px;flex-wrap:wrap}
-  .stat{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:90px}
-  .link{color:var(--glow);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
-  .badge{font-size:10.5px;padding:3px 8px;border-radius:6px;font-weight:600}
-  .badge.free{background:#23233a;color:var(--ts)} .badge.bond{background:#2a2150;color:var(--glow)}
-  .toggle{width:44px;height:26px;border-radius:99px;background:var(--elev);position:relative;cursor:pointer;border:1px solid var(--line)}
-  .toggle.on{background:var(--accentDim)} .knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.18s}
-  .toggle.on .knob{left:20px}
-  .footer{padding:18px 22px 26px;border-top:1px solid var(--line);color:var(--tm);font-size:11.5px;line-height:1.5}
+  .stat{flex:1;background:var(--soft);border:1px solid var(--line);border-radius:16px;padding:14px;min-width:90px}
+  .link{color:var(--coralDeep);cursor:pointer;font-weight:500}
+  .badge{font-size:10.5px;padding:3px 9px;border-radius:7px;font-weight:600}
+  .badge.free{background:var(--elev);color:var(--ink2)} .badge.bond{background:var(--coralSoft);color:var(--coralDeep)}
+  .footer{padding:18px 22px 26px;border-top:1px solid var(--line);color:var(--ink3);font-size:11.5px;line-height:1.55}
 </style>
 </head>
 <body>
@@ -76,14 +91,13 @@ const TEMPERAMENTS = {
   guardian: {label:'The Guardian', emoji:'🛡️', desc:'steady, careful, protective', O:40,C:80,E:35,A:75,N:25},
   spark:    {label:'The Spark', emoji:'⚡', desc:'bold, social, a little reckless', O:65,C:45,E:85,A:55,N:55},
 };
-const THEMES = ['the mist forest','a drowned palace','the crystal maze','a sky citadel','the shadow realm','an ancient ruin'];
+const THEMES = ['the mist forest','a drowned palace','the crystal maze','a sky citadel','the morning fields','an ancient ruin'];
 const MOODS = {calm:'🌊',excited:'⚡',anxious:'🌀',tired:'😴',focused:'🎯',melancholic:'🌧️'};
 
 function load(){ try{return JSON.parse(localStorage.getItem(LS))}catch(e){return null} }
 function save(){ localStorage.setItem(LS, JSON.stringify(state)); }
 let state = load();
 
-// ---------- believable, grounded overnight generation (no real AI) ----------
 function genReport(){
   const t = state.temperament, p = TEMPERAMENTS[t];
   const theme = THEMES[Math.floor(Math.random()*THEMES.length)];
@@ -96,8 +110,8 @@ function genReport(){
     guardian:['carefully picked through','stood watch over','mapped every corner of','held the line in'],
     spark:['charged headlong into','stirred up trouble in','raced across','dared the depths of'],
   }[t];
-  const finds = ['a lantern-moth that followed it home','an old song echoing in the dark','a door that only opens at dawn',
-    'a frightened smaller spirit, and stayed with it','a memory that felt like yours','a quiet place to rest'];
+  const finds = ['a lantern-moth that followed it home','an old song echoing softly','a door that only opens at dawn',
+    'a frightened smaller spirit, and stayed with it','a memory that felt like yours','a warm place to rest'];
   const v = verbs[Math.floor(Math.random()*verbs.length)];
   const f = finds[Math.floor(Math.random()*finds.length)];
   const energy = sleepy ? `${state.name} could feel you hadn't slept much — it took the night gently.`
@@ -124,7 +138,6 @@ function genReflection(){
   return {refl, obs:cap(obs), nudge};
 }
 
-// ---------------------------- screens ----------------------------
 function render(){
   if(!state){ app.appendChild(create()); return; }
   app.innerHTML=''; app.appendChild(home());
@@ -135,15 +148,15 @@ function create(){
   wrap.appendChild($(`<div style="height:18px"></div>`));
   wrap.appendChild($(`<div class="wordmark">EIDOLON</div>`));
   wrap.appendChild($(`<div style="height:26px"></div>`));
-  wrap.appendChild($(`<h1>Meet the AI that<br>becomes <span class="accent">you</span>.</h1>`));
+  wrap.appendChild($(`<h1>Meet the one who<br>adventures while<br>you <span class="accent">sleep</span>.</h1>`));
   wrap.appendChild($(`<div style="height:12px"></div>`));
-  wrap.appendChild($(`<p class="muted" style="line-height:1.6">Give your soul-twin a name and a temperament. It will adventure while you sleep, learn your patterns, and — one day — act for you.</p>`));
+  wrap.appendChild($(`<p class="muted" style="line-height:1.6">Give your soul-twin a name and a heart. It explores while you rest, learns your patterns, and wakes you with a story that's a little like you.</p>`));
   wrap.appendChild($(`<div style="height:24px"></div>`));
   wrap.appendChild($(`<div class="tag">Name your Eidolon</div><div style="height:8px"></div>`));
-  const inp = $(`<input id="nm" placeholder="e.g. Aria, Nyx, Echo…" maxlength="14" />`);
+  const inp = $(`<input id="nm" placeholder="e.g. Aria, Nyx, Hana…" maxlength="14" />`);
   wrap.appendChild(inp);
   wrap.appendChild($(`<div style="height:20px"></div>`));
-  wrap.appendChild($(`<div class="tag">Choose its temperament</div><div style="height:10px"></div>`));
+  wrap.appendChild($(`<div class="tag">Choose its heart</div><div style="height:10px"></div>`));
   let chosen = null;
   Object.entries(TEMPERAMENTS).forEach(([k,v])=>{
     const el = $(`<div class="pick" style="margin-bottom:10px"><div class="row"><div style="font-size:22px">${v.emoji}</div>
@@ -155,85 +168,79 @@ function create(){
   const go = $(`<button class="btn">Bring it to life →</button>`);
   go.onclick=()=>{
     const name=(inp.value||'').trim()||'Aria';
-    if(!chosen){toast('Pick a temperament first');return;}
+    if(!chosen){toast('Pick a heart first 🌱');return;}
     state={name,temperament:chosen,day:1,depth:8,reality:{steps:6200,sleep:7},
       report:null,seenReflection:false,tier:'free',shares:0};
     state.report=genReport(); save(); app.innerHTML=''; app.appendChild(home());
   };
   wrap.appendChild(go);
   wrap.appendChild($(`<div style="height:18px"></div>`));
-  wrap.appendChild($(`<p class="tiny dim" style="text-align:center;line-height:1.5">Demo · no account, no backend. Everything runs on your device. This is the <b>pivot</b> experience: a game that's the wedge, a Twin that's the product.</p>`));
+  wrap.appendChild($(`<p class="tiny dim" style="text-align:center;line-height:1.5">Demo · no account, no backend. The game is the way in — the <b>twin</b> that learns you is the point.</p>`));
   return wrap;
 }
 
 function home(){
   const r = state.report;
   const wrap = $(`<div class="fade"></div>`);
-  // header
   const head = $(`<div class="pad" style="padding-bottom:8px"></div>`);
   head.appendChild($(`<div class="row" style="justify-content:space-between">
     <div class="wordmark">EIDOLON</div>
-    <div class="chip" id="tierChip">${state.tier==='free'?'Free':'★ Bond'} · tap</div></div>`));
+    <div class="chip" id="tierChip">${state.tier==='free'?'Free':'♥ Bond'} · tap</div></div>`));
   head.querySelector('#tierChip').onclick=tiersSheet;
   head.appendChild($(`<div style="height:18px"></div>`));
-  head.appendChild($(`<div class="small dim">Good morning. Day ${state.day} with</div>`));
+  head.appendChild($(`<div class="small dim">Good morning · day ${state.day} with</div>`));
   head.appendChild($(`<h1 style="font-size:34px">${state.name} <span style="font-size:24px">${TEMPERAMENTS[state.temperament].emoji}</span></h1>`));
   wrap.appendChild(head);
 
-  // twin depth (north-star)
   const depth = $(`<div class="pad" style="padding-top:14px;padding-bottom:6px"></div>`);
-  depth.appendChild($(`<div class="row" style="justify-content:space-between"><div class="tag">Twin depth — how well it knows you</div><div class="small accent">${state.depth}%</div></div>`));
+  depth.appendChild($(`<div class="row" style="justify-content:space-between"><div class="tag">How well it knows you</div><div class="small twin" style="font-weight:600">${state.depth}%</div></div>`));
   depth.appendChild($(`<div style="height:8px"></div><div class="meter"><span style="width:${state.depth}%"></span></div>`));
-  depth.appendChild($(`<div class="tiny dim" style="margin-top:8px">This is the moat. It only goes up — and it can't be copied.</div>`));
+  depth.appendChild($(`<div class="tiny dim" style="margin-top:8px">This only grows — and no one else can ever rebuild it.</div>`));
   wrap.appendChild(depth);
 
-  // morning report card
   const rep = $(`<div class="pad" style="padding-top:16px"></div>`);
-  const card = $(`<div class="card" style="cursor:pointer;border-color:var(--accentDim)"></div>`);
-  card.appendChild($(`<div class="row" style="justify-content:space-between"><div class="tag">While you slept</div><div class="small">${MOODS[r.mood]} <span class="gold">+${r.xp} XP</span></div></div>`));
+  const card = $(`<div class="card" style="cursor:pointer"></div>`);
+  card.appendChild($(`<div class="row" style="justify-content:space-between"><div class="tag">While you slept</div><div class="small">${MOODS[r.mood]} <span class="gold" style="font-weight:600">+${r.xp} XP</span></div></div>`));
   card.appendChild($(`<div style="height:12px"></div>`));
-  card.appendChild($(`<div style="font-size:17px;line-height:1.45">${r.highlight}</div>`));
+  card.appendChild($(`<div style="font-size:18px;line-height:1.45">${r.highlight}</div>`));
   card.appendChild($(`<div style="height:12px"></div>`));
-  card.appendChild($(`<div class="small accent">Read the morning report →</div>`));
+  card.appendChild($(`<div class="small accent" style="font-weight:600">Read this morning's story →</div>`));
   card.onclick=reportSheet;
   rep.appendChild(card);
   wrap.appendChild(rep);
 
-  // actions
   const act = $(`<div class="pad" style="padding-top:6px"></div>`);
   const reflBtn = $(`<button class="btnGhost" style="margin-bottom:10px">✨ This week: what I noticed about you</button>`);
   reflBtn.onclick=reflectionSheet;
   act.appendChild(reflBtn);
-  const next = $(`<button class="btn">Sleep → next morning</button>`);
+  const next = $(`<button class="btn">Goodnight → wake to tomorrow</button>`);
   next.onclick=()=>{
     state.day++; state.depth=Math.min(100,state.depth+ (state.tier==='free'?5:9));
     state.report=genReport(); save();
-    app.innerHTML=''; app.appendChild(home()); toast(`${state.name} adventured again. Twin depth +${state.tier==='free'?5:9}%`);
+    app.innerHTML=''; app.appendChild(home()); toast(`${state.name} adventured again · it knows you +${state.tier==='free'?5:9}%`);
   };
   act.appendChild(next);
   wrap.appendChild(act);
 
-  // reality sync
   const rs = $(`<div class="pad" style="padding-top:8px"></div>`);
   const rc = $(`<div class="card"></div>`);
-  rc.appendChild($(`<div class="tag">Reality sync — your real life shapes your twin</div><div style="height:12px"></div>`));
+  rc.appendChild($(`<div class="tag">Your real life shapes the night</div><div style="height:12px"></div>`));
   rc.appendChild(realityRow('Steps today', state.reality.steps.toLocaleString(), 'steps'));
   rc.appendChild($(`<div style="height:10px"></div>`));
   rc.appendChild(realityRow('Sleep last night', state.reality.sleep+'h', 'sleep'));
-  rc.appendChild($(`<div class="tiny dim" style="margin-top:10px">Try toggling these, then tap “next morning” — the night changes with you.</div>`));
+  rc.appendChild($(`<div class="tiny dim" style="margin-top:10px">Change these, then tap “wake to tomorrow” — the night shifts with you.</div>`));
   rs.appendChild(rc);
   wrap.appendChild(rs);
 
-  // pivot footer
   wrap.appendChild($(`<div class="footer">
-    <b style="color:var(--ts)">What you're looking at</b><br>
-    The game is the wedge. The product is the Twin — a private model of you (personality × memory × real-world signals) that compounds daily and, in Act 3, acts on your behalf. Monetization sells the <i>relationship</i>, never power.
+    <b style="color:var(--ink2)">What you're looking at</b><br>
+    The game is the way in. The real thing is the twin — a private picture of you (your heart × your memories × your real days) that deepens every morning and, one day, can act for you.
   </div>`));
   return wrap;
 }
 
 function realityRow(label,val,key){
-  const row=$(`<div class="row" style="justify-content:space-between"><div class="small muted">${label}: <span style="color:var(--tp)">${val}</span></div></div>`);
+  const row=$(`<div class="row" style="justify-content:space-between"><div class="small muted">${label}: <span style="color:var(--ink);font-weight:500">${val}</span></div></div>`);
   const ctrl=$(`<div class="row" style="gap:8px"></div>`);
   const minus=$(`<button class="btnGhost btnSm">−</button>`), plus=$(`<button class="btnGhost btnSm">+</button>`);
   minus.onclick=()=>chg(key,-1); plus.onclick=()=>chg(key,1);
@@ -245,7 +252,6 @@ function chg(key,dir){
   save(); app.innerHTML=''; app.appendChild(home());
 }
 
-// ---------------------------- sheets ----------------------------
 function sheet(builder){
   const ov=$(`<div class="overlay"></div>`); const sh=$(`<div class="sheet"></div>`);
   ov.onclick=(e)=>{if(e.target===ov)ov.remove();};
@@ -255,7 +261,7 @@ function sheet(builder){
 function reportSheet(){
   sheet((sh,close)=>{
     const r=state.report;
-    sh.appendChild($(`<div class="row" style="justify-content:space-between"><div class="tag">Morning report</div><div class="link" id="x">close</div></div>`));
+    sh.appendChild($(`<div class="row" style="justify-content:space-between"><div class="tag">This morning's story</div><div class="link" id="x">close</div></div>`));
     sh.querySelector('#x').onclick=close;
     sh.appendChild($(`<div style="height:14px"></div>`));
     sh.appendChild($(`<div class="small dim">${r.date} · ${r.theme}</div>`));
@@ -266,12 +272,11 @@ function reportSheet(){
       <div class="stat"><div class="tag">Mood</div><div style="font-size:18px;margin-top:4px">${MOODS[r.mood]} ${r.mood}</div></div>
       <div class="stat"><div class="tag">Earned</div><div style="font-size:18px;margin-top:4px" class="gold">+${r.xp} XP</div></div></div>`));
     sh.appendChild($(`<div class="sep"></div>`));
-    sh.appendChild($(`<div class="tag">Share this morning — the growth loop</div><div style="height:10px"></div>`));
-    // share card (matches the Flutter ShareableMorningCard)
+    sh.appendChild($(`<div class="tag">Share this morning</div><div style="height:10px"></div>`));
     sh.appendChild(shareCard(r));
     sh.appendChild($(`<div style="height:14px"></div>`));
-    const sb=$(`<button class="btn">📤 Share this card</button>`);
-    sb.onclick=()=>{state.shares++;state.depth=Math.min(100,state.depth+2);save();toast('Shared! In the real app this posts the card → new users. (Twin depth +2%)');};
+    const sb=$(`<button class="btn">Share this card</button>`);
+    sb.onclick=()=>{state.shares++;state.depth=Math.min(100,state.depth+2);save();toast('Shared 💛 In the real app this posts the card → new people meet their twin.');};
     sh.appendChild(sb);
   });
 }
@@ -280,15 +285,15 @@ function shareCard(r){
   return $(`<div class="share">
     <div class="row" style="justify-content:space-between"><div class="wordmark">EIDOLON</div><div class="tiny dim" style="font-style:italic">while you slept</div></div>
     <div style="height:18px"></div>
-    <div style="font-size:24px;font-weight:600">${state.name}</div>
+    <div style="font-size:24px;font-weight:700">${state.name}</div>
     <div class="small muted" style="margin-top:2px">${r.date} &nbsp;·&nbsp; ${r.theme}</div>
     <div style="height:18px"></div>
-    <div class="row" style="align-items:stretch;gap:13px"><div style="width:3px;background:var(--accent)"></div>
+    <div class="row" style="align-items:stretch;gap:13px"><div style="width:3px;background:var(--coral);border-radius:3px"></div>
       <div style="font-size:20px;line-height:1.4">${r.highlight}</div></div>
     <div style="height:18px"></div>
     <div class="row" style="gap:13px"><div style="font-size:20px">${MOODS[r.mood]}</div><div class="gold small" style="font-weight:600">+${r.xp} XP</div></div>
     <div class="sep"></div>
-    <div class="row" style="justify-content:space-between"><div class="tiny dim" style="max-width:70%">Your AI soul-twin adventures while you sleep.</div><div class="accent tiny" style="font-weight:600">@eidolon</div></div>
+    <div class="row" style="justify-content:space-between"><div class="tiny dim" style="max-width:70%">Your soul-twin adventures while you sleep.</div><div class="accent tiny" style="font-weight:700">@eidolon</div></div>
   </div>`);
 }
 
@@ -297,11 +302,11 @@ function reflectionSheet(){
     sheet((sh,close)=>{
       sh.appendChild($(`<div class="row" style="justify-content:space-between"><div class="tag">Weekly reflection</div><div class="link" id="x">close</div></div>`));
       sh.querySelector('#x').onclick=close;
-      sh.appendChild($(`<div style="height:18px"></div><div style="font-size:34px">🔒</div>`));
+      sh.appendChild($(`<div style="height:18px"></div><div style="font-size:34px">🌼</div>`));
       sh.appendChild($(`<div style="height:10px"></div><h2>“What I noticed about you”</h2>`));
-      sh.appendChild($(`<p class="muted" style="margin-top:10px;line-height:1.6">Once a week, ${state.name} reflects your real patterns back to you — gently, grounded only in what actually happened. This is the <b class="accent">Bond</b> tier: you pay for a deeper relationship, never for power.</p>`));
+      sh.appendChild($(`<p class="muted" style="margin-top:10px;line-height:1.6">Once a week, ${state.name} reflects your real patterns back to you — gently, only from what truly happened. This is the <b class="accent">Bond</b>: you pay for a closer relationship, never for power.</p>`));
       sh.appendChild($(`<div style="height:18px"></div>`));
-      const up=$(`<button class="btn">Unlock Bond in this demo</button>`); up.onclick=()=>{close();tiersSheet();};
+      const up=$(`<button class="btn">Try Bond in this demo</button>`); up.onclick=()=>{close();tiersSheet();};
       sh.appendChild(up);
     });
     return;
@@ -311,34 +316,34 @@ function reflectionSheet(){
     sh.appendChild($(`<div class="row" style="justify-content:space-between"><div class="tag">From ${state.name}, this week</div><div class="link" id="x">close</div></div>`));
     sh.querySelector('#x').onclick=close;
     sh.appendChild($(`<div style="height:16px"></div>`));
-    sh.appendChild($(`<p style="font-size:17px;line-height:1.8">${x.refl}</p>`));
+    sh.appendChild($(`<p style="font-size:17px;line-height:1.85">${x.refl}</p>`));
     sh.appendChild($(`<div class="sep"></div>`));
     sh.appendChild($(`<div class="tag">One thing I noticed</div><div style="height:6px"></div><p class="muted" style="line-height:1.6">${x.obs}</p>`));
-    if(x.nudge){sh.appendChild($(`<div style="height:14px"></div><div class="card" style="border-color:var(--accentDim)"><div class="small accent">${x.nudge}</div></div>`));}
-    sh.appendChild($(`<div class="tiny dim" style="margin-top:16px">Grounded in your real signals · never guilt, never streaks, never “who you really are.” (Doctrines D5/D7/D2.)</div>`));
+    if(x.nudge){sh.appendChild($(`<div style="height:14px"></div><div class="card" style="background:var(--coralSoft);border-color:var(--coralSoft)"><div class="small" style="color:var(--coralDeep)">${x.nudge}</div></div>`));}
+    sh.appendChild($(`<div class="tiny dim" style="margin-top:16px">Grounded in your real days · never guilt, never streaks, never “who you really are.”</div>`));
   });
 }
 
 function tiersSheet(){
   sheet((sh,close)=>{
-    sh.appendChild($(`<div class="row" style="justify-content:space-between"><div class="tag">Monetize the relationship, never power</div><div class="link" id="x">close</div></div>`));
+    sh.appendChild($(`<div class="row" style="justify-content:space-between"><div class="tag">Pay for closeness, never power</div><div class="link" id="x">close</div></div>`));
     sh.querySelector('#x').onclick=close;
     sh.appendChild($(`<div style="height:16px"></div>`));
     const mk=(name,badge,price,feats,tierKey)=>{
-      const c=$(`<div class="card" style="margin-bottom:12px;${state.tier===tierKey?'border-color:var(--accent)':''}"></div>`);
+      const c=$(`<div class="card" style="margin-bottom:12px;${state.tier===tierKey?'border-color:var(--coral)':''}"></div>`);
       c.appendChild($(`<div class="row" style="justify-content:space-between"><div class="row" style="gap:8px"><h3>${name}</h3><span class="badge ${tierKey==='free'?'free':'bond'}">${badge}</span></div><div class="small muted">${price}</div></div>`));
       c.appendChild($(`<div style="height:10px"></div>`));
       feats.forEach(f=>c.appendChild($(`<div class="small muted" style="margin:4px 0">${f}</div>`)));
       if(state.tier!==tierKey){const b=$(`<button class="btnGhost btnSm" style="width:100%;margin-top:12px">Switch to ${name} (demo)</button>`);
-        b.onclick=()=>{state.tier=tierKey;save();close();toast(tierKey==='bond'?'Bond unlocked — reflections + deeper memory on.':'Back to Free.');app.innerHTML='';app.appendChild(home());};c.appendChild(b);}
-      else c.appendChild($(`<div class="small accent" style="margin-top:12px">✓ current</div>`));
+        b.onclick=()=>{state.tier=tierKey;save();close();toast(tierKey==='bond'?'Bond on 💛 reflections + a longer memory.':'Back to Free.');app.innerHTML='';app.appendChild(home());};c.appendChild(b);}
+      else c.appendChild($(`<div class="small accent" style="margin-top:12px;font-weight:600">✓ current</div>`));
       return c;
     };
-    sh.appendChild(mk('Free','wedge','—',
-      ['• The game + a basic Twin','• 30-day memory','• Runs on the fast model (Haiku)','• Cosmetic-only gacha'],'free'));
-    sh.appendChild(mk('Bond','relationship','$9.99/mo',
-      ['• Weekly “what I noticed about you”','• 6-month memory horizon','• Premium cognition (Sonnet)','• Voice + personality customization'],'bond'));
-    sh.appendChild($(`<div class="tiny dim" style="margin-top:4px">Premium = the deeper model, so the heavy AI cost is paid by the people who pay. Fixes the unit-economics hole — and never sells an advantage.</div>`));
+    sh.appendChild(mk('Free','the game','—',
+      ['· The game + a young twin','· 30-day memory','· Cosmetic-only collectibles','· Wakes you with a story each day'],'free'));
+    sh.appendChild(mk('Bond','closeness','$9.99/mo',
+      ['· Weekly “what I noticed about you”','· 6-month memory — it remembers more of you','· A sharper, more present twin','· Voice + how it looks & feels'],'bond'));
+    sh.appendChild($(`<div class="tiny dim" style="margin-top:4px">The deeper tier costs more to run, so the people who pay fund the heavy lifting — and you never buy an advantage over anyone.</div>`));
   });
 }
 
@@ -349,7 +354,6 @@ function toast(msg){
   clearTimeout(toastT); toastT=setTimeout(()=>t.remove(),3200);
 }
 
-// reset helper for reviewers
 window.eidolonReset=()=>{localStorage.removeItem(LS);location.reload();};
 
 render();
