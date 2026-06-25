@@ -89,8 +89,10 @@ const HEARTS = {
 const THEMES = ['the mist forest','a drowned palace','the crystal maze','a sky citadel','the morning fields','an old ruin'];
 const MOODS = {calm:'🌊',excited:'⚡',anxious:'🌀',tired:'😴',focused:'🎯',melancholic:'🌧️'};
 
+// localStorage may be blocked (sandboxed iframe → SecurityError). Never let that
+// break the app: persistence is best-effort; state lives in memory regardless.
 const load=()=>{try{return JSON.parse(localStorage.getItem(LS))}catch(e){return null}};
-const save=()=>localStorage.setItem(LS, JSON.stringify(state));
+const save=()=>{try{localStorage.setItem(LS, JSON.stringify(state))}catch(e){}};
 let state = load();
 
 function genReport(){
@@ -306,7 +308,7 @@ function toast(msg){ const o=document.querySelector('.toast'); if(o)o.remove();
   const t=$(`<div class="toast">${msg}</div>`); document.getElementById('phone').appendChild(t);
   clearTimeout(toastT); toastT=setTimeout(()=>t.remove(),3000); }
 
-window.eidolonReset=()=>{localStorage.removeItem(LS);location.reload();};
+window.eidolonReset=()=>{try{localStorage.removeItem(LS)}catch(e){} state=null; render();};
 render();
 </script>
 </body>
