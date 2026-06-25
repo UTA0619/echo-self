@@ -10,12 +10,12 @@
      Light & airy, never dark, with a soft sky-blue + silver identity and one warm
      sun note. Token names kept (--clay = the sky-blue accent) so logic is untouched. */
   :root{
-    --bg:#EDF1F5; --surface:#FFFFFF; --soft:#F6F9FC; --elev:#E3EAF1;
-    --clay:#5B95C7; --clayDeep:#33618E; --claySoft:#DCEAF6;   /* sky-blue accent family */
-    --silver:#BFCAD5; --steel:#7E8C99;                         /* metal / structure */
-    --gold:#CC9242;                                            /* warm morning sun (sparingly) */
-    --ink:#27303B; --ink2:#5C6975; --ink3:#9AA7B3;             /* cool slate text */
-    --line:rgba(40,55,75,.09); --line2:rgba(40,55,75,.15);
+    --bg:#E7EDF4; --surface:#FFFFFF; --soft:#F3F7FB; --elev:#DDE6EF;
+    --clay:#2E86D6; --clayDeep:#1E5A92; --claySoft:#CFE4F7;    /* stronger sky-blue accent */
+    --silver:#A2B0BE; --steel:#5A6A78;                          /* metallic iron / structure */
+    --gold:#CC9242;                                             /* warm morning sun (one note) */
+    --ink:#202935; --ink2:#586674; --ink3:#94A2B0;              /* cool steel-slate text */
+    --line:rgba(35,55,80,.10); --line2:rgba(35,55,80,.17);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{background:#E4E9EF;color:var(--ink);
@@ -26,7 +26,7 @@
     box-shadow:0 24px 64px rgba(50,70,100,.16)}
   /* dawn: the cool pre-dawn sky fading into warm morning light */
   #phone::before{content:"";position:absolute;top:0;left:0;right:0;height:230px;z-index:0;
-    background:linear-gradient(180deg,#DCE6F2 0%,#E8EEF4 55%,#EFEEEA 100%);pointer-events:none}
+    background:linear-gradient(180deg,#BFD6F0 0%,#DBE6F1 55%,#EDEDEA 100%);pointer-events:none}
   #app{position:relative;z-index:1}
   .pad{padding:26px 24px}
   .muted{color:var(--ink2)} .dim{color:var(--ink3)} .accent{color:var(--clayDeep)} .gold{color:var(--gold)}
@@ -42,8 +42,9 @@
   .btnSm{width:auto;padding:9px 14px;font-size:14px;border-radius:11px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;
     box-shadow:0 4px 14px rgba(90,60,35,.04)}
-  .chip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line2);
-    border-radius:999px;padding:7px 13px;font-size:12.5px;color:var(--ink2);font-weight:500;cursor:pointer}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(180deg,#FBFCFE,#E7ECF2);
+    border:1px solid var(--silver);border-radius:999px;padding:7px 13px;font-size:12.5px;
+    color:var(--steel);font-weight:600;cursor:pointer;box-shadow:inset 0 1px 0 #fff}
   .row{display:flex;gap:10px;align-items:center} .between{justify-content:space-between}
   .col{display:flex;flex-direction:column}
   .sep{height:1px;background:var(--line);margin:18px 0}
@@ -55,8 +56,10 @@
   input::placeholder{color:var(--ink3)}
   input:focus{border-color:var(--clay)}
   .meter{height:8px;background:var(--elev);border-radius:6px;overflow:hidden;margin-top:9px}
+  .meter{height:8px;background:var(--elev);border-radius:6px;overflow:hidden;margin-top:9px;
+    border:1px solid rgba(35,55,80,.06)}
   .meter>span{display:block;height:100%;border-radius:6px;
-    background:linear-gradient(90deg,var(--silver),var(--clay));transition:width .6s ease}
+    background:linear-gradient(90deg,var(--steel),var(--clay));transition:width .6s ease}
   .overlay{position:absolute;inset:0;background:rgba(55,38,24,.32);display:flex;align-items:flex-end;
     z-index:30;animation:fade .2s}
   .sheet{background:var(--bg);border-radius:26px 26px 0 0;width:100%;max-height:92%;overflow:auto;
