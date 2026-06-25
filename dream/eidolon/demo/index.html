@@ -158,7 +158,9 @@ function create(){
   go.onclick=()=>{
     if(!chosen){toast('Choose a heart first');return;}
     state={name:(inp.value||'').trim()||'Aria',temperament:chosen,day:1,depth:8,
-      reality:{steps:6200,sleep:7},report:null,tier:'free'};
+      reality:{steps:6200,sleep:7},report:null,tier:'free',
+      cosmetic:{auraId:'aura_star',aura:'✨',auraName:'Starlight',voiceId:'voice_soft',voiceName:'Soft'},
+      owned:['aura_star','voice_soft'],ordered:false};
     state.report=genReport(); save(); render();
   };
   w.appendChild(go);
@@ -166,6 +168,9 @@ function create(){
 }
 
 function home(){
+  // back-compat for states saved before cosmetics existed
+  state.cosmetic = state.cosmetic || {auraId:'aura_star',aura:'✨',auraName:'Starlight',voiceId:'voice_soft',voiceName:'Soft'};
+  state.owned = state.owned || ['aura_star','voice_soft'];
   const r=state.report, h=HEARTS[state.temperament];
   const w=$(`<div class="fade"></div>`);
   const head=$(`<div class="pad" style="padding-bottom:6px"></div>`);
@@ -175,7 +180,7 @@ function home(){
   top.appendChild(chip); head.appendChild(top);
   head.appendChild(sp(20));
   head.appendChild($(`<div class="small dim">good morning</div>`));
-  head.appendChild($(`<h1 style="font-size:33px;font-weight:700">${state.name} <span style="font-size:23px">${h.emoji}</span></h1>`));
+  head.appendChild($(`<h1 style="font-size:33px;font-weight:700">${state.name} <span style="font-size:22px">${state.cosmetic.aura}</span></h1>`));
   w.appendChild(head);
 
   const dep=$(`<div class="pad" style="padding-top:14px;padding-bottom:6px"></div>`);
@@ -197,6 +202,12 @@ function home(){
   card.appendChild(sp(12));
   card.appendChild($(`<div class="small accent" style="font-weight:600">Read the story →</div>`));
   card.onclick=reportSheet; rep.appendChild(card); w.appendChild(rep);
+
+  const studio=$(`<div class="pad" style="padding-top:14px"></div>`);
+  const srow=$(`<div class="row" style="gap:10px"></div>`);
+  const dress=$(`<button class="btnGhost" type="button" style="flex:1">Dress up</button>`); dress.onclick=expressionSheet;
+  const chron=$(`<button class="btnGhost" type="button" style="flex:1">Chronicle</button>`); chron.onclick=keepsakeSheet;
+  srow.appendChild(dress); srow.appendChild(chron); studio.appendChild(srow); w.appendChild(studio);
 
   const act=$(`<div class="pad" style="padding-top:8px"></div>`);
   const rb=$(`<button class="btnGhost" type="button" style="margin-bottom:11px">What I noticed about you</button>`);
@@ -270,7 +281,7 @@ function shareCard(r){ return $(`<div class="share">
   <div class="row" style="align-items:stretch;gap:13px"><div style="width:3px;background:var(--clay);border-radius:3px"></div>
     <div style="font-size:20px;line-height:1.4">${r.highlight}</div></div>
   <div style="height:18px"></div>
-  <div class="row" style="gap:12px"><div style="font-size:19px">${MOODS[r.mood]}</div><div class="gold small" style="font-weight:600">+${r.xp} XP</div></div>
+  <div class="row" style="gap:12px"><div style="font-size:19px">${MOODS[r.mood]} ${state.cosmetic.aura}</div><div class="gold small" style="font-weight:600">+${r.xp} XP</div></div>
   <div class="sep"></div>
   <div class="row between"><div class="tiny dim">Your soul-twin adventures while you sleep.</div><div class="accent tiny" style="font-weight:700">@eidolon</div></div>
 </div>`); }
@@ -311,6 +322,87 @@ function tiersSheet(){ sheet((sh,close)=>{
   };
   sh.appendChild(mk('Free','the game','—',['· A young twin','· 30-day memory','· Cosmetics only'],'free'));
   sh.appendChild(mk('Bond','closeness','$9.99 / mo',['· Weekly reflection','· 6-month memory','· A sharper, more present twin','· Voice + how it looks'],'bond'));
+}); }
+
+// ── Expression: looks & voice (cosmetic only — Layer 2, the high-margin engine) ──
+function cosmeticGrid(items, kind){
+  const g=$(`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px"></div>`);
+  items.forEach(it=>{
+    const owned=state.owned.includes(it.id);
+    const equipped = kind==='aura' ? state.cosmetic.auraId===it.id : state.cosmetic.voiceId===it.id;
+    const locked = it.bond && !owned && state.tier!=='bond';
+    const cell=$(`<div class="pick" style="margin:0;text-align:center;padding:13px 6px;${equipped?'border-color:var(--clay);background:var(--claySoft)':''}"></div>`);
+    cell.appendChild($(`<div style="font-size:25px">${it.emoji}</div>`));
+    cell.appendChild($(`<div class="small" style="margin-top:5px;font-weight:500">${it.name}</div>`));
+    const tagTxt = equipped?'✓ on' : owned?'owned' : locked?'Bond' : (it.price===0?'free':'¥'+it.price);
+    cell.appendChild($(`<div class="tiny ${equipped?'accent':(locked?'':'dim')}" style="margin-top:3px;${locked?'color:var(--clay)':''}">${tagTxt}</div>`));
+    cell.onclick=()=>{
+      if(locked){ toast('This one comes with Bond 🤍'); return; }
+      if(!owned){ state.owned.push(it.id); toast(it.price?('Unlocked · ¥'+it.price+' (demo)'):'Equipped'); }
+      if(kind==='aura'){ state.cosmetic.auraId=it.id; state.cosmetic.aura=it.emoji; state.cosmetic.auraName=it.name; }
+      else { state.cosmetic.voiceId=it.id; state.cosmetic.voiceName=it.name; }
+      save(); document.querySelectorAll('.overlay').forEach(o=>o.remove()); render(); expressionSheet();
+    };
+    g.appendChild(cell);
+  });
+  return g;
+}
+function expressionSheet(){ sheet((sh,close)=>{
+  head2(sh,`make ${state.name} yours`,close); sh.appendChild(sp(6));
+  sh.appendChild($(`<div class="small dim">Looks & voice only — never an advantage in the game.</div>`)); sh.appendChild(sp(18));
+  sh.appendChild($(`<div class="tag">aura</div>`)); sh.appendChild(sp(10));
+  sh.appendChild(cosmeticGrid([
+    {id:'aura_star',emoji:'✨',name:'Starlight',price:0},
+    {id:'aura_tide',emoji:'🌊',name:'Tide',price:240},
+    {id:'aura_ember',emoji:'🔥',name:'Ember',price:240},
+    {id:'aura_bloom',emoji:'🌸',name:'Bloom',price:360},
+    {id:'aura_lunar',emoji:'🌙',name:'Lunar',price:480,bond:true},
+    {id:'aura_aurora',emoji:'🌌',name:'Aurora',price:600,bond:true},
+  ],'aura'));
+  sh.appendChild($(`<div class="sep"></div>`));
+  sh.appendChild($(`<div class="tag">voice</div>`)); sh.appendChild(sp(10));
+  sh.appendChild(cosmeticGrid([
+    {id:'voice_soft',emoji:'🕊️',name:'Soft',price:0},
+    {id:'voice_bright',emoji:'☀️',name:'Bright',price:300},
+    {id:'voice_low',emoji:'🌫️',name:'Low',price:300,bond:true},
+  ],'voice'));
+  sh.appendChild(sp(8));
+  sh.appendChild($(`<div class="tiny dim">Cosmetics are how a companion app earns in Japan — high-margin, and it never sells power.</div>`));
+}); }
+
+// ── Keepsake: the chronicle (Layer 3 — only the memory thesis can sell this) ──
+function chronicleCard(){
+  const months = state.day>=30?'Year One':'Chapter One';
+  return $(`<div class="share">
+    <div class="row between"><div class="wordmark">CHRONICLE</div><div class="tiny dim">${state.day} mornings</div></div>
+    <div style="height:16px"></div>
+    <div style="font-size:23px;font-weight:700">${state.name} · ${months}</div>
+    <div class="small muted" style="margin-top:4px;line-height:1.6">From the first morning you met, through ${state.day} quiet dawns together — every story it brought home, kept in one place.</div>
+    <div style="height:16px"></div>
+    <div class="row" style="align-items:stretch;gap:13px"><div style="width:3px;background:var(--clay);border-radius:3px"></div>
+      <div style="font-size:15px;line-height:1.5;color:var(--ink2)"><i>“${state.report?state.report.highlight:''}”</i> — and ${Math.max(1,state.day-1)} more.</div></div>
+    <div class="sep"></div>
+    <div class="row between"><div class="tiny dim">A keepsake of the year your twin knew you.</div><div class="accent tiny" style="font-weight:700">@eidolon</div></div>
+  </div>`);
+}
+function offerRow(title, sub, price, onBuy){
+  const c=$(`<div class="card" style="margin-bottom:11px"></div>`);
+  const r=$(`<div class="row between"></div>`);
+  r.appendChild($(`<div class="col"><div style="font-weight:600;font-size:15px">${title}</div><div class="small dim" style="margin-top:2px">${sub}</div></div>`));
+  const b=$(`<button class="btnGhost btnSm" type="button">${price}</button>`); b.onclick=onBuy;
+  r.appendChild(b); c.appendChild(r); return c;
+}
+function keepsakeSheet(){ sheet((sh,close)=>{
+  head2(sh,`${state.name}'s chronicle`,close); sh.appendChild(sp(14));
+  sh.appendChild(chronicleCard()); sh.appendChild(sp(18));
+  sh.appendChild($(`<div class="tag">keep it forever</div>`)); sh.appendChild(sp(10));
+  sh.appendChild(offerRow('Digital chronicle','Revisit every morning, anytime',
+    state.tier==='bond'?'included':'¥480',
+    ()=>{ if(state.tier==='bond'){toast('Already yours with Bond 🤍');} else {toast('Unlocked · ¥480 (demo)');} }));
+  sh.appendChild(offerRow('Printed book','A real hardcover, shipped to you','¥3,800',
+    ()=>{ state.ordered=true; save(); toast('Ordered 📖 (demo) — your twin, on your shelf.'); }));
+  sh.appendChild(sp(6));
+  sh.appendChild($(`<div class="tiny dim">No competitor can sell this — only the twin that actually remembered your year.</div>`));
 }); }
 
 let toastT;
