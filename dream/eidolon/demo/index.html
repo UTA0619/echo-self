@@ -106,14 +106,23 @@ const SAMPLES=[
   {who:'恋人',draft:'なんで既読無視するの?ずっと待ってたんだけど。',
    read:'「非難」の形になっています。相手は責められたと感じて、防御に入りがち。',
    after:'返信を待ってたから、ちょっと寂しかったよ。忙しかった?',
+   tones:{soft:'ムリしてなければいいけど…返信もらえると安心するな。時間ある時でいいよ🙂',
+     firm:'待ってる間、少し不安だったよ。読んだら一言だけでも返してくれると嬉しい。',
+     humor:'既読の妖精にさらわれたのかと思ったよ😂 生きてる?笑'},
    why:'“非難”を“自分の気持ち＋相手を気づかう質問”に変えると、同じ本音でも相手は受け取りやすくなります。'},
   {who:'友達',draft:'また遅刻?いつもそうだよね。',
    read:'事実は正しくても「決めつけ」に聞こえ、相手は言い返したくなります。',
    after:'待ってたよ〜。次からひと言くれると助かるな。',
+   tones:{soft:'大丈夫?何かあったかと思っちゃった。次は連絡くれたら安心だな😊',
+     firm:'正直けっこう待った…。遅れる時は先に一報ほしいな。',
+     humor:'また遅刻界の王者きたな👑 次は連絡だけでも頼むよ〜笑'},
    why:'過去の断罪より「これからの小さなお願い」にすると、角が立たず伝わります。'},
   {who:'職場',draft:'そのやり方は非効率だと思います。',
    read:'正論ですが、相手のやり方を否定する入りで、場が固くなります。',
    after:'いいですね。ひとつ、こうするともっと速くなるかもと思ったんですが、どうでしょう?',
+   tones:{soft:'すごく良いと思います!差し出がましいですが、ここだけ少し工夫すると更に良いかも…いかがでしょう?',
+     firm:'方向性は賛成です。効率の観点で一点、こう変える提案があります。検討いただけますか?',
+     humor:'ナイスです!ここだけ“時短の魔法”かけたら最強かもです✨ どうでしょう?'},
    why:'“否定”ではなく“肯定＋提案＋相手に委ねる質問”にすると、意見が通りやすくなります。'},
 ];
 const ACTS=[
@@ -241,56 +250,95 @@ function sheet(builder){const ov=$(`<div class="overlay"></div>`),sh=$(`<div cla
   ov.onclick=e=>{if(e.target===ov)ov.remove();};builder(sh,()=>ov.remove());ov.appendChild(sh);document.getElementById('phone').appendChild(ov);}
 function head2(sh,label,close){const r=$(`<div class="row between"></div>`);r.appendChild($(`<div class="tag">${label}</div>`));const x=$(`<div class="link">閉じる</div>`);x.onclick=close;r.appendChild(x);sh.appendChild(r);}
 
-// ── 言い方相談 (the showpiece) ──
+// copy to clipboard so the suggestion goes straight into LINE / WhatsApp
+function copyText(t){
+  const ok=()=>toast('コピーしました。あとは貼るだけ 📋');
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok).catch(()=>fb(t,ok));}
+  else fb(t,ok);
+}
+function fb(t,ok){try{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();document.execCommand('copy');document.body.removeChild(ta);ok();}catch(e){toast('コピーできませんでした');}}
+
+// ── 言い方相談 (the showpiece): text OR screenshot input ──
 function adviceSheet(){
-  let who='恋人', draft='';
+  let who='恋人', draft='', mode='text', img=null;
   sheet((sh,close)=>{
     function draw(){
       sh.innerHTML='';
       head2(sh,'送る前に相談',close); sh.appendChild(sp(14));
+      const mt=$(`<div class="row" style="gap:8px"></div>`);
+      const t1=$(`<div class="chip ${mode==='text'?'sel':''}">✏️ テキスト</div>`); t1.onclick=()=>{mode='text';draw();};
+      const t2=$(`<div class="chip ${mode==='image'?'sel':''}">📷 スクショ</div>`); t2.onclick=()=>{mode='image';draw();};
+      mt.appendChild(t1);mt.appendChild(t2); sh.appendChild(mt); sh.appendChild(sp(16));
       sh.appendChild($(`<div class="tag">誰に送る?</div>`)); sh.appendChild(sp(9));
       const g=$(`<div class="row wrap" style="gap:8px"></div>`);
       ['恋人','友達','職場','家族'].forEach(x=>{const c=$(`<div class="chip ${who===x?'sel':''}">${x}</div>`);c.onclick=()=>{who=x;draw();};g.appendChild(c);});
       sh.appendChild(g); sh.appendChild(sp(16));
-      sh.appendChild($(`<div class="tag">送ろうとしている文</div>`)); sh.appendChild(sp(9));
-      const ta=$(`<textarea rows="3" placeholder="そのまま貼り付けてOK。">${draft}</textarea>`); ta.oninput=e=>draft=e.target.value; sh.appendChild(ta);
-      sh.appendChild(sp(10));
-      sh.appendChild($(`<div class="tiny dim">例をタップして試す：</div>`)); sh.appendChild(sp(8));
-      const ex=$(`<div class="row wrap" style="gap:8px"></div>`);
-      SAMPLES.forEach(s=>{const c=$(`<div class="chip mini">${s.draft.slice(0,12)}…</div>`);c.onclick=()=>{who=s.who;draft=s.draft;draw();};ex.appendChild(c);});
-      sh.appendChild(ex); sh.appendChild(sp(16));
+      if(mode==='text'){
+        sh.appendChild($(`<div class="tag">送ろうとしている文</div>`)); sh.appendChild(sp(9));
+        const ta=$(`<textarea rows="3" placeholder="そのまま貼り付けてOK。">${draft}</textarea>`); ta.oninput=e=>draft=e.target.value; sh.appendChild(ta);
+        sh.appendChild(sp(10)); sh.appendChild($(`<div class="tiny dim">例をタップして試す：</div>`)); sh.appendChild(sp(8));
+        const ex=$(`<div class="row wrap" style="gap:8px"></div>`);
+        SAMPLES.forEach(s=>{const c=$(`<div class="chip mini">${s.draft.slice(0,12)}…</div>`);c.onclick=()=>{who=s.who;draft=s.draft;mode='text';draw();};ex.appendChild(c);});
+        sh.appendChild(ex);
+      } else {
+        sh.appendChild($(`<div class="tag">会話のスクショを貼る（LINE / WhatsApp）</div>`)); sh.appendChild(sp(9));
+        if(!img){
+          const fi=$(`<input type="file" accept="image/*" style="display:none">`);
+          const pick=$(`<button class="btnGhost" type="button">📷 スクショを選ぶ</button>`);
+          pick.onclick=()=>fi.click();
+          fi.onchange=()=>{const f=fi.files&&fi.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{img=rd.result;const s=SAMPLES[0];draft=s.draft;who=s.who;draw();};rd.readAsDataURL(f);};
+          sh.appendChild(pick); sh.appendChild(fi);
+          sh.appendChild(sp(10)); sh.appendChild($(`<div class="tiny dim">選ぶと、AIが会話の文面を読み取ります。</div>`));
+        } else {
+          sh.appendChild($(`<img src="${img}" style="width:100%;border-radius:14px;border:1px solid var(--line);max-height:200px;object-fit:cover"/>`)); sh.appendChild(sp(12));
+          sh.appendChild($(`<div class="tag green">AIが読み取った文（デモ）</div>`)); sh.appendChild(sp(8));
+          sh.appendChild($(`<div class="before" style="background:var(--soft);border-color:var(--line)">${draft}</div>`));
+          const re=$(`<div class="link" style="margin-top:10px">別の画像を選ぶ</div>`); re.onclick=()=>{img=null;draft='';draw();}; sh.appendChild(re);
+        }
+      }
+      sh.appendChild(sp(16));
       const b=$(`<button class="btn" type="button">エイドロンに聞く</button>`);
-      b.onclick=()=>{ if(!draft.trim()){toast('文を入力してください');return;} showAdvice(sh,close,who,draft.trim()); };
+      b.onclick=()=>{ if(!draft.trim()){toast(mode==='image'?'スクショを選んでください':'文を入力してください');return;} showAdvice(sh,close,who,draft.trim()); };
       sh.appendChild(b);
     }
     draw();
   });
 }
+function freeVariants(d){const base=softEN(d);return{balance:base,soft:'ムリしてなければいいんだけど、'+base,firm:'正直に言うね。'+base,humor:base+'（なんてね、笑）'};}
 function showAdvice(sh,close,who,draft){
-  const s=SAMPLES.find(x=>x.draft===draft);
-  const ty=state.type;
+  const s=SAMPLES.find(x=>x.draft===draft), ty=state.type;
   const read = s? s.read : `${ty.includes('T')?'あなたの“率直さ”が出ています。正直だけど、':'この言い方だと、'}相手は少し身構えるかもしれません。`;
-  const after = s? s.after : softEN(draft);
   const why = s? s.why : `“事実の指摘”に“あなたの気持ち”と“相手への一問”を足すと、同じ本音でも角が取れて届きます。`;
-  sh.innerHTML='';
-  head2(sh,`${who}への言い方`,close); sh.appendChild(sp(16));
-  sh.appendChild($(`<div class="tag">いまの文（そのまま）</div>`)); sh.appendChild(sp(8));
-  sh.appendChild($(`<div class="before">${draft}</div>`)); sh.appendChild(sp(14));
-  sh.appendChild($(`<div class="tag">エイドロンの見立て</div>`)); sh.appendChild(sp(8));
-  sh.appendChild($(`<div class="small muted lh">${read}</div>`)); sh.appendChild(sp(16));
-  sh.appendChild($(`<div class="tag green">あなたらしい、届く言い方</div>`)); sh.appendChild(sp(8));
-  sh.appendChild($(`<div class="after">${after}</div>`)); sh.appendChild(sp(12));
-  sh.appendChild($(`<div class="small muted lh"><b class="accent">なぜ:</b> ${why}</div>`)); sh.appendChild(sp(18));
-  const b=$(`<button class="btn" type="button">これで送る（コピー）</button>`);
-  b.onclick=()=>{state.growth=Math.min(100,state.growth+6);state.saved++;save();close();render();toast('送信前に立ち止まれました 🤍 成長 +6%');};
-  sh.appendChild(b);
-  sh.appendChild(sp(10));
-  sh.appendChild($(`<div class="tiny dim" style="text-align:center">Bondなら、この会話の相手ごとにあなたの傾向を覚えて、もっと的確に。</div>`));
+  const V = s? {balance:s.after,soft:s.tones.soft,firm:s.tones.firm,humor:s.tones.humor} : freeVariants(draft);
+  let tone='balance';
+  function drawA(){
+    sh.innerHTML='';
+    head2(sh,`${who}への言い方`,close); sh.appendChild(sp(16));
+    sh.appendChild($(`<div class="tag">いまの文（そのまま）</div>`)); sh.appendChild(sp(8));
+    sh.appendChild($(`<div class="before">${draft}</div>`)); sh.appendChild(sp(14));
+    sh.appendChild($(`<div class="tag">エイドロンの見立て</div>`)); sh.appendChild(sp(8));
+    sh.appendChild($(`<div class="small muted lh">${read}</div>`)); sh.appendChild(sp(16));
+    sh.appendChild($(`<div class="tag green">あなたらしい、届く言い方</div>`)); sh.appendChild(sp(8));
+    sh.appendChild($(`<div class="after">${V[tone]}</div>`)); sh.appendChild(sp(10));
+    const cp=$(`<button class="btnGhost btnSm" type="button" style="width:100%">📋 コピーして LINE に貼る</button>`);
+    cp.onclick=()=>copyText(V[tone]); sh.appendChild(cp); sh.appendChild(sp(14));
+    sh.appendChild($(`<div class="tag">トーンを変える${state.tier!=='bond'?' <span style="color:var(--gold)">· Bond</span>':''}</div>`)); sh.appendChild(sp(9));
+    const tr=$(`<div class="row wrap" style="gap:8px"></div>`);
+    [['balance','ちょうどよく'],['soft','やさしめ'],['firm','はっきり'],['humor','ユーモア']].forEach(([k,l])=>{
+      const c=$(`<div class="chip mini ${tone===k?'sel':''}">${l}</div>`);
+      c.onclick=()=>{ if(k!=='balance'&&state.tier!=='bond'){toast('トーンの出し分けは Bond 🤍');return;} tone=k; drawA(); };
+      tr.appendChild(c);
+    });
+    sh.appendChild(tr); sh.appendChild(sp(16));
+    sh.appendChild($(`<div class="small muted lh"><b class="accent">なぜ:</b> ${why}</div>`)); sh.appendChild(sp(18));
+    const b=$(`<button class="btn" type="button">これで送る（コピー）</button>`);
+    b.onclick=()=>{copyText(V[tone]);state.growth=Math.min(100,state.growth+6);state.saved++;save();close();render();toast('コピー＆送信前に立ち止まれました 🤍 +6%');};
+    sh.appendChild(b);
+  }
+  drawA();
 }
-function softEN(t){ // light heuristic softening for free text (demo)
-  let s=t.replace(/なんで/g,'').replace(/いつも/g,'').replace(/絶対/g,'');
-  return `${s.replace(/[。!？?]*$/,'')}… と感じたよ。あなたはどう思ってた?`;
-}
+function softEN(t){ let s=t.replace(/なんで/g,'').replace(/いつも/g,'').replace(/絶対/g,'');
+  return `${s.replace(/[。!？?]*$/,'')}… と感じたよ。あなたはどう思ってた?`; }
 
 function actSheet(){
   sheet((sh,close)=>{
@@ -329,13 +377,15 @@ function tiersSheet(){sheet((sh,close)=>{
     if(state.tier!==key){const b=$(`<button class="btnGhost btnSm" type="button" style="width:100%;margin-top:12px">${name}にする</button>`);
       b.onclick=()=>{state.tier=key;save();close();render();toast(key==='bond'?'Bond 🤍 無制限相談・記憶・練習・声':'Freeに戻しました');};c.appendChild(b);}
     else c.appendChild($(`<div class="small accent" style="margin-top:12px;font-weight:600">利用中</div>`));return c;};
-  sh.appendChild(mk('Free','おためし','—',['・週3回まで「言い方相談」','・基本の性格タイプ'],'free'));
+  sh.appendChild(mk('Free','おためし','—',['・週3回まで「言い方相談」','・スクショ読み取り 月3回','・ちょうどよい言い換え 1案'],'free'));
   sh.appendChild(mk('Bond','本気で変わる','¥980 / 月',[
     '・💬 「言い方相談」無制限',
+    '・📷 スクショから会話を無制限で読み取り',
+    '・🎨 3つのトーンで出し分け（やさしめ / はっきり / ユーモア）',
     '・🧠 相手ごとにあなたの傾向を記憶',
     '・🎭 難しい会話の“ロールプレイ練習”',
     '・🎙️ 声で相談・練習',
-    '・📊 毎週の成長レポート（あなたの共感が上がった 等）'],'bond'));
+    '・📊 毎週の成長レポート'],'bond'));
   sh.appendChild($(`<div class="tiny dim" style="margin-top:4px">人間関係が懸かるから、払う価値がある。強さでなく“伝わる自分”に投資。</div>`));
 }); }
 
