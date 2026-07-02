@@ -7,15 +7,22 @@
 <style>
   /* Minimal, ChatGPT/Claude/Grok-like: near-monochrome, one green accent, high
      contrast & readable, generous space, easy to tap. */
-  :root{
-    --bg:#FFFFFF; --surface:#FFFFFF; --soft:#F5F5F3; --elev:#EEEEEA;
-    --gold:#2E7D5B; --goldDeep:#256B4C; --goldSoft:#EAF3EE;   /* the single accent (green) */
-    --sky:#8A8A90; --green:#2E7D5B;
+  :root{ /* light — single premium accent: indigo */
+    --page:#ECECEA; --bg:#FFFFFF; --surface:#FFFFFF; --soft:#F4F4F2; --elev:#EDEDEA;
+    --gold:#5B54E8; --goldDeep:#4842C4; --goldSoft:#ECEBFB;
+    --sky:#8A8A90; --green:#5B54E8;
     --ink:#1B1B1D; --ink2:#6B6B70; --ink3:#A6A6AB;
     --line:rgba(0,0,0,.08); --line2:rgba(0,0,0,.14);
   }
+  :root[data-theme="dark"]{
+    --page:#0C0C10; --bg:#161619; --surface:#1E1E23; --soft:#26262C; --elev:#2C2C33;
+    --gold:#8F89FF; --goldDeep:#A9A4FF; --goldSoft:rgba(143,137,255,.18);
+    --sky:#7A7A84; --green:#8F89FF;
+    --ink:#F1F1F5; --ink2:#A2A2AC; --ink3:#6E6E78;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.17);
+  }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  body{background:#EDEDEA;color:var(--ink);
+  body{background:var(--page);color:var(--ink);transition:background .25s;
     font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Segoe UI",Roboto,sans-serif;
     display:flex;justify-content:center;min-height:100vh;padding:24px 14px}
   #phone{width:100%;max-width:420px;background:var(--bg);border:1px solid var(--line);
@@ -28,36 +35,36 @@
   .wordmark{letter-spacing:2px;font-weight:600;font-size:13px;color:var(--ink)}
   button{font-family:inherit;cursor:pointer;border:none;border-radius:13px;font-size:15px;font-weight:600;padding:15px 18px;width:100%;transition:opacity .15s,background .15s}
   button:active{opacity:.85}
-  .btn{background:var(--ink);color:#FFFFFF} .btn:hover{background:#000}
-  .btnGhost{background:#FFFFFF;color:var(--ink);border:1px solid var(--line2)} .btnGhost:hover{background:var(--soft)}
+  .btn{background:var(--gold);color:#FFFFFF} .btn:hover{filter:brightness(1.07)}
+  .btnGhost{background:var(--surface);color:var(--ink);border:1px solid var(--line2)} .btnGhost:hover{background:var(--soft)}
   .btnSm{width:auto;padding:10px 15px;font-size:14px;border-radius:11px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px}
-  .chip{display:inline-flex;align-items:center;gap:6px;background:#FFFFFF;border:1px solid var(--line2);border-radius:999px;padding:9px 15px;font-size:14px;color:var(--ink);font-weight:500;cursor:pointer}
-  .chip.sel{border-color:var(--ink);background:var(--ink);color:#FFFFFF}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line2);border-radius:999px;padding:9px 15px;font-size:14px;color:var(--ink);font-weight:500;cursor:pointer}
+  .chip.sel{border-color:var(--gold);background:var(--goldSoft);color:var(--goldDeep)}
   .chip.mini{padding:8px 13px;font-size:13px;color:var(--ink2)}
   .row{display:flex;gap:10px;align-items:center} .between{justify-content:space-between} .wrap{flex-wrap:wrap}
   .col{display:flex;flex-direction:column}
   .sep{height:1px;background:var(--line);margin:18px 0}
-  .opt{border:1px solid var(--line2);border-radius:14px;padding:17px;background:#FFFFFF;cursor:pointer;transition:.12s;margin-bottom:11px;font-size:15px;line-height:1.5}
-  .opt:hover{border-color:var(--ink);background:var(--soft)}
-  textarea,input{width:100%;background:#FFFFFF;border:1px solid var(--line2);border-radius:12px;color:var(--ink);font-size:15px;padding:14px;font-family:inherit;outline:none;resize:none}
-  textarea:focus,input:focus{border-color:var(--ink)}
+  .opt{border:1px solid var(--line2);border-radius:14px;padding:17px;background:var(--surface);cursor:pointer;transition:.12s;margin-bottom:11px;font-size:15px;line-height:1.5}
+  .opt:hover{border-color:var(--gold);background:var(--soft)}
+  textarea,input{width:100%;background:var(--surface);border:1px solid var(--line2);border-radius:12px;color:var(--ink);font-size:15px;padding:14px;font-family:inherit;outline:none;resize:none}
+  textarea:focus,input:focus{border-color:var(--gold)}
   .meter{height:7px;background:var(--soft);border-radius:6px;overflow:hidden;margin-top:9px}
   .meter>span{display:block;height:100%;border-radius:6px;background:var(--green);transition:width .6s}
   .overlay{position:absolute;inset:0;background:rgba(0,0,0,.32);display:flex;align-items:flex-end;z-index:30;animation:fade .2s}
-  .sheet{background:#FFFFFF;border-top:1px solid var(--line);border-radius:24px 24px 0 0;width:100%;max-height:93%;overflow:auto;padding:24px;animation:up .3s cubic-bezier(.2,.8,.2,1);box-shadow:0 -12px 40px rgba(0,0,0,.12)}
+  .sheet{background:var(--surface);border-top:1px solid var(--line);border-radius:24px 24px 0 0;width:100%;max-height:93%;overflow:auto;padding:24px;animation:up .3s cubic-bezier(.2,.8,.2,1);box-shadow:0 -12px 40px rgba(0,0,0,.2)}
   @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:translateY(0);opacity:1}}
   @keyframes fade{from{opacity:0}to{opacity:1}}
   .fade{animation:fade .35s}
   .before{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:14.5px;line-height:1.65;color:var(--ink2)}
-  .after{background:var(--goldSoft);border:1px solid rgba(46,125,91,.25);border-radius:12px;padding:14px;font-size:15px;line-height:1.7}
-  .toast{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:#FFFFFF;padding:13px 18px;border-radius:12px;font-size:13.5px;font-weight:500;z-index:40;animation:fade .2s;max-width:88%;text-align:center}
+  .after{background:var(--goldSoft);border:1px solid var(--line2);border-radius:12px;padding:14px;font-size:15px;line-height:1.7;color:var(--ink)}
+  .toast{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);background:var(--gold);color:#FFFFFF;padding:13px 18px;border-radius:12px;font-size:13.5px;font-weight:500;z-index:40;animation:fade .2s;max-width:88%;text-align:center}
   .tag{font-size:11px;letter-spacing:.3px;color:var(--ink3);font-weight:600}
   .badge{font-size:11px;padding:4px 10px;border-radius:7px;font-weight:700;background:var(--soft);color:var(--ink);letter-spacing:.5px;border:1px solid var(--line)}
   .badge.free{background:var(--soft);color:var(--ink2)}
   .link{color:var(--ink2);cursor:pointer;font-weight:500;font-size:14px}
   .prog{height:4px;background:var(--soft);border-radius:5px;overflow:hidden}
-  .prog>span{display:block;height:100%;background:var(--ink);transition:width .3s}
+  .prog>span{display:block;height:100%;background:var(--gold);transition:width .3s}
 </style>
 </head>
 <body>
@@ -69,6 +76,11 @@ const app=document.getElementById('app'); const LS='eidolon_demo_v4';
 const load=()=>{try{return JSON.parse(localStorage.getItem(LS))}catch(e){return null}};
 const save=()=>{try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){}};
 let state=load();
+// theme (persists independently of onboarding)
+function getTheme(){try{return localStorage.getItem('eidolon_theme')||'light'}catch(e){return 'light'}}
+function applyTheme(t){document.documentElement.setAttribute('data-theme',t);}
+function toggleTheme(){const t=getTheme()==='dark'?'light':'dark';try{localStorage.setItem('eidolon_theme',t)}catch(e){}applyTheme(t);render();}
+applyTheme(getTheme());
 
 // ── 8-question, MBTI-style quiz (choice only) ──
 const QUIZ=[
@@ -189,7 +201,7 @@ function onboarding(){
       c.appendChild($(`<div class="small muted" style="margin-top:8px">迷ったら、送信前にエイドロンに相談。あなたらしさを保ったまま、伝わる言い方に整えます。</div>`));
       w.appendChild(c); w.appendChild(sp(20));
       const b=$(`<button class="btn" type="button">はじめる →</button>`);
-      b.onclick=()=>{state={type:ty,struggles:picks,strugglesText:txt.trim(),growth:8,saved:0,streak:0,day:1,tier:'free'};save();render();};
+      b.onclick=()=>{state={type:ty,struggles:picks,strugglesText:txt.trim(),growth:8,saved:0,streak:0,day:1,tier:'free',usesLeft:3};save();render();};
       w.appendChild(b);
     }
   }
@@ -199,12 +211,26 @@ function onboarding(){
 function home(){
   const w=$(`<div class="fade"></div>`);
   const head=$(`<div class="pad" style="padding-bottom:8px"></div>`);
+  if(state.usesLeft==null)state.usesLeft=3;
   const top=$(`<div class="row between"></div>`);
-  top.appendChild($(`<div class="row" style="gap:10px"><div class="wordmark">EIDOLON</div><span class="badge">${state.type}</span></div>`));
-  const chip=$(`<div class="chip mini">${state.tier==='free'?'Free':'♥ Bond'}</div>`); chip.onclick=tiersSheet;
-  top.appendChild(chip); head.appendChild(top); head.appendChild(sp(18));
+  top.appendChild($(`<div class="row" style="gap:9px"><div class="wordmark">EIDOLON</div><span class="badge">${state.type}</span></div>`));
+  const right=$(`<div class="row" style="gap:8px"></div>`);
+  const th=$(`<div class="chip mini" style="padding:8px 11px">${getTheme()==='dark'?'☀︎':'☾'}</div>`); th.onclick=toggleTheme;
+  const chip = state.tier==='bond'
+    ? $(`<div class="chip mini" style="background:var(--gold);color:#fff;border-color:var(--gold)">✦ Bond</div>`)
+    : $(`<div class="chip mini">Free</div>`);
+  chip.onclick=tiersSheet;
+  right.appendChild(th); right.appendChild(chip);
+  top.appendChild(right); head.appendChild(top); head.appendChild(sp(18));
   head.appendChild($(`<h1 style="font-size:23px">おはよう。<br>今日も、<span class="accent">伝わる自分</span>で。</h1>`));
   w.appendChild(head);
+  // Free vs paid — make the state (and the reason to upgrade) obvious
+  if(state.tier==='free'){
+    const fb=$(`<div class="pad" style="padding-top:6px"></div>`);
+    const b=$(`<div class="card" style="cursor:pointer;padding:13px 16px;border-color:var(--gold);background:var(--goldSoft)"></div>`);
+    b.appendChild($(`<div class="row between"><div class="small" style="color:var(--goldDeep);font-weight:600">Free プラン · 今週あと ${state.usesLeft} 回</div><div class="small" style="color:var(--goldDeep);font-weight:700">アップグレード →</div></div>`));
+    b.onclick=tiersSheet; fb.appendChild(b); w.appendChild(fb);
+  }
 
   // ★ the killer utility
   const u=$(`<div class="pad" style="padding-top:16px"></div>`);
@@ -298,7 +324,10 @@ function adviceSheet(){
       }
       sh.appendChild(sp(16));
       const b=$(`<button class="btn" type="button">エイドロンに聞く</button>`);
-      b.onclick=()=>{ if(!draft.trim()){toast(mode==='image'?'スクショを選んでください':'文を入力してください');return;} showAdvice(sh,close,who,draft.trim()); };
+      b.onclick=()=>{ if(!draft.trim()){toast(mode==='image'?'スクショを選んでください':'文を入力してください');return;}
+        if(state.tier==='free'&&(state.usesLeft||0)<=0){ close(); upgradeSheet('今週の無料相談を使い切りました'); return; }
+        if(state.tier==='free'){ state.usesLeft=Math.max(0,(state.usesLeft||0)-1); save(); }
+        showAdvice(sh,close,who,draft.trim()); };
       sh.appendChild(b);
     }
     draw();
@@ -331,7 +360,7 @@ function showAdvice(sh,close,who,draft){
     const tr=$(`<div class="row wrap" style="gap:8px"></div>`);
     [['balance','ちょうどよく'],['soft','やさしめ'],['firm','はっきり'],['humor','ユーモア']].forEach(([k,l])=>{
       const c=$(`<div class="chip mini ${tone===k?'sel':''}">${l}</div>`);
-      c.onclick=()=>{ if(k!=='balance'&&state.tier!=='bond'){toast('トーンの出し分けは Bond 🤍');return;} tone=k; drawA(); };
+      c.onclick=()=>{ if(k!=='balance'&&state.tier!=='bond'){upgradeSheet('3つのトーンの出し分けは Bond の機能です');return;} tone=k; drawA(); };
       tr.appendChild(c);
     });
     sh.appendChild(tr); sh.appendChild(sp(16));
@@ -373,6 +402,25 @@ function profileSheet(){sheet((sh,close)=>{
   }
 }); }
 
+// focused paywall — appears at the moment of need (stronger conversion)
+function upgradeSheet(reason){ sheet((sh,close)=>{
+  const r=$(`<div class="row between"></div>`);
+  r.appendChild($(`<span class="badge" style="background:var(--gold);color:#fff;border-color:var(--gold)">BOND</span>`));
+  const x=$(`<div class="link">閉じる</div>`); x.onclick=close; r.appendChild(x); sh.appendChild(r);
+  sh.appendChild(sp(16));
+  sh.appendChild($(`<h2>${reason}。</h2>`));
+  sh.appendChild($(`<p class="muted lh small" style="margin-top:8px">迷う瞬間に、いつでも。あなたらしさを保ったまま、伝わる言葉に。</p>`));
+  sh.appendChild(sp(16));
+  ['💬 「言い方相談」無制限','📷 スクショから無制限で読み取り','🎨 3つのトーンで出し分け','🧠 相手ごとにあなたの傾向を記憶','🎙️ 声で相談・練習'].forEach(f=>
+    sh.appendChild($(`<div class="small" style="margin:7px 0"><span class="accent" style="font-weight:700">✓</span> ${f.replace(/^..\s/,'')}</div>`)));
+  sh.appendChild(sp(16));
+  sh.appendChild($(`<div style="font-size:24px;font-weight:700">¥980 <span class="small muted" style="font-weight:500">/ 月</span></div>`));
+  sh.appendChild(sp(14));
+  const b=$(`<button class="btn" type="button">Bond をはじめる</button>`);
+  b.onclick=()=>{state.tier='bond';save();close();render();toast('Bond へようこそ 🎉');}; sh.appendChild(b);
+  const b2=$(`<button class="btnGhost" type="button" style="margin-top:10px">プランを比べる</button>`);
+  b2.onclick=()=>{close();tiersSheet();}; sh.appendChild(b2);
+}); }
 function tiersSheet(){sheet((sh,close)=>{
   head2(sh,'成長に、投資する',close); sh.appendChild(sp(16));
   const mk=(name,badge,price,feats,key)=>{const c=$(`<div class="card" style="margin-bottom:12px;${state.tier===key?'border-color:var(--gold)':''}"></div>`);
