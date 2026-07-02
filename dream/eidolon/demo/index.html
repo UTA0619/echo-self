@@ -5,59 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Eidolon — demo</title>
 <style>
+  /* Minimal, ChatGPT/Claude/Grok-like: near-monochrome, one green accent, high
+     contrast & readable, generous space, easy to tap. */
   :root{
-    --bg:#23233E; --surface:#2E2E4E; --soft:#34345A; --elev:#3A3A60;
-    --gold:#E9B45E; --goldDeep:#CE9640; --goldSoft:rgba(233,180,94,.15);
-    --sky:#88A8E0; --skySoft:rgba(136,168,224,.16); --green:#8BD0A0;
-    --ink:#ECEAF6; --ink2:#ABA7CB; --ink3:#726F98;
-    --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.15);
+    --bg:#FFFFFF; --surface:#FFFFFF; --soft:#F5F5F3; --elev:#EEEEEA;
+    --gold:#2E7D5B; --goldDeep:#256B4C; --goldSoft:#EAF3EE;   /* the single accent (green) */
+    --sky:#8A8A90; --green:#2E7D5B;
+    --ink:#1B1B1D; --ink2:#6B6B70; --ink3:#A6A6AB;
+    --line:rgba(0,0,0,.08); --line2:rgba(0,0,0,.14);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  body{background:#1A1A30;color:var(--ink);
+  body{background:#EDEDEA;color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Segoe UI",Roboto,sans-serif;
     display:flex;justify-content:center;min-height:100vh;padding:24px 14px}
   #phone{width:100%;max-width:420px;background:var(--bg);border:1px solid var(--line);
-    border-radius:30px;overflow:hidden;position:relative;min-height:760px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
-  #phone::before{content:"";position:absolute;top:0;left:0;right:0;height:240px;z-index:0;
-    background:linear-gradient(180deg,#3A3256 0%,#2C2A48 55%,#23233E 100%);pointer-events:none}
+    border-radius:28px;overflow:hidden;position:relative;min-height:760px;box-shadow:0 10px 44px rgba(0,0,0,.10)}
   #app{position:relative;z-index:1}
   .pad{padding:24px}
   .muted{color:var(--ink2)} .dim{color:var(--ink3)} .accent{color:var(--gold)} .sky{color:var(--sky)} .green{color:var(--green)}
-  h1{font-size:26px;font-weight:700;line-height:1.35} h2{font-size:19px;font-weight:600} h3{font-size:15px;font-weight:600}
-  .small{font-size:13px} .tiny{font-size:11.5px} .lh{line-height:1.7}
-  .wordmark{letter-spacing:3px;font-weight:600;font-size:12px;color:var(--gold)}
-  button{font-family:inherit;cursor:pointer;border:none;border-radius:15px;font-size:15px;font-weight:600;padding:15px 18px;width:100%;transition:transform .08s,filter .2s}
-  button:active{transform:scale(.985)}
-  .btn{background:var(--gold);color:#22203A} .btn:hover{filter:brightness(1.06)}
-  .btnGhost{background:transparent;color:var(--gold);border:1px solid var(--line2)} .btnGhost:hover{background:var(--soft)}
-  .btnSm{width:auto;padding:9px 14px;font-size:14px;border-radius:11px}
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px}
-  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--soft);border:1px solid var(--line2);border-radius:999px;padding:9px 14px;font-size:13.5px;color:var(--ink);font-weight:500;cursor:pointer}
-  .chip.sel{border-color:var(--gold);color:var(--gold);background:var(--goldSoft)}
-  .chip.mini{padding:7px 12px;font-size:12.5px;color:var(--ink2)}
+  h1{font-size:25px;font-weight:600;line-height:1.4;letter-spacing:-.2px} h2{font-size:19px;font-weight:600} h3{font-size:15px;font-weight:600}
+  .small{font-size:13.5px} .tiny{font-size:12px} .lh{line-height:1.75}
+  .wordmark{letter-spacing:2px;font-weight:600;font-size:13px;color:var(--ink)}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:13px;font-size:15px;font-weight:600;padding:15px 18px;width:100%;transition:opacity .15s,background .15s}
+  button:active{opacity:.85}
+  .btn{background:var(--ink);color:#FFFFFF} .btn:hover{background:#000}
+  .btnGhost{background:#FFFFFF;color:var(--ink);border:1px solid var(--line2)} .btnGhost:hover{background:var(--soft)}
+  .btnSm{width:auto;padding:10px 15px;font-size:14px;border-radius:11px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:#FFFFFF;border:1px solid var(--line2);border-radius:999px;padding:9px 15px;font-size:14px;color:var(--ink);font-weight:500;cursor:pointer}
+  .chip.sel{border-color:var(--ink);background:var(--ink);color:#FFFFFF}
+  .chip.mini{padding:8px 13px;font-size:13px;color:var(--ink2)}
   .row{display:flex;gap:10px;align-items:center} .between{justify-content:space-between} .wrap{flex-wrap:wrap}
   .col{display:flex;flex-direction:column}
   .sep{height:1px;background:var(--line);margin:18px 0}
-  .opt{border:1px solid var(--line);border-radius:16px;padding:17px;background:var(--surface);cursor:pointer;transition:.12s;margin-bottom:11px;font-size:15px;line-height:1.5}
-  .opt:hover{border-color:var(--gold);background:var(--goldSoft)}
-  textarea,input{width:100%;background:var(--soft);border:1px solid var(--line2);border-radius:14px;color:var(--ink);font-size:15px;padding:14px;font-family:inherit;outline:none;resize:none}
-  textarea:focus,input:focus{border-color:var(--gold)}
-  .meter{height:8px;background:var(--soft);border-radius:6px;overflow:hidden;margin-top:9px}
-  .meter>span{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--sky),var(--gold));transition:width .6s}
-  .overlay{position:absolute;inset:0;background:rgba(10,8,20,.62);display:flex;align-items:flex-end;z-index:30;animation:fade .2s;backdrop-filter:blur(3px)}
-  .sheet{background:var(--bg);border:1px solid var(--line);border-bottom:none;border-radius:26px 26px 0 0;width:100%;max-height:93%;overflow:auto;padding:24px;animation:up .3s cubic-bezier(.2,.8,.2,1)}
+  .opt{border:1px solid var(--line2);border-radius:14px;padding:17px;background:#FFFFFF;cursor:pointer;transition:.12s;margin-bottom:11px;font-size:15px;line-height:1.5}
+  .opt:hover{border-color:var(--ink);background:var(--soft)}
+  textarea,input{width:100%;background:#FFFFFF;border:1px solid var(--line2);border-radius:12px;color:var(--ink);font-size:15px;padding:14px;font-family:inherit;outline:none;resize:none}
+  textarea:focus,input:focus{border-color:var(--ink)}
+  .meter{height:7px;background:var(--soft);border-radius:6px;overflow:hidden;margin-top:9px}
+  .meter>span{display:block;height:100%;border-radius:6px;background:var(--green);transition:width .6s}
+  .overlay{position:absolute;inset:0;background:rgba(0,0,0,.32);display:flex;align-items:flex-end;z-index:30;animation:fade .2s}
+  .sheet{background:#FFFFFF;border-top:1px solid var(--line);border-radius:24px 24px 0 0;width:100%;max-height:93%;overflow:auto;padding:24px;animation:up .3s cubic-bezier(.2,.8,.2,1);box-shadow:0 -12px 40px rgba(0,0,0,.12)}
   @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:translateY(0);opacity:1}}
   @keyframes fade{from{opacity:0}to{opacity:1}}
   .fade{animation:fade .35s}
-  .before{background:rgba(226,75,74,.10);border:1px solid rgba(226,75,74,.3);border-radius:14px;padding:14px;font-size:14.5px;line-height:1.6}
-  .after{background:rgba(139,208,160,.10);border:1px solid rgba(139,208,160,.35);border-radius:14px;padding:14px;font-size:15px;line-height:1.65}
-  .toast{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);background:var(--gold);color:#22203A;padding:13px 18px;border-radius:13px;font-size:13.5px;font-weight:500;z-index:40;animation:fade .2s;max-width:88%;text-align:center}
-  .tag{font-size:10.5px;letter-spacing:1px;color:var(--ink3);font-weight:600}
-  .badge{font-size:11px;padding:4px 10px;border-radius:8px;font-weight:700;background:var(--goldSoft);color:var(--gold);letter-spacing:1px}
-  .badge.free{background:var(--soft);color:var(--ink2);letter-spacing:0}
-  .link{color:var(--gold);cursor:pointer;font-weight:500;font-size:14px}
-  .prog{height:5px;background:var(--soft);border-radius:5px;overflow:hidden}
-  .prog>span{display:block;height:100%;background:var(--gold);transition:width .3s}
+  .before{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:14.5px;line-height:1.65;color:var(--ink2)}
+  .after{background:var(--goldSoft);border:1px solid rgba(46,125,91,.25);border-radius:12px;padding:14px;font-size:15px;line-height:1.7}
+  .toast{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:#FFFFFF;padding:13px 18px;border-radius:12px;font-size:13.5px;font-weight:500;z-index:40;animation:fade .2s;max-width:88%;text-align:center}
+  .tag{font-size:11px;letter-spacing:.3px;color:var(--ink3);font-weight:600}
+  .badge{font-size:11px;padding:4px 10px;border-radius:7px;font-weight:700;background:var(--soft);color:var(--ink);letter-spacing:.5px;border:1px solid var(--line)}
+  .badge.free{background:var(--soft);color:var(--ink2)}
+  .link{color:var(--ink2);cursor:pointer;font-weight:500;font-size:14px}
+  .prog{height:4px;background:var(--soft);border-radius:5px;overflow:hidden}
+  .prog>span{display:block;height:100%;background:var(--ink);transition:width .3s}
 </style>
 </head>
 <body>
@@ -208,7 +208,7 @@ function home(){
 
   // ★ the killer utility
   const u=$(`<div class="pad" style="padding-top:16px"></div>`);
-  const uc=$(`<div class="card" style="cursor:pointer;border-color:var(--goldSoft);background:linear-gradient(120deg,#332C50,#2A2748)"></div>`);
+  const uc=$(`<div class="card" style="cursor:pointer;border-color:var(--ink);background:var(--soft)"></div>`);
   uc.appendChild($(`<div style="font-size:15px;font-weight:600">🆘 送る前に、相談する</div>`)); uc.appendChild(sp(8));
   uc.appendChild($(`<div class="small muted lh">LINEやメール、送っていいか迷ったら。あなたらしさは残して、伝わる言い方に。</div>`)); uc.appendChild(sp(12));
   uc.appendChild($(`<div class="small accent" style="font-weight:600">相談する →</div>`));
@@ -304,12 +304,17 @@ function adviceSheet(){
     draw();
   });
 }
-function freeVariants(d){const base=softEN(d);return{balance:base,soft:'ムリしてなければいいんだけど、'+base,firm:'正直に言うね。'+base,humor:base+'（なんてね、笑）'};}
+// 恋人・友達・家族＝タメ口 / 職場・上司＝敬語
+const isPolite=(who)=> who==='職場'||who==='上司';
+function freeVariants(d,who){const base=softEN(d,who);
+  return isPolite(who)
+    ? {balance:base,soft:'差し出がましいのですが、'+base,firm:'率直に申し上げますと、'+base,humor:base+'（なんて、少し冗談です）'}
+    : {balance:base,soft:'ムリしてなければいいんだけど、'+base,firm:'正直に言うね。'+base,humor:base+'（なんてね、笑）'};}
 function showAdvice(sh,close,who,draft){
   const s=SAMPLES.find(x=>x.draft===draft), ty=state.type;
   const read = s? s.read : `${ty.includes('T')?'あなたの“率直さ”が出ています。正直だけど、':'この言い方だと、'}相手は少し身構えるかもしれません。`;
   const why = s? s.why : `“事実の指摘”に“あなたの気持ち”と“相手への一問”を足すと、同じ本音でも角が取れて届きます。`;
-  const V = s? {balance:s.after,soft:s.tones.soft,firm:s.tones.firm,humor:s.tones.humor} : freeVariants(draft);
+  const V = s? {balance:s.after,soft:s.tones.soft,firm:s.tones.firm,humor:s.tones.humor} : freeVariants(draft,who);
   let tone='balance';
   function drawA(){
     sh.innerHTML='';
@@ -337,8 +342,8 @@ function showAdvice(sh,close,who,draft){
   }
   drawA();
 }
-function softEN(t){ let s=t.replace(/なんで/g,'').replace(/いつも/g,'').replace(/絶対/g,'');
-  return `${s.replace(/[。!？?]*$/,'')}… と感じたよ。あなたはどう思ってた?`; }
+function softEN(t,who){ let s=t.replace(/なんで/g,'').replace(/いつも/g,'').replace(/絶対/g,'').replace(/[。!？?]*$/,'');
+  return isPolite(who) ? `${s}… と感じました。いかがでしょうか?` : `${s}… と感じたよ。あなたはどう思ってた?`; }
 
 function actSheet(){
   sheet((sh,close)=>{
