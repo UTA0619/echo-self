@@ -1,136 +1,186 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Eidolon — demo</title>
 <style>
-  /* Twilight: deep indigo warmed by gold, a whisper of sky-blue. */
   :root{
     --bg:#23233E; --surface:#2E2E4E; --soft:#34345A; --elev:#3A3A60;
     --gold:#E9B45E; --goldDeep:#CE9640; --goldSoft:rgba(233,180,94,.15);
-    --sky:#88A8E0; --skySoft:rgba(136,168,224,.16);
+    --sky:#88A8E0; --skySoft:rgba(136,168,224,.16); --green:#8BD0A0;
     --ink:#ECEAF6; --ink2:#ABA7CB; --ink3:#726F98;
     --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.15);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{background:#1A1A30;color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",sans-serif;
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Segoe UI",Roboto,sans-serif;
     display:flex;justify-content:center;min-height:100vh;padding:24px 14px}
   #phone{width:100%;max-width:420px;background:var(--bg);border:1px solid var(--line);
     border-radius:30px;overflow:hidden;position:relative;min-height:760px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
-  #phone::before{content:"";position:absolute;top:0;left:0;right:0;height:250px;z-index:0;
+  #phone::before{content:"";position:absolute;top:0;left:0;right:0;height:240px;z-index:0;
     background:linear-gradient(180deg,#3A3256 0%,#2C2A48 55%,#23233E 100%);pointer-events:none}
   #app{position:relative;z-index:1}
   .pad{padding:24px}
-  .muted{color:var(--ink2)} .dim{color:var(--ink3)} .accent{color:var(--gold)} .gold{color:var(--gold)} .sky{color:var(--sky)}
-  h1{font-size:29px;font-weight:600;letter-spacing:-.3px;line-height:1.22}
-  h2{font-size:20px;font-weight:600} h3{font-size:15px;font-weight:600}
-  .small{font-size:13px} .tiny{font-size:11.5px}
+  .muted{color:var(--ink2)} .dim{color:var(--ink3)} .accent{color:var(--gold)} .sky{color:var(--sky)} .green{color:var(--green)}
+  h1{font-size:26px;font-weight:700;line-height:1.35} h2{font-size:19px;font-weight:600} h3{font-size:15px;font-weight:600}
+  .small{font-size:13px} .tiny{font-size:11.5px} .lh{line-height:1.7}
   .wordmark{letter-spacing:3px;font-weight:600;font-size:12px;color:var(--gold)}
-  button{font-family:inherit;cursor:pointer;border:none;border-radius:15px;font-size:15px;font-weight:600;
-    padding:15px 18px;width:100%;transition:transform .08s,filter .2s}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:15px;font-size:15px;font-weight:600;padding:15px 18px;width:100%;transition:transform .08s,filter .2s}
   button:active{transform:scale(.985)}
   .btn{background:var(--gold);color:#22203A} .btn:hover{filter:brightness(1.06)}
   .btnGhost{background:transparent;color:var(--gold);border:1px solid var(--line2)} .btnGhost:hover{background:var(--soft)}
   .btnSm{width:auto;padding:9px 14px;font-size:14px;border-radius:11px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px}
-  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--soft);border:1px solid var(--line2);
-    border-radius:999px;padding:8px 14px;font-size:13px;color:var(--ink);font-weight:500;cursor:pointer}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--soft);border:1px solid var(--line2);border-radius:999px;padding:9px 14px;font-size:13.5px;color:var(--ink);font-weight:500;cursor:pointer}
+  .chip.sel{border-color:var(--gold);color:var(--gold);background:var(--goldSoft)}
   .chip.mini{padding:7px 12px;font-size:12.5px;color:var(--ink2)}
-  .row{display:flex;gap:10px;align-items:center} .between{justify-content:space-between}
+  .row{display:flex;gap:10px;align-items:center} .between{justify-content:space-between} .wrap{flex-wrap:wrap}
   .col{display:flex;flex-direction:column}
   .sep{height:1px;background:var(--line);margin:18px 0}
-  .pick{border:1px solid var(--line);border-radius:16px;padding:15px;background:var(--surface);cursor:pointer;transition:.15s;margin-bottom:11px}
-  .pick:hover{border-color:var(--line2)} .pick.sel{border-color:var(--gold);background:var(--goldSoft)}
-  input{width:100%;background:var(--soft);border:1px solid var(--line2);border-radius:15px;color:var(--ink);
-    font-size:16px;padding:16px;font-family:inherit;outline:none}
-  input::placeholder{color:var(--ink3)} input:focus{border-color:var(--gold)}
+  .opt{border:1px solid var(--line);border-radius:16px;padding:17px;background:var(--surface);cursor:pointer;transition:.12s;margin-bottom:11px;font-size:15px;line-height:1.5}
+  .opt:hover{border-color:var(--gold);background:var(--goldSoft)}
+  textarea,input{width:100%;background:var(--soft);border:1px solid var(--line2);border-radius:14px;color:var(--ink);font-size:15px;padding:14px;font-family:inherit;outline:none;resize:none}
+  textarea:focus,input:focus{border-color:var(--gold)}
   .meter{height:8px;background:var(--soft);border-radius:6px;overflow:hidden;margin-top:9px}
-  .meter>span{display:block;height:100%;border-radius:6px;transition:width .6s ease}
-  .meter.bond>span{background:linear-gradient(90deg,var(--sky),var(--gold))}
-  .meter.grow>span{background:linear-gradient(90deg,#7FB08A,var(--gold))}
-  .overlay{position:absolute;inset:0;background:rgba(10,8,20,.6);display:flex;align-items:flex-end;z-index:30;animation:fade .2s;backdrop-filter:blur(3px)}
-  .sheet{background:var(--bg);border:1px solid var(--line);border-bottom:none;border-radius:26px 26px 0 0;width:100%;max-height:92%;overflow:auto;padding:24px;animation:up .3s cubic-bezier(.2,.8,.2,1)}
+  .meter>span{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--sky),var(--gold));transition:width .6s}
+  .overlay{position:absolute;inset:0;background:rgba(10,8,20,.62);display:flex;align-items:flex-end;z-index:30;animation:fade .2s;backdrop-filter:blur(3px)}
+  .sheet{background:var(--bg);border:1px solid var(--line);border-bottom:none;border-radius:26px 26px 0 0;width:100%;max-height:93%;overflow:auto;padding:24px;animation:up .3s cubic-bezier(.2,.8,.2,1)}
   @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:translateY(0);opacity:1}}
   @keyframes fade{from{opacity:0}to{opacity:1}}
   .fade{animation:fade .35s}
-  .bubble{max-width:82%;padding:12px 15px;border-radius:16px;font-size:14.5px;line-height:1.5;margin-bottom:10px}
-  .bubble.twin{background:var(--soft);border:1px solid var(--line);border-bottom-left-radius:5px;align-self:flex-start}
-  .bubble.you{background:var(--goldSoft);border:1px solid rgba(233,180,94,.3);color:var(--ink);border-bottom-right-radius:5px;align-self:flex-end}
-  .share{background:linear-gradient(165deg,#2C2A4C 0%,#211F3B 100%);border:1px solid var(--line2);border-radius:22px;padding:22px}
-  .toast{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);background:var(--gold);color:#22203A;padding:13px 18px;border-radius:13px;font-size:13.5px;font-weight:500;z-index:40;animation:fade .2s;max-width:86%;text-align:center}
-  .tag{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink3);font-weight:600}
-  .stat{flex:1;background:var(--soft);border:1px solid var(--line);border-radius:15px;padding:13px;min-width:80px;text-align:center}
+  .before{background:rgba(226,75,74,.10);border:1px solid rgba(226,75,74,.3);border-radius:14px;padding:14px;font-size:14.5px;line-height:1.6}
+  .after{background:rgba(139,208,160,.10);border:1px solid rgba(139,208,160,.35);border-radius:14px;padding:14px;font-size:15px;line-height:1.65}
+  .toast{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);background:var(--gold);color:#22203A;padding:13px 18px;border-radius:13px;font-size:13.5px;font-weight:500;z-index:40;animation:fade .2s;max-width:88%;text-align:center}
+  .tag{font-size:10.5px;letter-spacing:1px;color:var(--ink3);font-weight:600}
+  .badge{font-size:11px;padding:4px 10px;border-radius:8px;font-weight:700;background:var(--goldSoft);color:var(--gold);letter-spacing:1px}
+  .badge.free{background:var(--soft);color:var(--ink2);letter-spacing:0}
   .link{color:var(--gold);cursor:pointer;font-weight:500;font-size:14px}
-  .badge{font-size:10.5px;padding:3px 9px;border-radius:7px;font-weight:600}
-  .badge.free{background:var(--soft);color:var(--ink2)} .badge.bond{background:var(--goldSoft);color:var(--gold)}
+  .prog{height:5px;background:var(--soft);border-radius:5px;overflow:hidden}
+  .prog>span{display:block;height:100%;background:var(--gold);transition:width .3s}
 </style>
 </head>
 <body>
 <div id="phone"><div id="app"></div></div>
-
 <script>
 const $=(h)=>{const t=document.createElement('template');t.innerHTML=h.trim();return t.content.childNodes.length===1?t.content.firstChild:t.content;};
 const sp=(px)=>$(`<div style="height:${px}px"></div>`);
-const app=document.getElementById('app');
-const LS='eidolon_demo_v3';
-
-const HEARTS={dreamer:{emoji:'🌙',label:'Dreamer',desc:'curious, gentle'},guardian:{emoji:'🛡️',label:'Guardian',desc:'steady, grounding'},spark:{emoji:'⚡',label:'Spark',desc:'warm, encouraging'}};
-// the self-growth spine: who you want to become
-const GOALS={
-  present:{emoji:'🌿',label:'Be more present',phrase:'being more present',step:'Take three slow breaths before your first task.'},
-  move:{emoji:'💪',label:'Move my body',phrase:'moving your body',step:'A five-minute walk — that’s all.'},
-  kind:{emoji:'🤍',label:'Be kinder to myself',phrase:'being kinder to yourself',step:'Write yourself one kind line.'},
-  focus:{emoji:'🎯',label:'Focus on what matters',phrase:'focusing on what matters',step:'Pick the ONE thing that matters today.'},
-  calm:{emoji:'🌊',label:'Feel calmer',phrase:'feeling calmer',step:'Two quiet minutes, eyes closed.'},
-};
-const FEELINGS={good:'good',okay:'okay',tired:'tired',low:'low'};
-const MOODS={good:'☀️',okay:'🌤️',tired:'😴',low:'🌧️'};
-
+const app=document.getElementById('app'); const LS='eidolon_demo_v4';
 const load=()=>{try{return JSON.parse(localStorage.getItem(LS))}catch(e){return null}};
 const save=()=>{try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){}};
 let state=load();
 
-function render(){app.innerHTML='';app.appendChild(state?home():create());}
+// ── 8-question, MBTI-style quiz (choice only) ──
+const QUIZ=[
+  {a:'ei',q:'気になることがあると…',o:[['すぐ口に出す','E'],['まず自分の中で考える','I']]},
+  {a:'ei',q:'人と長く一緒にいると…',o:[['元気が出る','E'],['疲れて一人になりたい','I']]},
+  {a:'sn',q:'話すときは…',o:[['具体的な事実から','S'],['ひらめき・可能性から','N']]},
+  {a:'sn',q:'心が向くのは…',o:[['今ここの現実','S'],['これからの理想','N']]},
+  {a:'tf',q:'意見が対立したら…',o:[['正しさを大事にする','T'],['相手の気持ちを大事にする','F']]},
+  {a:'tf',q:'友達が失敗した時…',o:[['まず解決策を言う','T'],['まず気持ちに寄り添う','F']]},
+  {a:'jp',q:'会話は…',o:[['結論から筋道立てて','J'],['思いつくまま自由に','P']]},
+  {a:'jp',q:'予定は…',o:[['きっちり決めたい','J'],['流れで決めたい','P']]},
+];
+const TRAIT={
+  E:'思ったことをすぐ言葉にする',I:'言葉にする前に、じっくり考える',
+  S:'具体的で現実的な伝え方をする',N:'話が抽象的・可能性寄りになりがち',
+  T:'正しさを大事にし率直。ときに相手にはきつく響く',F:'相手の気持ちに敏感で、和を大事にする',
+  J:'結論から順序立てて話す',P:'思いつくまま話し、脱線もしがち',
+};
+const STRENGTH={E:'行動力と率直さ',I:'思慮深さ',S:'現実感覚',N:'発想力',T:'論理と誠実さ',F:'共感力',J:'段取り力',P:'柔軟さ'};
+function computeType(ans){
+  const c={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
+  ans.forEach(p=>c[p]++);
+  return (c.E>=c.I?'E':'I')+(c.S>=c.N?'S':'N')+(c.T>=c.F?'T':'F')+(c.J>=c.P?'J':'P');
+}
 
-// ── Onboarding: name + heart + the aspiration (the growth spine, from second 0) ──
-function create(){
-  let name='',heart=null,goal=null,stage=0;
+const STRUGGLES=[
+  {id:'harsh',t:'友達につい きつい言葉を言う'},{id:'selftalk',t:'自分の話ばかりしてしまう'},
+  {id:'work',t:'職場で浮いてしまう'},{id:'team',t:'チームワークが苦手'},
+  {id:'blurt_love',t:'恋人に思ったことをすぐ言う'},{id:'notconvey',t:'気持ちがうまく伝わらない'},
+  {id:'blurt',t:'考える前に言葉が出る'},{id:'miss',t:'相手の気持ちを見落とす'},
+];
+
+// canned "before → after" so the value is crisp; personalized by type
+const SAMPLES=[
+  {who:'恋人',draft:'なんで既読無視するの?ずっと待ってたんだけど。',
+   read:'「非難」の形になっています。相手は責められたと感じて、防御に入りがち。',
+   after:'返信を待ってたから、ちょっと寂しかったよ。忙しかった?',
+   why:'“非難”を“自分の気持ち＋相手を気づかう質問”に変えると、同じ本音でも相手は受け取りやすくなります。'},
+  {who:'友達',draft:'また遅刻?いつもそうだよね。',
+   read:'事実は正しくても「決めつけ」に聞こえ、相手は言い返したくなります。',
+   after:'待ってたよ〜。次からひと言くれると助かるな。',
+   why:'過去の断罪より「これからの小さなお願い」にすると、角が立たず伝わります。'},
+  {who:'職場',draft:'そのやり方は非効率だと思います。',
+   read:'正論ですが、相手のやり方を否定する入りで、場が固くなります。',
+   after:'いいですね。ひとつ、こうするともっと速くなるかもと思ったんですが、どうでしょう?',
+   why:'“否定”ではなく“肯定＋提案＋相手に委ねる質問”にすると、意見が通りやすくなります。'},
+];
+const ACTS=[
+  {t:'会議で反対意見を言う',advice:(ty)=>`${ty.includes('T')?'あなたは正しさから入りがち。':''}まず相手の案の良い点を一つ認めてから、「一点だけ、こう考えると…」と“提案”の形で。否定でなく上乗せに。`},
+  {t:'友達に謝る',advice:(ty)=>`${ty.includes('T')?'あなたは解決策から入りがち。でも謝罪は順番が逆。':''}最初に相手の気持ちを認める一言（「嫌な思いさせてごめん」）から。理由や言い訳は後。`},
+  {t:'恋人に本音を伝える',advice:(ty)=>`${ty.includes('E')?'勢いで全部言う前に、':''}「責める」でなく「私はこう感じた」を主語に。伝えたいこと一つに絞ると、ちゃんと届きます。`},
+];
+
+const load2=()=>state; // noop
+function render(){app.innerHTML='';app.appendChild(state?home():onboarding());}
+
+// ── Onboarding: quiz → type → struggles → plan ──
+function onboarding(){
   const w=$(`<div class="pad fade"></div>`);
+  let stage='intro', qi=0, ans=[], picks=[], txt='';
   function draw(){
     w.innerHTML='';
-    w.appendChild($(`<div class="wordmark">EIDOLON</div>`)); w.appendChild(sp(24));
-    if(stage===0){
-      w.appendChild($(`<h1>A companion who helps you<br>become <span class="accent">who you want to be</span>.</h1>`)); w.appendChild(sp(10));
-      w.appendChild($(`<p class="muted" style="line-height:1.6">You’ll talk each morning. It remembers. It roots for you — every day.</p>`)); w.appendChild(sp(24));
-      const inp=$(`<input placeholder="Name your companion" maxlength="14" value="${name}"/>`);
-      inp.oninput=e=>name=e.target.value; w.appendChild(inp); w.appendChild(sp(12));
-      const b=$(`<button class="btn" type="button">Next →</button>`);
-      b.onclick=()=>{name=(inp.value||'').trim()||'Aria';stage=1;draw();}; w.appendChild(b);
-    } else if(stage===1){
-      w.appendChild($(`<h1>Give ${name} a heart.</h1>`)); w.appendChild(sp(20));
-      Object.entries(HEARTS).forEach(([k,v])=>{
-        const el=$(`<div class="pick ${heart===k?'sel':''}"><div class="row"><div style="font-size:21px">${v.emoji}</div><div class="col"><h3>${v.label}</h3><div class="small muted">${v.desc}</div></div></div></div>`);
-        el.onclick=()=>{heart=k;draw();}; w.appendChild(el);
+    if(stage==='intro'){
+      w.appendChild(sp(10)); w.appendChild($(`<div class="wordmark">EIDOLON</div>`)); w.appendChild(sp(26));
+      w.appendChild($(`<h1>もう一人の、<span class="accent">賢いあなた</span>。</h1>`)); w.appendChild(sp(12));
+      w.appendChild($(`<p class="muted lh">言いにくいことを“あなたらしく上手に”伝えられるように。<br>まずは、あなたの性格を知るところから。<b class="accent">8つの質問</b>。</p>`)); w.appendChild(sp(26));
+      const b=$(`<button class="btn" type="button">診断をはじめる →</button>`); b.onclick=()=>{stage='quiz';draw();}; w.appendChild(b);
+    } else if(stage==='quiz'){
+      const q=QUIZ[qi];
+      w.appendChild(sp(6));
+      w.appendChild($(`<div class="row between"><div class="tag">性格診断</div><div class="tag">${qi+1} / 8</div></div>`)); w.appendChild(sp(8));
+      w.appendChild($(`<div class="prog"><span style="width:${(qi/8)*100}%"></span></div>`)); w.appendChild(sp(26));
+      w.appendChild($(`<h2>${q.q}</h2>`)); w.appendChild(sp(16));
+      q.o.forEach(([label,pole])=>{
+        const el=$(`<div class="opt">${label}</div>`);
+        el.onclick=()=>{ans[qi]=pole; if(qi<7){qi++;draw();} else {stage='result';draw();}};
+        w.appendChild(el);
       });
-      w.appendChild(sp(8));
-      const b=$(`<button class="btn" type="button">Next →</button>`);
-      b.onclick=()=>{if(!heart){toast('Pick a heart');return;}stage=2;draw();}; w.appendChild(b);
+      if(qi>0){const back=$(`<div class="link" style="text-align:center;margin-top:6px">← 戻る</div>`);back.onclick=()=>{qi--;draw();};w.appendChild(back);}
+    } else if(stage==='result'){
+      const ty=computeType(ans);
+      const [e,s,t,j]=ty.split('');
+      w.appendChild(sp(14)); w.appendChild($(`<div class="tag">あなたのタイプ</div>`)); w.appendChild(sp(10));
+      w.appendChild($(`<div style="font-size:46px;font-weight:800;letter-spacing:4px" class="accent">${ty}</div>`)); w.appendChild(sp(16));
+      const c=$(`<div class="card"></div>`);
+      c.appendChild($(`<div class="small tag">あなたの伝わり方</div>`)); c.appendChild(sp(10));
+      [e,s,t,j].forEach(k=>c.appendChild($(`<div class="small lh" style="margin:5px 0">・${TRAIT[k]}</div>`)));
+      w.appendChild(c); w.appendChild(sp(18));
+      w.appendChild($(`<p class="muted lh small">あなたの<b class="accent">${STRENGTH[t]}</b>は強み。そこに少しの工夫を足していきましょう。</p>`)); w.appendChild(sp(18));
+      const b=$(`<button class="btn" type="button">次へ →</button>`); b.onclick=()=>{state={_type:ty};stage='struggle';draw();}; w.appendChild(b);
+    } else if(stage==='struggle'){
+      w.appendChild(sp(10)); w.appendChild($(`<h1>どこを、変えたい?</h1>`)); w.appendChild(sp(8));
+      w.appendChild($(`<p class="muted small">当てはまるものを選んでください（いくつでも）。</p>`)); w.appendChild(sp(16));
+      const g=$(`<div class="row wrap" style="gap:9px"></div>`);
+      STRUGGLES.forEach(s=>{const c=$(`<div class="chip ${picks.includes(s.id)?'sel':''}">${s.t}</div>`);
+        c.onclick=()=>{picks.includes(s.id)?picks.splice(picks.indexOf(s.id),1):picks.push(s.id);draw();};g.appendChild(c);});
+      w.appendChild(g); w.appendChild(sp(16));
+      w.appendChild($(`<div class="tag">他にもあれば（任意）</div>`)); w.appendChild(sp(8));
+      const ta=$(`<textarea rows="2" placeholder="例：つい強く言ってしまって後悔する…">${txt}</textarea>`); ta.oninput=e=>txt=e.target.value; w.appendChild(ta); w.appendChild(sp(16));
+      const b=$(`<button class="btn" type="button">プランを作る →</button>`);
+      b.onclick=()=>{if(!picks.length&&!txt.trim()){toast('ひとつ選ぶか、入力してください');return;}stage='plan';draw();}; w.appendChild(b);
     } else {
-      w.appendChild($(`<h1>What do you<br>want to work on?</h1>`)); w.appendChild(sp(8));
-      w.appendChild($(`<p class="muted">${name} will help you, a little every day.</p>`)); w.appendChild(sp(18));
-      Object.entries(GOALS).forEach(([k,v])=>{
-        const el=$(`<div class="pick ${goal===k?'sel':''}"><div class="row"><div style="font-size:20px">${v.emoji}</div><h3>${v.label}</h3></div></div>`);
-        el.onclick=()=>{goal=k;draw();}; w.appendChild(el);
-      });
-      w.appendChild(sp(8));
-      const b=$(`<button class="btn" type="button">Meet ${name} →</button>`);
-      b.onclick=()=>{if(!goal){toast('Choose what to work on');return;}
-        state={name,heart,goal,bond:10,becoming:6,day:1,streak:0,tier:'free',
-          feeling:null,todayStep:null,checkedIn:false,talksLeft:3,
-          cosmetic:{auraId:'aura_star',aura:'✨'},owned:['aura_star']};
-        save();render();};
+      const ty=state._type;
+      w.appendChild(sp(14)); w.appendChild($(`<div class="tag">あなたの成長プラン</div>`)); w.appendChild(sp(12));
+      w.appendChild($(`<h1>強みは残す。<br>角だけ、丸くする。</h1>`)); w.appendChild(sp(16));
+      const c=$(`<div class="card lh"></div>`);
+      c.appendChild($(`<div class="small">あなたの<b class="accent">${STRENGTH[ty[2]]}</b>はそのままに、</div>`));
+      c.appendChild($(`<div class="small" style="margin-top:8px">🎯 まず身につけるクセ：<b class="accent">送る・言う前に、ひと呼吸</b></div>`));
+      c.appendChild($(`<div class="small muted" style="margin-top:8px">迷ったら、送信前にエイドロンに相談。あなたらしさを保ったまま、伝わる言い方に整えます。</div>`));
+      w.appendChild(c); w.appendChild(sp(20));
+      const b=$(`<button class="btn" type="button">はじめる →</button>`);
+      b.onclick=()=>{state={type:ty,struggles:picks,strugglesText:txt.trim(),growth:8,saved:0,streak:0,day:1,tier:'free'};save();render();};
       w.appendChild(b);
     }
   }
@@ -138,181 +188,155 @@ function create(){
 }
 
 function home(){
-  state.cosmetic=state.cosmetic||{auraId:'aura_star',aura:'✨'}; state.owned=state.owned||['aura_star'];
-  const g=GOALS[state.goal];
   const w=$(`<div class="fade"></div>`);
-  const head=$(`<div class="pad" style="padding-bottom:6px"></div>`);
+  const head=$(`<div class="pad" style="padding-bottom:8px"></div>`);
   const top=$(`<div class="row between"></div>`);
-  top.appendChild($(`<div class="wordmark">EIDOLON</div>`));
+  top.appendChild($(`<div class="row" style="gap:10px"><div class="wordmark">EIDOLON</div><span class="badge">${state.type}</span></div>`));
   const chip=$(`<div class="chip mini">${state.tier==='free'?'Free':'♥ Bond'}</div>`); chip.onclick=tiersSheet;
   top.appendChild(chip); head.appendChild(top); head.appendChild(sp(18));
-  head.appendChild($(`<div class="small dim">good morning</div>`));
-  head.appendChild($(`<h1 style="font-size:32px;font-weight:700">${state.name} <span style="font-size:21px">${state.cosmetic.aura}</span></h1>`));
+  head.appendChild($(`<h1 style="font-size:23px">おはよう。<br>今日も、<span class="accent">伝わる自分</span>で。</h1>`));
   w.appendChild(head);
 
-  // 1) the daily conversation — the companion core (highest WTP)
-  const talkp=$(`<div class="pad" style="padding-top:16px"></div>`);
-  const tc=$(`<div class="card" style="cursor:pointer"></div>`);
-  tc.appendChild($(`<div class="tag">${state.name} · just now</div>`)); tc.appendChild(sp(10));
-  const greet = state.checkedIn
-    ? `“Thanks for talking with me. I’m holding what you said.”`
-    : (state.feeling
-        ? `“Morning. Yesterday you felt ${state.feeling}. How’s today starting?”`
-        : `“Morning. I’ve been thinking about your goal of ${g.phrase}. How are you, really?”`);
-  tc.appendChild($(`<div style="font-size:16px;line-height:1.5">${greet}</div>`)); tc.appendChild(sp(12));
-  tc.appendChild($(`<div class="small accent" style="font-weight:600">${state.checkedIn?'Talk more →':'Talk with '+state.name+' →'}</div>`));
-  tc.onclick=talkSheet; talkp.appendChild(tc); w.appendChild(talkp);
+  // ★ the killer utility
+  const u=$(`<div class="pad" style="padding-top:16px"></div>`);
+  const uc=$(`<div class="card" style="cursor:pointer;border-color:var(--goldSoft);background:linear-gradient(120deg,#332C50,#2A2748)"></div>`);
+  uc.appendChild($(`<div style="font-size:15px;font-weight:600">🆘 送る前に、相談する</div>`)); uc.appendChild(sp(8));
+  uc.appendChild($(`<div class="small muted lh">LINEやメール、送っていいか迷ったら。あなたらしさは残して、伝わる言い方に。</div>`)); uc.appendChild(sp(12));
+  uc.appendChild($(`<div class="small accent" style="font-weight:600">相談する →</div>`));
+  uc.onclick=adviceSheet; u.appendChild(uc); w.appendChild(u);
 
-  // 2) today's step — the self-growth outcome
-  const stepp=$(`<div class="pad" style="padding-top:14px"></div>`);
-  const sc=$(`<div class="card"></div>`);
-  sc.appendChild($(`<div class="row between"><div class="tag">today · toward ${g.label.toLowerCase()}</div><div class="tiny dim">${state.streak>0?'🔥 '+state.streak+'-day':''}</div></div>`)); sc.appendChild(sp(10));
-  if(!state.todayStep){
-    sc.appendChild($(`<div style="font-size:15px;line-height:1.5">“${g.step}”</div>`)); sc.appendChild(sp(12));
-    const b=$(`<button class="btnGhost btnSm" type="button" style="width:100%">Set this as today’s step</button>`);
-    b.onclick=()=>{state.todayStep={text:g.step,done:false};save();render();}; sc.appendChild(b);
-  } else if(!state.todayStep.done){
-    sc.appendChild($(`<div style="font-size:15px;line-height:1.5">${state.todayStep.text}</div>`)); sc.appendChild(sp(12));
-    const b=$(`<button class="btn" type="button">I did it ✓</button>`);
-    b.onclick=()=>{state.todayStep.done=true;state.becoming=Math.min(100,state.becoming+9);state.bond=Math.min(100,state.bond+3);save();render();toast(`${state.name}: “I saw that. I’m proud of you.” · Becoming +9%`);}; sc.appendChild(b);
-  } else {
-    sc.appendChild($(`<div style="font-size:15px;line-height:1.5" class="muted">✓ Done — ${state.todayStep.text}</div>`)); sc.appendChild(sp(10));
-    sc.appendChild($(`<div class="small accent">“That’s who you’re becoming.”</div>`));
+  const a=$(`<div class="pad" style="padding-top:12px"></div>`);
+  const ac=$(`<div class="card" style="cursor:pointer"></div>`);
+  ac.appendChild($(`<div style="font-size:15px;font-weight:600">🚶 行動する前に、相談する</div>`)); ac.appendChild(sp(8));
+  ac.appendChild($(`<div class="small muted lh">「これから謝る」「会議で反対意見を言う」— どう動けばいい?</div>`)); ac.appendChild(sp(12));
+  ac.appendChild($(`<div class="small accent" style="font-weight:600">相談する →</div>`));
+  ac.onclick=actSheet; a.appendChild(ac); w.appendChild(a);
+
+  // growth
+  const gp=$(`<div class="pad" style="padding-top:14px"></div>`);
+  gp.appendChild($(`<div class="row between"><div class="tag">伝わる自分 · 成長</div><div class="small accent" style="font-weight:600">${state.growth}%</div></div>`));
+  gp.appendChild($(`<div class="meter"><span style="width:${state.growth}%"></span></div>`));
+  gp.appendChild($(`<div class="tiny dim" style="margin-top:8px">🔥 送る前に立ち止まれた回数：${state.saved}回</div>`));
+  w.appendChild(gp);
+
+  // today's reflection / practice
+  const rp=$(`<div class="pad" style="padding-top:12px"></div>`);
+  const rc=$(`<div class="card"></div>`);
+  rc.appendChild($(`<div class="tag">今日のひとこと</div>`)); rc.appendChild(sp(10));
+  rc.appendChild($(`<div class="small lh">「正しいこと」より「伝わること」。あなたの${STRENGTH[state.type[2]]}は、優しさとセットで最強になります。</div>`));
+  rp.appendChild(rc); w.appendChild(rp);
+
+  // upsell + settings
+  const up=$(`<div class="pad" style="padding-top:12px"></div>`);
+  if(state.tier==='free'){
+    const uc2=$(`<div class="card" style="cursor:pointer"><div class="row between"><div class="small"><b>🎙️ 声で練習・無制限相談</b><div class="muted" style="margin-top:3px">難しい会話を、事前にロールプレイ</div></div><span class="badge">Bond</span></div></div>`);
+    uc2.onclick=tiersSheet; up.appendChild(uc2);
   }
-  stepp.appendChild(sc); w.appendChild(stepp);
-
-  // 3) becoming + bond meters (investment + relationship)
-  const mp=$(`<div class="pad" style="padding-top:14px"></div>`);
-  const mk=(cls,label,val,sub)=>{const d=$(`<div style="margin-bottom:14px"></div>`);
-    d.appendChild($(`<div class="row between"><div class="tag">${label}</div><div class="small accent" style="font-weight:600">${val}%</div></div>`));
-    d.appendChild($(`<div class="meter ${cls}"><span style="width:${val}%"></span></div>`));
-    if(sub)d.appendChild($(`<div class="tiny dim" style="margin-top:7px">${sub}</div>`)); return d;};
-  mp.appendChild(mk('grow',`Becoming · ${g.label}`,state.becoming,'grows every time you show up'));
-  mp.appendChild(mk('bond','Your bond',state.bond, state.feeling?`${state.name} remembers you felt ${state.feeling}.`:''));
-  w.appendChild(mp);
-
-  // 4) the soul-twin charm — now a light delight layer, not the core
-  const nite=$(`<div class="pad" style="padding-top:2px"></div>`);
-  const nc=$(`<div class="card" style="cursor:pointer;background:linear-gradient(120deg,#302B52,#282348)"></div>`);
-  nc.appendChild($(`<div class="row between"><div class="tag sky">while you slept</div><div class="tiny dim">a little gift</div></div>`)); nc.appendChild(sp(8));
-  nc.appendChild($(`<div class="small muted" style="line-height:1.5">${state.name} wandered a quiet dream and left you a small note about ${g.phrase}.</div>`));
-  nc.onclick=()=>toast(`${state.name}: “Even in dreams, I was rooting for you. Today’s a good day to try.”`);
-  nite.appendChild(nc); w.appendChild(nite);
-
-  // 5) expression + keepsake
-  const studio=$(`<div class="pad" style="padding-top:14px"></div>`);
-  const srow=$(`<div class="row" style="gap:10px"></div>`);
-  const dress=$(`<button class="btnGhost" type="button" style="flex:1">Dress up</button>`); dress.onclick=expressionSheet;
-  const chron=$(`<button class="btnGhost" type="button" style="flex:1">Your journey</button>`); chron.onclick=keepsakeSheet;
-  srow.appendChild(dress); srow.appendChild(chron); studio.appendChild(srow); w.appendChild(studio);
-  w.appendChild(sp(16));
+  const link=$(`<div class="link" style="text-align:center;margin-top:14px">あなたのタイプ・プランを見る</div>`); link.onclick=profileSheet; up.appendChild(link);
+  w.appendChild(up); w.appendChild(sp(16));
   return w;
 }
 
 function sheet(builder){const ov=$(`<div class="overlay"></div>`),sh=$(`<div class="sheet"></div>`);
   ov.onclick=e=>{if(e.target===ov)ov.remove();};builder(sh,()=>ov.remove());ov.appendChild(sh);document.getElementById('phone').appendChild(ov);}
-function head2(sh,label,close){const r=$(`<div class="row between"></div>`);r.appendChild($(`<div class="tag">${label}</div>`));const x=$(`<div class="link">close</div>`);x.onclick=close;r.appendChild(x);sh.appendChild(r);}
+function head2(sh,label,close){const r=$(`<div class="row between"></div>`);r.appendChild($(`<div class="tag">${label}</div>`));const x=$(`<div class="link">閉じる</div>`);x.onclick=close;r.appendChild(x);sh.appendChild(r);}
 
-// ── Talk: the companion conversation (remembers you, coaches you) ──
-function talkSheet(){
-  const g=GOALS[state.goal]; let stage=0;
+// ── 言い方相談 (the showpiece) ──
+function adviceSheet(){
+  let who='恋人', draft='';
   sheet((sh,close)=>{
     function draw(){
       sh.innerHTML='';
-      head2(sh,`talking with ${state.name}`,close); sh.appendChild(sp(16));
-      const log=$(`<div style="display:flex;flex-direction:column"></div>`);
-      const opening = state.feeling?`Morning. Yesterday you felt ${state.feeling} — I’ve been holding that. How’s today starting?`
-        : `Morning. I keep thinking about your goal of ${g.phrase}. Before anything else — how are you, really?`;
-      log.appendChild($(`<div class="bubble twin">${opening}</div>`));
-      if(stage===0){
-        sh.appendChild(log); sh.appendChild(sp(6));
-        const opts=$(`<div class="row" style="flex-wrap:wrap;gap:8px"></div>`);
-        Object.entries(FEELINGS).forEach(([k,label])=>{
-          const c=$(`<div class="chip">${MOODS[k]} ${label}</div>`);
-          c.onclick=()=>{state.feeling=label;state.bond=Math.min(100,state.bond+4);save();stage=1;draw();};
-          opts.appendChild(c);
-        });
-        sh.appendChild(opts);
-        if(state.tier!=='bond'){sh.appendChild(sp(14));
-          const v=$(`<div class="card" style="cursor:pointer;border-color:var(--line2)"><div class="row between"><div class="small">🎙️ Talk out loud, in ${state.name}’s voice</div><span class="badge bond">Bond</span></div></div>`);
-          v.onclick=()=>{close();tiersSheet();}; sh.appendChild(v);}
-      } else {
-        log.appendChild($(`<div class="bubble you">I feel ${state.feeling} today.</div>`));
-        const react = state.feeling==='low'||state.feeling==='tired'
-          ? `Thank you for telling me — that took something. Let’s keep today small and kind, then.`
-          : `I love hearing that. Let’s use it. Here’s a tiny step toward ${g.phrase}:`;
-        log.appendChild($(`<div class="bubble twin">${react} <b>${g.step}</b></div>`));
-        sh.appendChild(log); sh.appendChild(sp(6));
-        const row=$(`<div class="row" style="gap:8px"></div>`);
-        const yes=$(`<button class="btn" type="button">Okay, I’ll try</button>`);
-        yes.onclick=()=>{state.todayStep=state.todayStep||{text:g.step,done:false};state.checkedIn=true;save();close();render();toast(`${state.name}: “I’ll be right here. You’ve got this.”`);};
-        const later=$(`<button class="btnGhost" type="button">Maybe later</button>`);
-        later.onclick=()=>{state.checkedIn=true;save();close();render();toast(`${state.name}: “No pressure. I’m still glad we talked.”`);};
-        row.appendChild(yes);row.appendChild(later); sh.appendChild(row);
-      }
+      head2(sh,'送る前に相談',close); sh.appendChild(sp(14));
+      sh.appendChild($(`<div class="tag">誰に送る?</div>`)); sh.appendChild(sp(9));
+      const g=$(`<div class="row wrap" style="gap:8px"></div>`);
+      ['恋人','友達','職場','家族'].forEach(x=>{const c=$(`<div class="chip ${who===x?'sel':''}">${x}</div>`);c.onclick=()=>{who=x;draw();};g.appendChild(c);});
+      sh.appendChild(g); sh.appendChild(sp(16));
+      sh.appendChild($(`<div class="tag">送ろうとしている文</div>`)); sh.appendChild(sp(9));
+      const ta=$(`<textarea rows="3" placeholder="そのまま貼り付けてOK。">${draft}</textarea>`); ta.oninput=e=>draft=e.target.value; sh.appendChild(ta);
+      sh.appendChild(sp(10));
+      sh.appendChild($(`<div class="tiny dim">例をタップして試す：</div>`)); sh.appendChild(sp(8));
+      const ex=$(`<div class="row wrap" style="gap:8px"></div>`);
+      SAMPLES.forEach(s=>{const c=$(`<div class="chip mini">${s.draft.slice(0,12)}…</div>`);c.onclick=()=>{who=s.who;draft=s.draft;draw();};ex.appendChild(c);});
+      sh.appendChild(ex); sh.appendChild(sp(16));
+      const b=$(`<button class="btn" type="button">エイドロンに聞く</button>`);
+      b.onclick=()=>{ if(!draft.trim()){toast('文を入力してください');return;} showAdvice(sh,close,who,draft.trim()); };
+      sh.appendChild(b);
     }
     draw();
   });
 }
+function showAdvice(sh,close,who,draft){
+  const s=SAMPLES.find(x=>x.draft===draft);
+  const ty=state.type;
+  const read = s? s.read : `${ty.includes('T')?'あなたの“率直さ”が出ています。正直だけど、':'この言い方だと、'}相手は少し身構えるかもしれません。`;
+  const after = s? s.after : softEN(draft);
+  const why = s? s.why : `“事実の指摘”に“あなたの気持ち”と“相手への一問”を足すと、同じ本音でも角が取れて届きます。`;
+  sh.innerHTML='';
+  head2(sh,`${who}への言い方`,close); sh.appendChild(sp(16));
+  sh.appendChild($(`<div class="tag">いまの文（そのまま）</div>`)); sh.appendChild(sp(8));
+  sh.appendChild($(`<div class="before">${draft}</div>`)); sh.appendChild(sp(14));
+  sh.appendChild($(`<div class="tag">エイドロンの見立て</div>`)); sh.appendChild(sp(8));
+  sh.appendChild($(`<div class="small muted lh">${read}</div>`)); sh.appendChild(sp(16));
+  sh.appendChild($(`<div class="tag green">あなたらしい、届く言い方</div>`)); sh.appendChild(sp(8));
+  sh.appendChild($(`<div class="after">${after}</div>`)); sh.appendChild(sp(12));
+  sh.appendChild($(`<div class="small muted lh"><b class="accent">なぜ:</b> ${why}</div>`)); sh.appendChild(sp(18));
+  const b=$(`<button class="btn" type="button">これで送る（コピー）</button>`);
+  b.onclick=()=>{state.growth=Math.min(100,state.growth+6);state.saved++;save();close();render();toast('送信前に立ち止まれました 🤍 成長 +6%');};
+  sh.appendChild(b);
+  sh.appendChild(sp(10));
+  sh.appendChild($(`<div class="tiny dim" style="text-align:center">Bondなら、この会話の相手ごとにあなたの傾向を覚えて、もっと的確に。</div>`));
+}
+function softEN(t){ // light heuristic softening for free text (demo)
+  let s=t.replace(/なんで/g,'').replace(/いつも/g,'').replace(/絶対/g,'');
+  return `${s.replace(/[。!？?]*$/,'')}… と感じたよ。あなたはどう思ってた?`;
+}
 
-function tiersSheet(){ sheet((sh,close)=>{
-  head2(sh,'closeness, not power',close); sh.appendChild(sp(16));
+function actSheet(){
+  sheet((sh,close)=>{
+    head2(sh,'行動する前に相談',close); sh.appendChild(sp(14));
+    sh.appendChild($(`<div class="tag">これから何をする?</div>`)); sh.appendChild(sp(10));
+    ACTS.forEach(a=>{const el=$(`<div class="opt">${a.t}</div>`);
+      el.onclick=()=>{ sh.innerHTML=''; head2(sh,a.t,close); sh.appendChild(sp(16));
+        sh.appendChild($(`<div class="tag green">エイドロンのアドバイス</div>`)); sh.appendChild(sp(10));
+        sh.appendChild($(`<div class="after">${a.advice(state.type)}</div>`)); sh.appendChild(sp(18));
+        const b=$(`<button class="btn" type="button">やってみる</button>`);
+        b.onclick=()=>{state.growth=Math.min(100,state.growth+5);state.saved++;save();close();render();toast('一歩、伝わる自分へ 🤍 成長 +5%');};
+        sh.appendChild(b);
+      }; sh.appendChild(el);});
+  });
+}
+
+function profileSheet(){sheet((sh,close)=>{
+  head2(sh,'あなたのタイプ・プラン',close); sh.appendChild(sp(16));
+  sh.appendChild($(`<div style="font-size:40px;font-weight:800;letter-spacing:3px" class="accent">${state.type}</div>`)); sh.appendChild(sp(14));
+  const c=$(`<div class="card"></div>`); c.appendChild($(`<div class="tag">伝わり方</div>`)); c.appendChild(sp(8));
+  state.type.split('').forEach(k=>c.appendChild($(`<div class="small lh" style="margin:5px 0">・${TRAIT[k]}</div>`)));
+  sh.appendChild(c); sh.appendChild(sp(14));
+  if(state.struggles.length||state.strugglesText){
+    sh.appendChild($(`<div class="tag">変えたいこと</div>`)); sh.appendChild(sp(8));
+    state.struggles.forEach(id=>{const s=STRUGGLES.find(x=>x.id===id);if(s)sh.appendChild($(`<div class="small muted" style="margin:4px 0">・${s.t}</div>`));});
+    if(state.strugglesText)sh.appendChild($(`<div class="small muted" style="margin:4px 0">・${state.strugglesText}</div>`));
+  }
+}); }
+
+function tiersSheet(){sheet((sh,close)=>{
+  head2(sh,'成長に、投資する',close); sh.appendChild(sp(16));
   const mk=(name,badge,price,feats,key)=>{const c=$(`<div class="card" style="margin-bottom:12px;${state.tier===key?'border-color:var(--gold)':''}"></div>`);
-    const r=$(`<div class="row between"></div>`);
-    r.appendChild($(`<div class="row" style="gap:8px"><h3>${name}</h3><span class="badge ${key==='free'?'free':'bond'}">${badge}</span></div>`));
+    const r=$(`<div class="row between"></div>`); r.appendChild($(`<div class="row" style="gap:8px"><h3>${name}</h3><span class="badge ${key==='free'?'free':''}">${badge}</span></div>`));
     r.appendChild($(`<div class="small muted">${price}</div>`)); c.appendChild(r); c.appendChild(sp(10));
     feats.forEach(f=>c.appendChild($(`<div class="small muted" style="margin:5px 0">${f}</div>`)));
-    if(state.tier!==key){const b=$(`<button class="btnGhost btnSm" type="button" style="width:100%;margin-top:12px">Switch to ${name}</button>`);
-      b.onclick=()=>{state.tier=key;save();close();render();toast(key==='bond'?'Bond on 🤍 voice + deeper memory + coaching':'Back to Free.');};c.appendChild(b);}
-    else c.appendChild($(`<div class="small accent" style="margin-top:12px;font-weight:600">current</div>`));
-    return c;};
-  sh.appendChild(mk('Free','get started','—',['· A daily check-in','· One step a day','· 7-day memory'],'free'));
-  sh.appendChild(mk('Bond','the real thing','$9.99 / mo',[
-    '· 🎙️ Talk out loud — its voice',
-    '· 💬 Talk as much as you want',
-    '· 🧠 It remembers everything about you',
-    '· 🌱 Personal coaching toward your goal',
-    '· 🕯️ Weekly reflection — “what I noticed about you”'],'bond'));
-  sh.appendChild($(`<div class="tiny dim" style="margin-top:4px">You pay to be known and helped — never for an advantage over anyone.</div>`));
-}); }
-
-// ── Expression (Layer 2) ──
-function cosmeticGrid(items){const g=$(`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px"></div>`);
-  items.forEach(it=>{const owned=state.owned.includes(it.id),eq=state.cosmetic.auraId===it.id,locked=it.bond&&!owned&&state.tier!=='bond';
-    const c=$(`<div class="pick" style="margin:0;text-align:center;padding:13px 6px;${eq?'border-color:var(--gold);background:var(--goldSoft)':''}"></div>`);
-    c.appendChild($(`<div style="font-size:25px">${it.emoji}</div>`));
-    c.appendChild($(`<div class="small" style="margin-top:5px;font-weight:500">${it.name}</div>`));
-    c.appendChild($(`<div class="tiny ${eq?'accent':'dim'}" style="margin-top:3px;${locked?'color:var(--gold)':''}">${eq?'✓ on':owned?'owned':locked?'Bond':(it.price===0?'free':'¥'+it.price)}</div>`));
-    c.onclick=()=>{if(locked){toast('This one comes with Bond 🤍');return;}if(!owned){state.owned.push(it.id);toast(it.price?('Unlocked · ¥'+it.price+' (demo)'):'Equipped');}
-      state.cosmetic.auraId=it.id;state.cosmetic.aura=it.emoji;save();document.querySelectorAll('.overlay').forEach(o=>o.remove());render();expressionSheet();};
-    g.appendChild(c);});return g;}
-function expressionSheet(){sheet((sh,close)=>{
-  head2(sh,`make ${state.name} yours`,close);sh.appendChild(sp(6));
-  sh.appendChild($(`<div class="small dim">Looks & voice — expression, never advantage.</div>`));sh.appendChild(sp(18));
-  sh.appendChild($(`<div class="tag">aura</div>`));sh.appendChild(sp(10));
-  sh.appendChild(cosmeticGrid([{id:'aura_star',emoji:'✨',name:'Starlight',price:0},{id:'aura_tide',emoji:'🌊',name:'Tide',price:240},
-    {id:'aura_ember',emoji:'🔥',name:'Ember',price:240},{id:'aura_bloom',emoji:'🌸',name:'Bloom',price:360},
-    {id:'aura_lunar',emoji:'🌙',name:'Lunar',price:480,bond:true},{id:'aura_aurora',emoji:'🌌',name:'Aurora',price:600,bond:true}]));
-}); }
-
-// ── Keepsake (Layer 3): your becoming ──
-function keepsakeSheet(){sheet((sh,close)=>{
-  head2(sh,'your journey',close);sh.appendChild(sp(14));
-  sh.appendChild($(`<div class="share">
-    <div class="row between"><div class="wordmark">EIDOLON</div><div class="tiny dim">${state.day} days</div></div>
-    <div style="height:16px"></div>
-    <div style="font-size:22px;font-weight:700">Becoming ${GOALS[state.goal].label.toLowerCase()}</div>
-    <div class="small muted" style="margin-top:6px;line-height:1.6">${state.name} kept every small step you took, and every morning you showed up. This is who you’re becoming.</div>
-    <div class="sep"></div>
-    <div class="row between"><div class="tiny dim">A keepsake of your year of becoming.</div><div class="accent tiny" style="font-weight:700">@eidolon</div></div>
-  </div>`)); sh.appendChild(sp(18));
-  sh.appendChild($(`<div class="tag">keep it forever</div>`));sh.appendChild(sp(10));
-  const dig=$(`<div class="card" style="margin-bottom:11px"><div class="row between"><div class="col"><div style="font-weight:600">Digital chronicle</div><div class="small dim" style="margin-top:2px">Your becoming, revisitable anytime</div></div></div></div>`);
-  const db=$(`<button class="btnGhost btnSm" type="button" style="margin-top:12px;width:100%">${state.tier==='bond'?'included with Bond':'¥480'}</button>`);
-  db.onclick=()=>toast(state.tier==='bond'?'Already yours with Bond 🤍':'Unlocked · ¥480 (demo)'); dig.appendChild(db); sh.appendChild(dig);
-  const prc=$(`<div class="card"><div class="row between"><div class="col"><div style="font-weight:600">Printed book</div><div class="small dim" style="margin-top:2px">A year of becoming, on your shelf</div></div></div></div>`);
-  const pb=$(`<button class="btnGhost btnSm" type="button" style="margin-top:12px;width:100%">¥3,800 — order</button>`);
-  pb.onclick=()=>toast('Ordered 📖 (demo) — the story of who you became.'); prc.appendChild(pb); sh.appendChild(prc);
+    if(state.tier!==key){const b=$(`<button class="btnGhost btnSm" type="button" style="width:100%;margin-top:12px">${name}にする</button>`);
+      b.onclick=()=>{state.tier=key;save();close();render();toast(key==='bond'?'Bond 🤍 無制限相談・記憶・練習・声':'Freeに戻しました');};c.appendChild(b);}
+    else c.appendChild($(`<div class="small accent" style="margin-top:12px;font-weight:600">利用中</div>`));return c;};
+  sh.appendChild(mk('Free','おためし','—',['・週3回まで「言い方相談」','・基本の性格タイプ'],'free'));
+  sh.appendChild(mk('Bond','本気で変わる','¥980 / 月',[
+    '・💬 「言い方相談」無制限',
+    '・🧠 相手ごとにあなたの傾向を記憶',
+    '・🎭 難しい会話の“ロールプレイ練習”',
+    '・🎙️ 声で相談・練習',
+    '・📊 毎週の成長レポート（あなたの共感が上がった 等）'],'bond'));
+  sh.appendChild($(`<div class="tiny dim" style="margin-top:4px">人間関係が懸かるから、払う価値がある。強さでなく“伝わる自分”に投資。</div>`));
 }); }
 
 let toastT;
