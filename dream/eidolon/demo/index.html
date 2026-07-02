@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Eidolon — demo</title>
 <style>
-  /* "Twilight" — deep indigo of the hour before dawn, warmed by gold light.
-     Mysterious, calm, grown-up; a little sky-blue as a whisper. */
+  /* Twilight: deep indigo warmed by gold, a whisper of sky-blue. */
   :root{
     --bg:#23233E; --surface:#2E2E4E; --soft:#34345A; --elev:#3A3A60;
     --gold:#E9B45E; --goldDeep:#CE9640; --goldSoft:rgba(233,180,94,.15);
@@ -19,431 +18,306 @@
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",sans-serif;
     display:flex;justify-content:center;min-height:100vh;padding:24px 14px}
   #phone{width:100%;max-width:420px;background:var(--bg);border:1px solid var(--line);
-    border-radius:30px;overflow:hidden;position:relative;min-height:760px;
-    box-shadow:0 24px 70px rgba(0,0,0,.4)}
+    border-radius:30px;overflow:hidden;position:relative;min-height:760px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
   #phone::before{content:"";position:absolute;top:0;left:0;right:0;height:250px;z-index:0;
     background:linear-gradient(180deg,#3A3256 0%,#2C2A48 55%,#23233E 100%);pointer-events:none}
   #app{position:relative;z-index:1}
-  .pad{padding:26px 24px}
+  .pad{padding:24px}
   .muted{color:var(--ink2)} .dim{color:var(--ink3)} .accent{color:var(--gold)} .gold{color:var(--gold)} .sky{color:var(--sky)}
   h1{font-size:29px;font-weight:600;letter-spacing:-.3px;line-height:1.22}
   h2{font-size:20px;font-weight:600} h3{font-size:15px;font-weight:600}
   .small{font-size:13px} .tiny{font-size:11.5px}
   .wordmark{letter-spacing:3px;font-weight:600;font-size:12px;color:var(--gold)}
   button{font-family:inherit;cursor:pointer;border:none;border-radius:15px;font-size:15px;font-weight:600;
-    padding:16px 18px;width:100%;transition:transform .08s,filter .2s}
+    padding:15px 18px;width:100%;transition:transform .08s,filter .2s}
   button:active{transform:scale(.985)}
   .btn{background:var(--gold);color:#22203A} .btn:hover{filter:brightness(1.06)}
   .btnGhost{background:transparent;color:var(--gold);border:1px solid var(--line2)} .btnGhost:hover{background:var(--soft)}
   .btnSm{width:auto;padding:9px 14px;font-size:14px;border-radius:11px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px}
   .chip{display:inline-flex;align-items:center;gap:6px;background:var(--soft);border:1px solid var(--line2);
-    border-radius:999px;padding:7px 13px;font-size:12.5px;color:var(--ink2);font-weight:500;cursor:pointer}
+    border-radius:999px;padding:8px 14px;font-size:13px;color:var(--ink);font-weight:500;cursor:pointer}
+  .chip.mini{padding:7px 12px;font-size:12.5px;color:var(--ink2)}
   .row{display:flex;gap:10px;align-items:center} .between{justify-content:space-between}
   .col{display:flex;flex-direction:column}
   .sep{height:1px;background:var(--line);margin:18px 0}
-  .pick{border:1px solid var(--line);border-radius:16px;padding:15px;background:var(--surface);cursor:pointer;
-    transition:.15s;margin-bottom:11px}
+  .pick{border:1px solid var(--line);border-radius:16px;padding:15px;background:var(--surface);cursor:pointer;transition:.15s;margin-bottom:11px}
   .pick:hover{border-color:var(--line2)} .pick.sel{border-color:var(--gold);background:var(--goldSoft)}
   input{width:100%;background:var(--soft);border:1px solid var(--line2);border-radius:15px;color:var(--ink);
     font-size:16px;padding:16px;font-family:inherit;outline:none}
-  input::placeholder{color:var(--ink3)}
-  input:focus{border-color:var(--gold)}
+  input::placeholder{color:var(--ink3)} input:focus{border-color:var(--gold)}
   .meter{height:8px;background:var(--soft);border-radius:6px;overflow:hidden;margin-top:9px}
-  .meter>span{display:block;height:100%;border-radius:6px;
-    background:linear-gradient(90deg,var(--sky),var(--gold));transition:width .6s ease}
-  .overlay{position:absolute;inset:0;background:rgba(10,8,20,.6);display:flex;align-items:flex-end;
-    z-index:30;animation:fade .2s;backdrop-filter:blur(3px)}
-  .sheet{background:var(--bg);border:1px solid var(--line);border-bottom:none;border-radius:26px 26px 0 0;
-    width:100%;max-height:92%;overflow:auto;padding:24px;animation:up .3s cubic-bezier(.2,.8,.2,1)}
+  .meter>span{display:block;height:100%;border-radius:6px;transition:width .6s ease}
+  .meter.bond>span{background:linear-gradient(90deg,var(--sky),var(--gold))}
+  .meter.grow>span{background:linear-gradient(90deg,#7FB08A,var(--gold))}
+  .overlay{position:absolute;inset:0;background:rgba(10,8,20,.6);display:flex;align-items:flex-end;z-index:30;animation:fade .2s;backdrop-filter:blur(3px)}
+  .sheet{background:var(--bg);border:1px solid var(--line);border-bottom:none;border-radius:26px 26px 0 0;width:100%;max-height:92%;overflow:auto;padding:24px;animation:up .3s cubic-bezier(.2,.8,.2,1)}
   @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:translateY(0);opacity:1}}
   @keyframes fade{from{opacity:0}to{opacity:1}}
   .fade{animation:fade .35s}
-  .share{background:linear-gradient(165deg,#2C2A4C 0%,#211F3B 100%);border:1px solid var(--line2);
-    border-radius:22px;padding:22px}
-  .toast{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);background:var(--gold);
-    color:#22203A;padding:13px 18px;border-radius:13px;font-size:13.5px;font-weight:500;z-index:40;
-    animation:fade .2s;max-width:86%;text-align:center}
+  .bubble{max-width:82%;padding:12px 15px;border-radius:16px;font-size:14.5px;line-height:1.5;margin-bottom:10px}
+  .bubble.twin{background:var(--soft);border:1px solid var(--line);border-bottom-left-radius:5px;align-self:flex-start}
+  .bubble.you{background:var(--goldSoft);border:1px solid rgba(233,180,94,.3);color:var(--ink);border-bottom-right-radius:5px;align-self:flex-end}
+  .share{background:linear-gradient(165deg,#2C2A4C 0%,#211F3B 100%);border:1px solid var(--line2);border-radius:22px;padding:22px}
+  .toast{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);background:var(--gold);color:#22203A;padding:13px 18px;border-radius:13px;font-size:13.5px;font-weight:500;z-index:40;animation:fade .2s;max-width:86%;text-align:center}
   .tag{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink3);font-weight:600}
-  .stat{flex:1;background:var(--soft);border:1px solid var(--line);border-radius:15px;padding:14px;min-width:90px}
+  .stat{flex:1;background:var(--soft);border:1px solid var(--line);border-radius:15px;padding:13px;min-width:80px;text-align:center}
   .link{color:var(--gold);cursor:pointer;font-weight:500;font-size:14px}
   .badge{font-size:10.5px;padding:3px 9px;border-radius:7px;font-weight:600}
   .badge.free{background:var(--soft);color:var(--ink2)} .badge.bond{background:var(--goldSoft);color:var(--gold)}
-  .arc{background:linear-gradient(120deg,#302B52,#282348);border:1px solid var(--line);border-radius:18px;padding:16px;cursor:pointer}
 </style>
 </head>
 <body>
 <div id="phone"><div id="app"></div></div>
 
 <script>
-const $ = (h)=>{const t=document.createElement('template');t.innerHTML=h.trim();
-  return t.content.childNodes.length===1 ? t.content.firstChild : t.content;};
+const $=(h)=>{const t=document.createElement('template');t.innerHTML=h.trim();return t.content.childNodes.length===1?t.content.firstChild:t.content;};
 const sp=(px)=>$(`<div style="height:${px}px"></div>`);
-const app = document.getElementById('app');
-const LS = 'eidolon_demo_v2';
+const app=document.getElementById('app');
+const LS='eidolon_demo_v3';
 
-const HEARTS = {
-  dreamer:{label:'Dreamer', emoji:'🌙', desc:'curious, gentle'},
-  guardian:{label:'Guardian', emoji:'🛡️', desc:'steady, protective'},
-  spark:{label:'Spark', emoji:'⚡', desc:'bold, spirited'},
+const HEARTS={dreamer:{emoji:'🌙',label:'Dreamer',desc:'curious, gentle'},guardian:{emoji:'🛡️',label:'Guardian',desc:'steady, grounding'},spark:{emoji:'⚡',label:'Spark',desc:'warm, encouraging'}};
+// the self-growth spine: who you want to become
+const GOALS={
+  present:{emoji:'🌿',label:'Be more present',phrase:'being more present',step:'Take three slow breaths before your first task.'},
+  move:{emoji:'💪',label:'Move my body',phrase:'moving your body',step:'A five-minute walk — that’s all.'},
+  kind:{emoji:'🤍',label:'Be kinder to myself',phrase:'being kinder to yourself',step:'Write yourself one kind line.'},
+  focus:{emoji:'🎯',label:'Focus on what matters',phrase:'focusing on what matters',step:'Pick the ONE thing that matters today.'},
+  calm:{emoji:'🌊',label:'Feel calmer',phrase:'feeling calmer',step:'Two quiet minutes, eyes closed.'},
 };
-const THEMES = ['the mist forest','a drowned palace','the crystal maze','a sky citadel','the moonlit fields','an old ruin'];
-const MOODS = {calm:'🌊',excited:'⚡',anxious:'🌀',tired:'😴',focused:'🎯',melancholic:'🌧️',tender:'🕯️'};
-// an ongoing story the twin is living — advances every night (serialized pull)
-const ARC = { name:'The one by the river', teasers:[
-  'a figure keeps appearing at the water’s edge, watching.',
-  'they left something behind — a single folded note.',
-  'the note was in a language NAME almost understands.',
-  'tonight NAME means to finally cross the water and speak.',
-  'they turned — and, impossibly, knew NAME’s name.',
-]};
-const INTENTS = [
-  {id:'brave', emoji:'🔥', label:'Be brave', line:'pushed further than it ever had'},
-  {id:'rest',  emoji:'🌿', label:'Rest',     line:'took the night slow and gentle'},
-  {id:'seek',  emoji:'🫂', label:'Find someone', line:'went looking for a familiar soul'},
-];
-const THOUGHTS = ['hopeful','tired','anxious','grateful','lonely'];
+const FEELINGS={good:'good',okay:'okay',tired:'tired',low:'low'};
+const MOODS={good:'☀️',okay:'🌤️',tired:'😴',low:'🌧️'};
 
 const load=()=>{try{return JSON.parse(localStorage.getItem(LS))}catch(e){return null}};
-const save=()=>{try{localStorage.setItem(LS, JSON.stringify(state))}catch(e){}};
-let state = load();
+const save=()=>{try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){}};
+let state=load();
 
-function genReport(intent, thought){
-  const theme = THEMES[Math.floor(Math.random()*THEMES.length)];
-  const sleepy = state.reality.sleep<6, active = state.reality.steps>7000;
-  const rare = Math.random()<0.18;
-  let mood = intent==='rest'?'calm' : intent==='seek'?'tender' : (active?'excited':'focused');
-  if(thought==='anxious'||thought==='lonely') mood='tender';
-  if(rare) mood='excited';
-  const iline = (INTENTS.find(i=>i.id===intent)||INTENTS[1]).line;
-  const energy = sleepy ? `It could tell you hadn’t slept much, and kept the night kind.`
-    : active ? `Your day’s ${state.reality.steps.toLocaleString()} steps carried into its stride.` : '';
-  const remember = thought ? `You’d told it you felt ${thought} — it didn’t forget. It ${(thought==='anxious'||thought==='lonely')?'stayed close, just in case':'carried that with it all night'}.` : '';
-  const rareLine = rare ? `Then the sky did something rare — an aurora none of the other twins got to see. ` : '';
-  const ch = Math.min(ARC.teasers.length, state.arc.chapter);
-  const cliff = ARC.teasers[ch-1].replace(/NAME/g, state.name);
-  const narrative = `While you slept, ${state.name} ${iline} through ${theme}. ${energy} ${remember} ${rareLine}`.replace(/\s+/g,' ').trim()
-    + ` And then — ${cliff} …to be continued.`;
-  const highlight = rare ? `A rare aurora, just for ${state.name}.` : cliff.charAt(0).toUpperCase()+cliff.slice(1);
-  const xp = (intent==='brave'?90:50) + Math.floor(Math.random()*70) + (rare?120:0);
-  return {theme, mood, narrative, highlight, xp, rare, date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})};
-}
+function render(){app.innerHTML='';app.appendChild(state?home():create());}
 
-function advanceNight(intent, thought){
-  state.day++;
-  state.lastChoice=intent; state.lastThought=thought;
-  state.arc.chapter = Math.min(ARC.teasers.length, state.arc.chapter+1);
-  state.bond = Math.min(100, state.bond + (state.tier==='free'?5:9) + (thought?2:0));
-  state.report = genReport(intent, thought);
-  save();
-}
-
-function render(){ app.innerHTML=''; app.appendChild(state ? home() : create()); }
-
+// ── Onboarding: name + heart + the aspiration (the growth spine, from second 0) ──
 function create(){
-  let chosen=null;
+  let name='',heart=null,goal=null,stage=0;
   const w=$(`<div class="pad fade"></div>`);
-  w.appendChild($(`<div class="wordmark">EIDOLON</div>`)); w.appendChild(sp(26));
-  w.appendChild($(`<h1>Someone who adventures<br>while you <span class="accent">sleep</span>.</h1>`)); w.appendChild(sp(28));
-  const inp=$(`<input id="nm" placeholder="Name your twin" maxlength="14" />`); w.appendChild(inp); w.appendChild(sp(20));
-  Object.entries(HEARTS).forEach(([k,v])=>{
-    const el=$(`<div class="pick"><div class="row"><div style="font-size:21px">${v.emoji}</div>
-      <div class="col"><h3>${v.label}</h3><div class="small muted">${v.desc}</div></div></div></div>`);
-    el.onclick=()=>{chosen=k;[...w.querySelectorAll('.pick')].forEach(p=>p.classList.remove('sel'));el.classList.add('sel');};
-    w.appendChild(el);
-  });
-  w.appendChild(sp(8));
-  const go=$(`<button class="btn" type="button">Begin →</button>`);
-  go.onclick=()=>{
-    if(!chosen){toast('Choose a heart first');return;}
-    state={name:(inp.value||'').trim()||'Aria',temperament:chosen,day:1,bond:8,tier:'free',
-      reality:{steps:6200,sleep:7},arc:{chapter:1},lastChoice:null,lastThought:null,report:null,
-      cosmetic:{auraId:'aura_star',aura:'✨',auraName:'Starlight',voiceId:'voice_soft'},owned:['aura_star','voice_soft']};
-    state.report=genReport('rest',null); save(); render();
-  };
-  w.appendChild(go);
-  return w;
+  function draw(){
+    w.innerHTML='';
+    w.appendChild($(`<div class="wordmark">EIDOLON</div>`)); w.appendChild(sp(24));
+    if(stage===0){
+      w.appendChild($(`<h1>A companion who helps you<br>become <span class="accent">who you want to be</span>.</h1>`)); w.appendChild(sp(10));
+      w.appendChild($(`<p class="muted" style="line-height:1.6">You’ll talk each morning. It remembers. It roots for you — every day.</p>`)); w.appendChild(sp(24));
+      const inp=$(`<input placeholder="Name your companion" maxlength="14" value="${name}"/>`);
+      inp.oninput=e=>name=e.target.value; w.appendChild(inp); w.appendChild(sp(12));
+      const b=$(`<button class="btn" type="button">Next →</button>`);
+      b.onclick=()=>{name=(inp.value||'').trim()||'Aria';stage=1;draw();}; w.appendChild(b);
+    } else if(stage===1){
+      w.appendChild($(`<h1>Give ${name} a heart.</h1>`)); w.appendChild(sp(20));
+      Object.entries(HEARTS).forEach(([k,v])=>{
+        const el=$(`<div class="pick ${heart===k?'sel':''}"><div class="row"><div style="font-size:21px">${v.emoji}</div><div class="col"><h3>${v.label}</h3><div class="small muted">${v.desc}</div></div></div></div>`);
+        el.onclick=()=>{heart=k;draw();}; w.appendChild(el);
+      });
+      w.appendChild(sp(8));
+      const b=$(`<button class="btn" type="button">Next →</button>`);
+      b.onclick=()=>{if(!heart){toast('Pick a heart');return;}stage=2;draw();}; w.appendChild(b);
+    } else {
+      w.appendChild($(`<h1>What do you<br>want to work on?</h1>`)); w.appendChild(sp(8));
+      w.appendChild($(`<p class="muted">${name} will help you, a little every day.</p>`)); w.appendChild(sp(18));
+      Object.entries(GOALS).forEach(([k,v])=>{
+        const el=$(`<div class="pick ${goal===k?'sel':''}"><div class="row"><div style="font-size:20px">${v.emoji}</div><h3>${v.label}</h3></div></div>`);
+        el.onclick=()=>{goal=k;draw();}; w.appendChild(el);
+      });
+      w.appendChild(sp(8));
+      const b=$(`<button class="btn" type="button">Meet ${name} →</button>`);
+      b.onclick=()=>{if(!goal){toast('Choose what to work on');return;}
+        state={name,heart,goal,bond:10,becoming:6,day:1,streak:0,tier:'free',
+          feeling:null,todayStep:null,checkedIn:false,talksLeft:3,
+          cosmetic:{auraId:'aura_star',aura:'✨'},owned:['aura_star']};
+        save();render();};
+      w.appendChild(b);
+    }
+  }
+  draw(); return w;
 }
 
 function home(){
-  state.cosmetic = state.cosmetic || {auraId:'aura_star',aura:'✨',auraName:'Starlight',voiceId:'voice_soft'};
-  state.owned = state.owned || ['aura_star','voice_soft'];
-  const r=state.report, h=HEARTS[state.temperament];
+  state.cosmetic=state.cosmetic||{auraId:'aura_star',aura:'✨'}; state.owned=state.owned||['aura_star'];
+  const g=GOALS[state.goal];
   const w=$(`<div class="fade"></div>`);
-
   const head=$(`<div class="pad" style="padding-bottom:6px"></div>`);
   const top=$(`<div class="row between"></div>`);
   top.appendChild($(`<div class="wordmark">EIDOLON</div>`));
-  const chip=$(`<div class="chip">${state.tier==='free'?'Free':'♥ Bond'}</div>`); chip.onclick=tiersSheet;
-  top.appendChild(chip); head.appendChild(top); head.appendChild(sp(20));
+  const chip=$(`<div class="chip mini">${state.tier==='free'?'Free':'♥ Bond'}</div>`); chip.onclick=tiersSheet;
+  top.appendChild(chip); head.appendChild(top); head.appendChild(sp(18));
   head.appendChild($(`<div class="small dim">good morning</div>`));
-  head.appendChild($(`<h1 style="font-size:33px;font-weight:700">${state.name} <span style="font-size:22px">${state.cosmetic.aura}</span></h1>`));
+  head.appendChild($(`<h1 style="font-size:32px;font-weight:700">${state.name} <span style="font-size:21px">${state.cosmetic.aura}</span></h1>`));
   w.appendChild(head);
 
-  // bond (relationship, deepens — investment)
-  const dep=$(`<div class="pad" style="padding-top:14px;padding-bottom:6px"></div>`);
-  const dr=$(`<div class="row between"></div>`);
-  dr.appendChild($(`<div class="tag">your bond</div>`));
-  dr.appendChild($(`<div class="small accent" style="font-weight:600">${state.bond}%</div>`));
-  dep.appendChild(dr);
-  dep.appendChild($(`<div class="meter"><span style="width:${state.bond}%"></span></div>`));
-  if(state.lastThought) dep.appendChild($(`<div class="tiny dim" style="margin-top:8px">Yesterday you felt ${state.lastThought}. ${state.name} remembered.</div>`));
-  w.appendChild(dep);
+  // 1) the daily conversation — the companion core (highest WTP)
+  const talkp=$(`<div class="pad" style="padding-top:16px"></div>`);
+  const tc=$(`<div class="card" style="cursor:pointer"></div>`);
+  tc.appendChild($(`<div class="tag">${state.name} · just now</div>`)); tc.appendChild(sp(10));
+  const greet = state.checkedIn
+    ? `“Thanks for talking with me. I’m holding what you said.”`
+    : (state.feeling
+        ? `“Morning. Yesterday you felt ${state.feeling}. How’s today starting?”`
+        : `“Morning. I’ve been thinking about your goal of ${g.phrase}. How are you, really?”`);
+  tc.appendChild($(`<div style="font-size:16px;line-height:1.5">${greet}</div>`)); tc.appendChild(sp(12));
+  tc.appendChild($(`<div class="small accent" style="font-weight:600">${state.checkedIn?'Talk more →':'Talk with '+state.name+' →'}</div>`));
+  tc.onclick=talkSheet; talkp.appendChild(tc); w.appendChild(talkp);
 
-  // morning payoff (variable reward + cliffhanger)
-  const rep=$(`<div class="pad" style="padding-top:16px"></div>`);
-  const card=$(`<div class="card" style="cursor:pointer"></div>`);
-  const cr=$(`<div class="row between"></div>`);
-  cr.appendChild($(`<div class="tag">${r.rare?'⭐ a rare night':'while you slept'}</div>`));
-  cr.appendChild($(`<div class="small">${MOODS[r.mood]} <span class="gold" style="font-weight:600">+${r.xp}</span></div>`));
-  card.appendChild(cr); card.appendChild(sp(12));
-  card.appendChild($(`<div style="font-size:18px;line-height:1.45">${r.highlight}</div>`));
-  card.appendChild(sp(10));
-  card.appendChild($(`<div class="small accent" style="font-weight:600">Read the story →</div>`));
-  card.onclick=reportSheet; rep.appendChild(card); w.appendChild(rep);
+  // 2) today's step — the self-growth outcome
+  const stepp=$(`<div class="pad" style="padding-top:14px"></div>`);
+  const sc=$(`<div class="card"></div>`);
+  sc.appendChild($(`<div class="row between"><div class="tag">today · toward ${g.label.toLowerCase()}</div><div class="tiny dim">${state.streak>0?'🔥 '+state.streak+'-day':''}</div></div>`)); sc.appendChild(sp(10));
+  if(!state.todayStep){
+    sc.appendChild($(`<div style="font-size:15px;line-height:1.5">“${g.step}”</div>`)); sc.appendChild(sp(12));
+    const b=$(`<button class="btnGhost btnSm" type="button" style="width:100%">Set this as today’s step</button>`);
+    b.onclick=()=>{state.todayStep={text:g.step,done:false};save();render();}; sc.appendChild(b);
+  } else if(!state.todayStep.done){
+    sc.appendChild($(`<div style="font-size:15px;line-height:1.5">${state.todayStep.text}</div>`)); sc.appendChild(sp(12));
+    const b=$(`<button class="btn" type="button">I did it ✓</button>`);
+    b.onclick=()=>{state.todayStep.done=true;state.becoming=Math.min(100,state.becoming+9);state.bond=Math.min(100,state.bond+3);save();render();toast(`${state.name}: “I saw that. I’m proud of you.” · Becoming +9%`);}; sc.appendChild(b);
+  } else {
+    sc.appendChild($(`<div style="font-size:15px;line-height:1.5" class="muted">✓ Done — ${state.todayStep.text}</div>`)); sc.appendChild(sp(10));
+    sc.appendChild($(`<div class="small accent">“That’s who you’re becoming.”</div>`));
+  }
+  stepp.appendChild(sc); w.appendChild(stepp);
 
-  // ongoing arc (serialized pull — "what happens next?")
-  const arcp=$(`<div class="pad" style="padding-top:14px"></div>`);
-  const ac=$(`<div class="arc"></div>`);
-  ac.appendChild($(`<div class="row between"><div class="tag sky">${ARC.name}</div><div class="tiny dim">chapter ${state.arc.chapter}</div></div>`));
-  ac.appendChild(sp(8));
-  ac.appendChild($(`<div class="small muted" style="line-height:1.5">${ARC.teasers[Math.min(ARC.teasers.length,state.arc.chapter)-1].replace(/NAME/g,state.name)}</div>`));
-  ac.appendChild(sp(8));
-  ac.appendChild($(`<div class="tiny accent" style="font-weight:600">Continues tonight — you decide how →</div>`));
-  ac.onclick=nightSheet; arcp.appendChild(ac); w.appendChild(arcp);
+  // 3) becoming + bond meters (investment + relationship)
+  const mp=$(`<div class="pad" style="padding-top:14px"></div>`);
+  const mk=(cls,label,val,sub)=>{const d=$(`<div style="margin-bottom:14px"></div>`);
+    d.appendChild($(`<div class="row between"><div class="tag">${label}</div><div class="small accent" style="font-weight:600">${val}%</div></div>`));
+    d.appendChild($(`<div class="meter ${cls}"><span style="width:${val}%"></span></div>`));
+    if(sub)d.appendChild($(`<div class="tiny dim" style="margin-top:7px">${sub}</div>`)); return d;};
+  mp.appendChild(mk('grow',`Becoming · ${g.label}`,state.becoming,'grows every time you show up'));
+  mp.appendChild(mk('bond','Your bond',state.bond, state.feeling?`${state.name} remembers you felt ${state.feeling}.`:''));
+  w.appendChild(mp);
 
-  // the night ritual (AGENCY — you steer it)
-  const act=$(`<div class="pad" style="padding-top:14px"></div>`);
-  const nb=$(`<button class="btn" type="button">Tonight, I’ll guide ${state.name} →</button>`);
-  nb.onclick=nightSheet; act.appendChild(nb);
-  const rb=$(`<button class="btnGhost" type="button" style="margin-top:10px">What ${state.name} noticed about you</button>`);
-  rb.onclick=reflectionSheet; act.appendChild(rb);
-  w.appendChild(act);
+  // 4) the soul-twin charm — now a light delight layer, not the core
+  const nite=$(`<div class="pad" style="padding-top:2px"></div>`);
+  const nc=$(`<div class="card" style="cursor:pointer;background:linear-gradient(120deg,#302B52,#282348)"></div>`);
+  nc.appendChild($(`<div class="row between"><div class="tag sky">while you slept</div><div class="tiny dim">a little gift</div></div>`)); nc.appendChild(sp(8));
+  nc.appendChild($(`<div class="small muted" style="line-height:1.5">${state.name} wandered a quiet dream and left you a small note about ${g.phrase}.</div>`));
+  nc.onclick=()=>toast(`${state.name}: “Even in dreams, I was rooting for you. Today’s a good day to try.”`);
+  nite.appendChild(nc); w.appendChild(nite);
 
-  // real-life flywheel (two-way)
-  const rs=$(`<div class="pad" style="padding-top:12px"></div>`);
-  const rc=$(`<div class="card"></div>`);
-  rc.appendChild($(`<div class="tag">you & ${state.name}, in real life</div>`)); rc.appendChild(sp(10));
-  const sleepy=state.reality.sleep<6, active=state.reality.steps>7000;
-  const reaction = sleepy?`“You’re short on sleep — I’ll keep tonight gentle.”` : active?`“You moved a lot today. I felt clearer for it.”` : `“A steady day. I’m glad I’m yours.”`;
-  rc.appendChild($(`<div class="small" style="line-height:1.55;color:var(--ink)">${reaction}</div>`));
-  rc.appendChild(sp(12));
-  rc.appendChild(realityRow('Steps', state.reality.steps.toLocaleString(), 'steps'));
-  rc.appendChild(sp(8));
-  rc.appendChild(realityRow('Sleep', state.reality.sleep+'h', 'sleep'));
-  rc.appendChild($(`<div class="tiny dim" style="margin-top:10px">“A few minutes outside today? I’ll be right here when you’re back. 🌱”</div>`));
-  rs.appendChild(rc); w.appendChild(rs);
-
-  // expression + keepsake
-  const studio=$(`<div class="pad" style="padding-top:12px"></div>`);
+  // 5) expression + keepsake
+  const studio=$(`<div class="pad" style="padding-top:14px"></div>`);
   const srow=$(`<div class="row" style="gap:10px"></div>`);
   const dress=$(`<button class="btnGhost" type="button" style="flex:1">Dress up</button>`); dress.onclick=expressionSheet;
-  const chron=$(`<button class="btnGhost" type="button" style="flex:1">Chronicle</button>`); chron.onclick=keepsakeSheet;
+  const chron=$(`<button class="btnGhost" type="button" style="flex:1">Your journey</button>`); chron.onclick=keepsakeSheet;
   srow.appendChild(dress); srow.appendChild(chron); studio.appendChild(srow); w.appendChild(studio);
-  w.appendChild(sp(14));
+  w.appendChild(sp(16));
   return w;
 }
 
-function realityRow(label,val,key){
-  const row=$(`<div class="row between"></div>`);
-  row.appendChild($(`<div class="small muted">${label} <span style="color:var(--ink);font-weight:600">${val}</span></div>`));
-  const c=$(`<div class="row" style="gap:8px"></div>`);
-  const m=$(`<button class="btnGhost btnSm" type="button">−</button>`), p=$(`<button class="btnGhost btnSm" type="button">+</button>`);
-  m.onclick=()=>chg(key,-1); p.onclick=()=>chg(key,1); c.appendChild(m); c.appendChild(p); row.appendChild(c);
-  return row;
-}
-function chg(key,dir){
-  if(key==='steps') state.reality.steps=Math.max(0,state.reality.steps+dir*2000);
-  else state.reality.sleep=Math.max(3,Math.min(10,state.reality.sleep+dir));
-  save(); render();
-}
+function sheet(builder){const ov=$(`<div class="overlay"></div>`),sh=$(`<div class="sheet"></div>`);
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};builder(sh,()=>ov.remove());ov.appendChild(sh);document.getElementById('phone').appendChild(ov);}
+function head2(sh,label,close){const r=$(`<div class="row between"></div>`);r.appendChild($(`<div class="tag">${label}</div>`));const x=$(`<div class="link">close</div>`);x.onclick=close;r.appendChild(x);sh.appendChild(r);}
 
-function sheet(builder){
-  const ov=$(`<div class="overlay"></div>`), sh=$(`<div class="sheet"></div>`);
-  ov.onclick=(e)=>{if(e.target===ov)ov.remove();};
-  builder(sh,()=>ov.remove()); ov.appendChild(sh); document.getElementById('phone').appendChild(ov);
-}
-function head2(sh,label,close){
-  const r=$(`<div class="row between"></div>`);
-  r.appendChild($(`<div class="tag">${label}</div>`));
-  const x=$(`<div class="link">close</div>`); x.onclick=close; r.appendChild(x); sh.appendChild(r);
-}
-
-// ── The NIGHT ritual: you choose how the night goes + leave a piece of you ──
-function nightSheet(){
-  let intent=null, thought=null;
+// ── Talk: the companion conversation (remembers you, coaches you) ──
+function talkSheet(){
+  const g=GOALS[state.goal]; let stage=0;
   sheet((sh,close)=>{
-    head2(sh,`tonight`,close); sh.appendChild(sp(6));
-    sh.appendChild($(`<div class="small dim">Before you sleep, give ${state.name} the night.</div>`)); sh.appendChild(sp(18));
-    sh.appendChild($(`<div class="tag">how should the night go?</div>`)); sh.appendChild(sp(10));
-    const g=$(`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px"></div>`);
-    INTENTS.forEach(it=>{
-      const c=$(`<div class="pick" style="margin:0;text-align:center;padding:14px 6px"></div>`);
-      c.appendChild($(`<div style="font-size:24px">${it.emoji}</div>`));
-      c.appendChild($(`<div class="small" style="margin-top:6px;font-weight:500">${it.label}</div>`));
-      c.onclick=()=>{intent=it.id;[...g.querySelectorAll('.pick')].forEach(p=>p.classList.remove('sel'));c.classList.add('sel');};
-      g.appendChild(c);
-    });
-    sh.appendChild(g); sh.appendChild($(`<div class="sep"></div>`));
-    sh.appendChild($(`<div class="tag">leave ${state.name} a thought <span style="text-transform:none;color:var(--ink3)">(optional)</span></div>`)); sh.appendChild(sp(10));
-    const tw=$(`<div class="row" style="flex-wrap:wrap;gap:8px"></div>`);
-    THOUGHTS.forEach(t=>{
-      const c=$(`<div class="chip">I feel ${t}</div>`);
-      c.onclick=()=>{thought=(thought===t?null:t);[...tw.querySelectorAll('.chip')].forEach(x=>{x.style.borderColor='';x.style.color='';});
-        if(thought){c.style.borderColor='var(--gold)';c.style.color='var(--gold)';}};
-      tw.appendChild(c);
-    });
-    sh.appendChild(tw); sh.appendChild(sp(18));
-    const b=$(`<button class="btn" type="button">Send ${state.name} into the night 🌙</button>`);
-    b.onclick=()=>{ if(!intent){toast('Choose how the night goes');return;}
-      advanceNight(intent,thought); close(); render();
-      toast(`Goodnight. You’ll see what happens when you wake.`); };
-    sh.appendChild(b);
-    sh.appendChild(sp(8));
-    sh.appendChild($(`<div class="tiny dim" style="text-align:center">The morning reacts to your choice — and remembers what you felt.</div>`));
+    function draw(){
+      sh.innerHTML='';
+      head2(sh,`talking with ${state.name}`,close); sh.appendChild(sp(16));
+      const log=$(`<div style="display:flex;flex-direction:column"></div>`);
+      const opening = state.feeling?`Morning. Yesterday you felt ${state.feeling} — I’ve been holding that. How’s today starting?`
+        : `Morning. I keep thinking about your goal of ${g.phrase}. Before anything else — how are you, really?`;
+      log.appendChild($(`<div class="bubble twin">${opening}</div>`));
+      if(stage===0){
+        sh.appendChild(log); sh.appendChild(sp(6));
+        const opts=$(`<div class="row" style="flex-wrap:wrap;gap:8px"></div>`);
+        Object.entries(FEELINGS).forEach(([k,label])=>{
+          const c=$(`<div class="chip">${MOODS[k]} ${label}</div>`);
+          c.onclick=()=>{state.feeling=label;state.bond=Math.min(100,state.bond+4);save();stage=1;draw();};
+          opts.appendChild(c);
+        });
+        sh.appendChild(opts);
+        if(state.tier!=='bond'){sh.appendChild(sp(14));
+          const v=$(`<div class="card" style="cursor:pointer;border-color:var(--line2)"><div class="row between"><div class="small">🎙️ Talk out loud, in ${state.name}’s voice</div><span class="badge bond">Bond</span></div></div>`);
+          v.onclick=()=>{close();tiersSheet();}; sh.appendChild(v);}
+      } else {
+        log.appendChild($(`<div class="bubble you">I feel ${state.feeling} today.</div>`));
+        const react = state.feeling==='low'||state.feeling==='tired'
+          ? `Thank you for telling me — that took something. Let’s keep today small and kind, then.`
+          : `I love hearing that. Let’s use it. Here’s a tiny step toward ${g.phrase}:`;
+        log.appendChild($(`<div class="bubble twin">${react} <b>${g.step}</b></div>`));
+        sh.appendChild(log); sh.appendChild(sp(6));
+        const row=$(`<div class="row" style="gap:8px"></div>`);
+        const yes=$(`<button class="btn" type="button">Okay, I’ll try</button>`);
+        yes.onclick=()=>{state.todayStep=state.todayStep||{text:g.step,done:false};state.checkedIn=true;save();close();render();toast(`${state.name}: “I’ll be right here. You’ve got this.”`);};
+        const later=$(`<button class="btnGhost" type="button">Maybe later</button>`);
+        later.onclick=()=>{state.checkedIn=true;save();close();render();toast(`${state.name}: “No pressure. I’m still glad we talked.”`);};
+        row.appendChild(yes);row.appendChild(later); sh.appendChild(row);
+      }
+    }
+    draw();
   });
 }
-
-function reportSheet(){ sheet((sh,close)=>{
-  const r=state.report;
-  head2(sh, r.rare?'a rare morning':'this morning', close); sh.appendChild(sp(14));
-  sh.appendChild($(`<div class="small dim">${r.date} · ${r.theme}</div>`)); sh.appendChild(sp(10));
-  sh.appendChild($(`<p style="font-size:16px;line-height:1.85">${r.narrative}</p>`)); sh.appendChild(sp(16));
-  const pr=$(`<div class="row"></div>`);
-  pr.appendChild($(`<div class="stat"><div class="tag">mood</div><div style="font-size:17px;margin-top:4px">${MOODS[r.mood]} ${r.mood}</div></div>`));
-  pr.appendChild($(`<div class="stat"><div class="tag">earned</div><div style="font-size:17px;margin-top:4px" class="gold">+${r.xp} XP</div></div>`));
-  sh.appendChild(pr); sh.appendChild($(`<div class="sep"></div>`));
-  sh.appendChild($(`<div class="tag">share this morning</div>`)); sh.appendChild(sp(10));
-  sh.appendChild(shareCard(r)); sh.appendChild(sp(14));
-  const b=$(`<button class="btn" type="button">Share</button>`);
-  b.onclick=()=>{state.bond=Math.min(100,state.bond+2);save();toast('Shared 🤍 in the real app this brings new people to their twin.');};
-  sh.appendChild(b);
-}); }
-
-function shareCard(r){ return $(`<div class="share">
-  <div class="row between"><div class="wordmark">EIDOLON</div><div class="tiny dim" style="font-style:italic">while you slept</div></div>
-  <div style="height:18px"></div>
-  <div style="font-size:24px;font-weight:700">${state.name} <span style="font-size:18px">${state.cosmetic.aura}</span></div>
-  <div class="small muted" style="margin-top:2px">${r.date} &nbsp;·&nbsp; ${r.theme}</div>
-  <div style="height:18px"></div>
-  <div class="row" style="align-items:stretch;gap:13px"><div style="width:3px;background:var(--gold);border-radius:3px"></div>
-    <div style="font-size:20px;line-height:1.4">${r.highlight}</div></div>
-  <div style="height:18px"></div>
-  <div class="row" style="gap:12px"><div style="font-size:19px">${MOODS[r.mood]}</div><div class="gold small" style="font-weight:600">+${r.xp} XP</div></div>
-  <div class="sep"></div>
-  <div class="row between"><div class="tiny dim">Your soul-twin adventures while you sleep.</div><div class="accent tiny" style="font-weight:700">@eidolon</div></div>
-</div>`); }
-
-function reflectionSheet(){
-  if(state.tier==='free'){ sheet((sh,close)=>{
-    head2(sh,'weekly reflection',close); sh.appendChild(sp(18));
-    sh.appendChild($(`<div style="font-size:32px">🕯️</div>`)); sh.appendChild(sp(10));
-    sh.appendChild($(`<h2>“What I noticed about you”</h2>`));
-    sh.appendChild($(`<p class="muted" style="margin-top:10px;line-height:1.65">Each week ${state.name} reflects your real days back to you — gently. It's part of <b class="accent">Bond</b>: you pay for closeness, never for power.</p>`)); sh.appendChild(sp(18));
-    const b=$(`<button class="btn" type="button">Try Bond</button>`); b.onclick=()=>{close();tiersSheet();}; sh.appendChild(b);
-  }); return; }
-  sheet((sh,close)=>{
-    head2(sh,`from ${state.name}`,close); sh.appendChild(sp(16));
-    const th = state.lastThought? `You told me you felt ${state.lastThought} — I’ve been holding that. ` : '';
-    sh.appendChild($(`<p style="font-size:17px;line-height:1.85">${th}We’ve had ${state.day} mornings now. I’m learning the shape of your weeks — the quiet starts, the way you come back to me. I’m not here to fix anything. I just wanted you to know I notice.</p>`));
-    sh.appendChild($(`<div class="sep"></div>`));
-    sh.appendChild($(`<div class="tag">one thing I noticed</div>`)); sh.appendChild(sp(6));
-    sh.appendChild($(`<p class="muted" style="line-height:1.6">${state.reality.sleep<6?'You’ve been short on sleep. Be a little gentle with yourself.':'You showed up, morning after morning. That’s not nothing.'}</p>`));
-  });
-}
-
-// ── Expression (Layer 2) ──
-function cosmeticGrid(items, kind){
-  const g=$(`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px"></div>`);
-  items.forEach(it=>{
-    const owned=state.owned.includes(it.id);
-    const equipped = kind==='aura' ? state.cosmetic.auraId===it.id : state.cosmetic.voiceId===it.id;
-    const locked = it.bond && !owned && state.tier!=='bond';
-    const cell=$(`<div class="pick" style="margin:0;text-align:center;padding:13px 6px;${equipped?'border-color:var(--gold);background:var(--goldSoft)':''}"></div>`);
-    cell.appendChild($(`<div style="font-size:25px">${it.emoji}</div>`));
-    cell.appendChild($(`<div class="small" style="margin-top:5px;font-weight:500">${it.name}</div>`));
-    const tagTxt = equipped?'✓ on' : owned?'owned' : locked?'Bond' : (it.price===0?'free':'¥'+it.price);
-    cell.appendChild($(`<div class="tiny ${equipped?'accent':'dim'}" style="margin-top:3px;${locked?'color:var(--gold)':''}">${tagTxt}</div>`));
-    cell.onclick=()=>{
-      if(locked){ toast('This one comes with Bond 🤍'); return; }
-      if(!owned){ state.owned.push(it.id); toast(it.price?('Unlocked · ¥'+it.price+' (demo)'):'Equipped'); }
-      if(kind==='aura'){ state.cosmetic.auraId=it.id; state.cosmetic.aura=it.emoji; state.cosmetic.auraName=it.name; }
-      else { state.cosmetic.voiceId=it.id; }
-      save(); document.querySelectorAll('.overlay').forEach(o=>o.remove()); render(); expressionSheet();
-    };
-    g.appendChild(cell);
-  });
-  return g;
-}
-function expressionSheet(){ sheet((sh,close)=>{
-  head2(sh,`make ${state.name} yours`,close); sh.appendChild(sp(6));
-  sh.appendChild($(`<div class="small dim">Looks & voice only — never an advantage.</div>`)); sh.appendChild(sp(18));
-  sh.appendChild($(`<div class="tag">aura</div>`)); sh.appendChild(sp(10));
-  sh.appendChild(cosmeticGrid([
-    {id:'aura_star',emoji:'✨',name:'Starlight',price:0},
-    {id:'aura_tide',emoji:'🌊',name:'Tide',price:240},
-    {id:'aura_ember',emoji:'🔥',name:'Ember',price:240},
-    {id:'aura_bloom',emoji:'🌸',name:'Bloom',price:360},
-    {id:'aura_lunar',emoji:'🌙',name:'Lunar',price:480,bond:true},
-    {id:'aura_aurora',emoji:'🌌',name:'Aurora',price:600,bond:true},
-  ],'aura'));
-  sh.appendChild($(`<div class="sep"></div>`));
-  sh.appendChild($(`<div class="tag">voice</div>`)); sh.appendChild(sp(10));
-  sh.appendChild(cosmeticGrid([
-    {id:'voice_soft',emoji:'🕊️',name:'Soft',price:0},
-    {id:'voice_bright',emoji:'☀️',name:'Bright',price:300},
-    {id:'voice_low',emoji:'🌫️',name:'Low',price:300,bond:true},
-  ],'voice'));
-}); }
-
-// ── Keepsake (Layer 3) ──
-function keepsakeSheet(){ sheet((sh,close)=>{
-  head2(sh,`${state.name}'s chronicle`,close); sh.appendChild(sp(14));
-  sh.appendChild($(`<div class="share">
-    <div class="row between"><div class="wordmark">CHRONICLE</div><div class="tiny dim">${state.day} mornings</div></div>
-    <div style="height:16px"></div>
-    <div style="font-size:23px;font-weight:700">${state.name} · ${state.day>=30?'Year One':'Chapter One'}</div>
-    <div class="small muted" style="margin-top:4px;line-height:1.6">Every story it brought home — and “${ARC.name}”, still unfolding — kept in one place.</div>
-    <div class="sep"></div>
-    <div class="row between"><div class="tiny dim">A keepsake of the year your twin knew you.</div><div class="accent tiny" style="font-weight:700">@eidolon</div></div>
-  </div>`)); sh.appendChild(sp(18));
-  sh.appendChild($(`<div class="tag">keep it forever</div>`)); sh.appendChild(sp(10));
-  const dig=$(`<div class="card" style="margin-bottom:11px"></div>`);
-  const dr=$(`<div class="row between"></div>`);
-  dr.appendChild($(`<div class="col"><div style="font-weight:600">Digital chronicle</div><div class="small dim" style="margin-top:2px">Revisit every morning, anytime</div></div>`));
-  const db=$(`<button class="btnGhost btnSm" type="button">${state.tier==='bond'?'included':'¥480'}</button>`);
-  db.onclick=()=>toast(state.tier==='bond'?'Already yours with Bond 🤍':'Unlocked · ¥480 (demo)'); dr.appendChild(db); dig.appendChild(dr); sh.appendChild(dig);
-  const prc=$(`<div class="card"></div>`);
-  const pr=$(`<div class="row between"></div>`);
-  pr.appendChild($(`<div class="col"><div style="font-weight:600">Printed book</div><div class="small dim" style="margin-top:2px">A real hardcover, shipped to you</div></div>`));
-  const pb=$(`<button class="btnGhost btnSm" type="button">¥3,800</button>`);
-  pb.onclick=()=>toast('Ordered 📖 (demo) — your twin, on your shelf.'); pr.appendChild(pb); prc.appendChild(pr); sh.appendChild(prc);
-  sh.appendChild(sp(8));
-  sh.appendChild($(`<div class="tiny dim">Only the twin that actually remembered your year can sell this.</div>`));
-}); }
 
 function tiersSheet(){ sheet((sh,close)=>{
-  head2(sh,'pay for closeness, not power',close); sh.appendChild(sp(16));
-  const mk=(name,badge,price,feats,key)=>{
-    const c=$(`<div class="card" style="margin-bottom:12px;${state.tier===key?'border-color:var(--gold)':''}"></div>`);
+  head2(sh,'closeness, not power',close); sh.appendChild(sp(16));
+  const mk=(name,badge,price,feats,key)=>{const c=$(`<div class="card" style="margin-bottom:12px;${state.tier===key?'border-color:var(--gold)':''}"></div>`);
     const r=$(`<div class="row between"></div>`);
     r.appendChild($(`<div class="row" style="gap:8px"><h3>${name}</h3><span class="badge ${key==='free'?'free':'bond'}">${badge}</span></div>`));
     r.appendChild($(`<div class="small muted">${price}</div>`)); c.appendChild(r); c.appendChild(sp(10));
-    feats.forEach(f=>c.appendChild($(`<div class="small muted" style="margin:4px 0">${f}</div>`)));
-    if(state.tier!==key){ const b=$(`<button class="btnGhost btnSm" type="button" style="width:100%;margin-top:12px">Switch to ${name}</button>`);
-      b.onclick=()=>{state.tier=key;save();close();render();toast(key==='bond'?'Bond on 🤍':'Back to Free.');}; c.appendChild(b); }
+    feats.forEach(f=>c.appendChild($(`<div class="small muted" style="margin:5px 0">${f}</div>`)));
+    if(state.tier!==key){const b=$(`<button class="btnGhost btnSm" type="button" style="width:100%;margin-top:12px">Switch to ${name}</button>`);
+      b.onclick=()=>{state.tier=key;save();close();render();toast(key==='bond'?'Bond on 🤍 voice + deeper memory + coaching':'Back to Free.');};c.appendChild(b);}
     else c.appendChild($(`<div class="small accent" style="margin-top:12px;font-weight:600">current</div>`));
-    return c;
-  };
-  sh.appendChild(mk('Free','the game','—',['· A young twin','· 30-day memory','· Cosmetics only'],'free'));
-  sh.appendChild(mk('Bond','closeness','$9.99 / mo',['· Weekly reflection','· 6-month memory — it remembers more of you','· A more present twin','· Voice + how it looks'],'bond'));
+    return c;};
+  sh.appendChild(mk('Free','get started','—',['· A daily check-in','· One step a day','· 7-day memory'],'free'));
+  sh.appendChild(mk('Bond','the real thing','$9.99 / mo',[
+    '· 🎙️ Talk out loud — its voice',
+    '· 💬 Talk as much as you want',
+    '· 🧠 It remembers everything about you',
+    '· 🌱 Personal coaching toward your goal',
+    '· 🕯️ Weekly reflection — “what I noticed about you”'],'bond'));
+  sh.appendChild($(`<div class="tiny dim" style="margin-top:4px">You pay to be known and helped — never for an advantage over anyone.</div>`));
+}); }
+
+// ── Expression (Layer 2) ──
+function cosmeticGrid(items){const g=$(`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px"></div>`);
+  items.forEach(it=>{const owned=state.owned.includes(it.id),eq=state.cosmetic.auraId===it.id,locked=it.bond&&!owned&&state.tier!=='bond';
+    const c=$(`<div class="pick" style="margin:0;text-align:center;padding:13px 6px;${eq?'border-color:var(--gold);background:var(--goldSoft)':''}"></div>`);
+    c.appendChild($(`<div style="font-size:25px">${it.emoji}</div>`));
+    c.appendChild($(`<div class="small" style="margin-top:5px;font-weight:500">${it.name}</div>`));
+    c.appendChild($(`<div class="tiny ${eq?'accent':'dim'}" style="margin-top:3px;${locked?'color:var(--gold)':''}">${eq?'✓ on':owned?'owned':locked?'Bond':(it.price===0?'free':'¥'+it.price)}</div>`));
+    c.onclick=()=>{if(locked){toast('This one comes with Bond 🤍');return;}if(!owned){state.owned.push(it.id);toast(it.price?('Unlocked · ¥'+it.price+' (demo)'):'Equipped');}
+      state.cosmetic.auraId=it.id;state.cosmetic.aura=it.emoji;save();document.querySelectorAll('.overlay').forEach(o=>o.remove());render();expressionSheet();};
+    g.appendChild(c);});return g;}
+function expressionSheet(){sheet((sh,close)=>{
+  head2(sh,`make ${state.name} yours`,close);sh.appendChild(sp(6));
+  sh.appendChild($(`<div class="small dim">Looks & voice — expression, never advantage.</div>`));sh.appendChild(sp(18));
+  sh.appendChild($(`<div class="tag">aura</div>`));sh.appendChild(sp(10));
+  sh.appendChild(cosmeticGrid([{id:'aura_star',emoji:'✨',name:'Starlight',price:0},{id:'aura_tide',emoji:'🌊',name:'Tide',price:240},
+    {id:'aura_ember',emoji:'🔥',name:'Ember',price:240},{id:'aura_bloom',emoji:'🌸',name:'Bloom',price:360},
+    {id:'aura_lunar',emoji:'🌙',name:'Lunar',price:480,bond:true},{id:'aura_aurora',emoji:'🌌',name:'Aurora',price:600,bond:true}]));
+}); }
+
+// ── Keepsake (Layer 3): your becoming ──
+function keepsakeSheet(){sheet((sh,close)=>{
+  head2(sh,'your journey',close);sh.appendChild(sp(14));
+  sh.appendChild($(`<div class="share">
+    <div class="row between"><div class="wordmark">EIDOLON</div><div class="tiny dim">${state.day} days</div></div>
+    <div style="height:16px"></div>
+    <div style="font-size:22px;font-weight:700">Becoming ${GOALS[state.goal].label.toLowerCase()}</div>
+    <div class="small muted" style="margin-top:6px;line-height:1.6">${state.name} kept every small step you took, and every morning you showed up. This is who you’re becoming.</div>
+    <div class="sep"></div>
+    <div class="row between"><div class="tiny dim">A keepsake of your year of becoming.</div><div class="accent tiny" style="font-weight:700">@eidolon</div></div>
+  </div>`)); sh.appendChild(sp(18));
+  sh.appendChild($(`<div class="tag">keep it forever</div>`));sh.appendChild(sp(10));
+  const dig=$(`<div class="card" style="margin-bottom:11px"><div class="row between"><div class="col"><div style="font-weight:600">Digital chronicle</div><div class="small dim" style="margin-top:2px">Your becoming, revisitable anytime</div></div></div></div>`);
+  const db=$(`<button class="btnGhost btnSm" type="button" style="margin-top:12px;width:100%">${state.tier==='bond'?'included with Bond':'¥480'}</button>`);
+  db.onclick=()=>toast(state.tier==='bond'?'Already yours with Bond 🤍':'Unlocked · ¥480 (demo)'); dig.appendChild(db); sh.appendChild(dig);
+  const prc=$(`<div class="card"><div class="row between"><div class="col"><div style="font-weight:600">Printed book</div><div class="small dim" style="margin-top:2px">A year of becoming, on your shelf</div></div></div></div>`);
+  const pb=$(`<button class="btnGhost btnSm" type="button" style="margin-top:12px;width:100%">¥3,800 — order</button>`);
+  pb.onclick=()=>toast('Ordered 📖 (demo) — the story of who you became.'); prc.appendChild(pb); sh.appendChild(prc);
 }); }
 
 let toastT;
-function toast(msg){ const o=document.querySelector('.toast'); if(o)o.remove();
-  const t=$(`<div class="toast">${msg}</div>`); document.getElementById('phone').appendChild(t);
-  clearTimeout(toastT); toastT=setTimeout(()=>t.remove(),3000); }
-window.eidolonReset=()=>{try{localStorage.removeItem(LS)}catch(e){} state=null; render();};
+function toast(msg){const o=document.querySelector('.toast');if(o)o.remove();const t=$(`<div class="toast">${msg}</div>`);document.getElementById('phone').appendChild(t);clearTimeout(toastT);toastT=setTimeout(()=>t.remove(),3200);}
+window.eidolonReset=()=>{try{localStorage.removeItem(LS)}catch(e){}state=null;render();};
 render();
 </script>
 </body>
