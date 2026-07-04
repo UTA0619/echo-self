@@ -1,7 +1,11 @@
 import 'dart:io';
 
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
+import 'dart:async';
+
 import 'package:eidolon/core/analytics/analytics.dart';
+import 'package:eidolon/core/analytics/attribution.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:eidolon/core/demo/demo_overrides.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
 import 'package:eidolon/core/env/app_env.dart';
@@ -143,7 +147,28 @@ class _EidolonAppState extends ConsumerState<EidolonApp>
         AppEvents.appOpened,
         props: {'daypart': daypart(), 'cold_start': true},
       );
+      // Attribute this install to a referral code (once per install) — the
+      // install side of viral K. No-op unless an attribution source is wired.
+      unawaited(_resolveAttribution(analytics));
     });
+  }
+
+  /// Resolve deferred-deep-link attribution exactly once per install and fire
+  /// `install_referred`. Never blocks or crashes startup.
+  Future<void> _resolveAttribution(Analytics analytics) async {
+    try {
+      final attribution = ref.read(attributionProvider);
+      if (attribution is NoopAttribution) return; // nothing to resolve
+      final prefs = await SharedPreferences.getInstance();
+      const key = 'attribution.resolved';
+      await AttributionResolver(
+        attribution: attribution,
+        analytics: analytics,
+      ).run(
+        alreadyResolved: prefs.getBool(key) ?? false,
+        onResolved: () => prefs.setBool(key, true),
+      );
+    } catch (_) {/* attribution is best-effort */}
   }
 
   @override

@@ -87,6 +87,11 @@ class AppEvents {
   static const overnightDispatchTapped = 'overnight_dispatch_tapped';
   static const morningShareInitiated = 'morning_share_initiated';
   static const morningShareCompleted = 'morning_share_completed';
+
+  /// Viral K, install side — a fresh install was attributed to a referral code
+  /// (via deferred deep link). Pairs with [morningShareCompleted] to close the
+  /// share → install loop.
+  static const installReferred = 'install_referred';
 }
 
 /// Coarse time-of-day bucket, attached to [AppEvents.appOpened] so the

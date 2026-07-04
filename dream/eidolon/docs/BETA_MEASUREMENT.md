@@ -105,17 +105,35 @@ core loop or the hook. If 🟢, that's the signal that justifies a team + capita
 
 ---
 
-## Step 5 — Full viral K (install attribution) — the remaining gap
+## Step 5 — Full viral K (install attribution)
 
-The share side is instrumented; the **install side is not**, because attributing
-an install back to a referral code needs infrastructure (your accounts/domain):
+The app now ships **attribution-ready**: an `Attribution` seam
+(`lib/core/analytics/attribution.dart`) resolves a referral code on first launch
+(once per install) and fires `install_referred { referrer }`. It defaults to
+`NoopAttribution` (organic), so nothing runs until you plug in a source. `main.dart`
+already wires the one-time resolver — you only supply the source.
 
-- **Deferred deep links** via AppsFlyer or Branch (AppsFlyer is already in the
-  stack list but unwired) — gives true share→install→`referred_install` linkage.
-- **Or** an `eidolon.app/i` landing page that forwards to the store while
-  preserving `?r=<code>` (Play Install Referrer on Android; a first-run code
-  prompt on iOS).
+**To activate, override `attributionProvider` in `main.dart` with one of:**
 
-Until then, K is measurable only on the share side (shares/user) — a useful
-upper-bound proxy. Wiring full attribution is a focused follow-up once the
-retention gate is green.
+- **AppsFlyer / Branch (recommended — works on iOS + Android):** add the SDK
+  (`appsflyer_sdk`), create a OneLink for `eidolon.app/i`, and implement
+  `resolveReferralCode()` to await the conversion-data callback and return
+  `parseReferralCode(convData['deep_link_value'] /* or the raw ?r= */)`.
+  Requires: your AppsFlyer dev key (`--dart-define APPSFLYER_DEV_KEY=…`), the
+  OneLink domain, iOS ATT + a privacy manifest entry for the SDK.
+- **Play Install Referrer (Android-only, no third party):** add
+  `install_referrer`, read the store `referrer` string, return
+  `parseReferralCode(referrer)`. Point invite links at the Play URL with
+  `&referrer=r%3D<code>`.
+- **Landing page + first-run:** an `eidolon.app/i?r=<code>` page that forwards to
+  the store; on iOS, capture the code however your deep-link provider defers it.
+
+`parseReferralCode` already accepts a full invite URL, a `r=<code>` blob, or a
+bare code, and rejects anything malformed — so an implementation only has to hand
+it whatever the SDK provides.
+
+**What's left is exactly the infra that needs your accounts/domain** (an
+AppsFlyer/Branch key + the `eidolon.app` OneLink, or the Play referrer link). The
+Dart side — seam, resolver, event, once-per-install guard, tests — is done. Until
+a source is wired, K is measurable on the share side only (shares/user), a useful
+upper-bound proxy.
