@@ -24,6 +24,15 @@ Future<void> initSupabase() async {
 @riverpod
 SupabaseClient supabaseClient(Ref ref) => Supabase.instance.client;
 
+/// Emits the current Supabase [User] (or null) on every auth change.
+/// Replaces Firebase's authStateChanges as the single source of auth truth.
+@riverpod
+Stream<User?> supabaseAuthState(Ref ref) {
+  final client = ref.watch(supabaseClientProvider);
+  // Emit the current session immediately, then every subsequent change.
+  return client.auth.onAuthStateChange.map((event) => event.session?.user);
+}
+
 // Typed table accessors — prevents raw string table names in feature code
 
 extension SupabaseClientX on SupabaseClient {

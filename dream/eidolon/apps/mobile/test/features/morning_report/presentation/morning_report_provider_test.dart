@@ -12,13 +12,16 @@ class _FakeRepo implements MorningReportRepository {
     Result<MorningReport?>? latest,
     Result<void>? seen,
     Result<String>? sim,
+    Result<bool>? ranToday,
   })  : _latest = latest ?? ok<MorningReport?>(null),
         _seen = seen ?? ok(null),
-        _sim = sim ?? ok('run-x');
+        _sim = sim ?? ok('run-x'),
+        _ranToday = ranToday ?? ok(false);
 
   Result<MorningReport?> _latest;
   final Result<void> _seen;
   final Result<String> _sim;
+  final Result<bool> _ranToday;
 
   String? seenId;
   int loadCalls = 0;
@@ -32,6 +35,9 @@ class _FakeRepo implements MorningReportRepository {
     loadCalls++;
     return _latest;
   }
+
+  @override
+  Future<Result<bool>> hasRunToday() async => _ranToday;
 
   @override
   Future<Result<void>> markSeen(String runId) async {
@@ -149,6 +155,102 @@ void main() {
 
       expect(repo.loadCalls, 0);
       expect(c.read(morningReportNotifierProvider).errorMessage, 'no twin');
+      // Failure must not pretend a run happened — the prompt should remain.
+      expect(c.read(morningReportNotifierProvider).todayRunExists, isFalse);
+    });
+
+    test('success marks today as run so the prompt retires', () async {
+      final repo = _FakeRepo(sim: ok('run-9'));
+      final c = _container(repo);
+      repo.nextLatest(ok<MorningReport?>(_report()));
+
+      await c.read(morningReportNotifierProvider.notifier).simulateNow();
+
+      final s = c.read(morningReportNotifierProvider);
+      expect(s.todayRunExists, isTrue);
+      expect(s.isDispatching, isFalse);
+      expect(s.canDispatch, isFalse);
+    });
+
+    test('re-entry is guarded while a dispatch is in flight', () async {
+      final repo = _FakeRepo(sim: ok('run-9'));
+      final c = _container(repo);
+      final n = c.read(morningReportNotifierProvider.notifier);
+
+      final first = n.simulateNow();
+      await n.simulateNow(); // should bail out immediately
+      await first;
+
+      expect(repo.simCalls, 1);
+    });
+  });
+
+  group('refresh', () {
+    test('stores the unseen report and today-run flag together', () async {
+      final repo = _FakeRepo(
+        latest: ok<MorningReport?>(_report()),
+        ranToday: ok(true),
+      );
+      final c = _container(repo);
+
+      await c.read(morningReportNotifierProvider.notifier).refresh();
+
+      final s = c.read(morningReportNotifierProvider);
+      expect(s.report?.id, 'run-1');
+      expect(s.todayRunExists, isTrue);
+      expect(s.isLoading, isFalse);
+    });
+
+    test('a hasRunToday failure is non-fatal (keeps prior flag)', () async {
+      final repo = _FakeRepo(
+        latest: ok<MorningReport?>(null),
+        ranToday: err(const AppError.network(message: 'x')),
+      );
+      final c = _container(repo);
+
+      await c.read(morningReportNotifierProvider.notifier).refresh();
+
+      final s = c.read(morningReportNotifierProvider);
+      expect(s.todayRunExists, isFalse);
+      expect(s.errorMessage, isNull);
+    });
+  });
+
+  group('canDispatch', () {
+    test('true when nothing unseen and no run today', () async {
+      final repo = _FakeRepo(
+        latest: ok<MorningReport?>(null),
+        ranToday: ok(false),
+      );
+      final c = _container(repo);
+
+      await c.read(morningReportNotifierProvider.notifier).refresh();
+
+      expect(c.read(morningReportNotifierProvider).canDispatch, isTrue);
+    });
+
+    test('false once a run exists for today', () async {
+      final repo = _FakeRepo(
+        latest: ok<MorningReport?>(null),
+        ranToday: ok(true),
+      );
+      final c = _container(repo);
+
+      await c.read(morningReportNotifierProvider.notifier).refresh();
+
+      expect(c.read(morningReportNotifierProvider).canDispatch, isFalse);
+    });
+
+    test('false while an unseen report is waiting', () async {
+      final repo = _FakeRepo(
+        latest: ok<MorningReport?>(_report()),
+        ranToday: ok(false),
+      );
+      final c = _container(repo);
+
+      await c.read(morningReportNotifierProvider.notifier).refresh();
+
+      expect(c.read(morningReportNotifierProvider).canDispatch, isFalse);
     });
   });
 

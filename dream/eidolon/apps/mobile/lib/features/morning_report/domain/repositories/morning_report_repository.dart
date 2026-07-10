@@ -5,6 +5,10 @@ abstract interface class MorningReportRepository {
   /// The most recent unopened overnight run, or `null` if there is nothing new.
   Future<Result<MorningReport?>> getLatestUnseen();
 
+  /// Whether tonight's run already exists (seen or not), to gate the on-demand
+  /// dispatch prompt so it doesn't double-fire or override the nightly cron.
+  Future<Result<bool>> hasRunToday();
+
   /// Mark a report as read so it no longer surfaces on the home screen.
   Future<Result<void>> markSeen(String runId);
 

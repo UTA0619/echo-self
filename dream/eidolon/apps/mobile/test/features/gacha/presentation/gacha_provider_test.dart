@@ -79,11 +79,11 @@ const _authedState = AuthState(
 
 const _item = GachaItem(
   id: 'item-1',
-  name: 'Soul Blade',
-  description: 'A blade forged from soul fragments.',
+  name: 'Soul Veil',
+  description: 'A cosmetic veil spun from soul fragments. Ornamental.',
   rarity: GachaRarity.rare,
-  category: GachaCategory.equipment,
-  iconEmoji: '⚔️',
+  category: GachaCategory.cosmetic,
+  iconEmoji: '🌌',
 );
 
 GachaPullResult _pullResultOf(int count, {int crystalsSpent = 100}) =>

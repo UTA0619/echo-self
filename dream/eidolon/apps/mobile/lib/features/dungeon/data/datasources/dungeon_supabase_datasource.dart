@@ -44,11 +44,11 @@ class DungeonSupabaseDataSource {
   }) async {
     try {
       final row = await _client
-          .from('dungeon_runs')
+          .from('runs')
           .insert({
             'eidolon_id': eidolonId,
             'dungeon_id': dungeonId,
-            'run_status': 'in_progress',
+            'status': 'in_progress',
             'current_room': 0,
           })
           .select()
@@ -69,10 +69,10 @@ class DungeonSupabaseDataSource {
   Future<Result<DungeonRun?>> getActiveRun(String eidolonId) async {
     try {
       final rows = await _client
-          .from('dungeon_runs')
+          .from('runs')
           .select('*')
           .eq('eidolon_id', eidolonId)
-          .eq('run_status', 'in_progress')
+          .eq('status', 'in_progress')
           .order('started_at', ascending: false)
           .limit(1);
 
@@ -95,7 +95,7 @@ class DungeonSupabaseDataSource {
     try {
       // Fetch current room first
       final current = await _client
-          .from('dungeon_runs')
+          .from('runs')
           .select('current_room')
           .eq('id', runId)
           .single();
@@ -103,7 +103,7 @@ class DungeonSupabaseDataSource {
       final nextRoom = ((current['current_room'] as num?) ?? 0).toInt() + 1;
 
       final row = await _client
-          .from('dungeon_runs')
+          .from('runs')
           .update({'current_room': nextRoom})
           .eq('id', runId)
           .select()
@@ -135,16 +135,55 @@ class DungeonSupabaseDataSource {
       };
 
       final row = await _client
-          .from('dungeon_runs')
+          .from('runs')
           .update({
-            'run_status': statusStr,
-            'ended_at': DateTime.now().toIso8601String(),
+            'status': statusStr,
+            'completed_at': DateTime.now().toIso8601String(),
           })
           .eq('id', runId)
           .select()
           .single();
 
       return ok(DungeonRunModel.fromRow(row));
+    } on PostgrestException catch (e) {
+      return err(
+        AppError.network(
+          message: e.message,
+          statusCode: int.tryParse(e.code ?? ''),
+        ),
+      );
+    } catch (e, st) {
+      return err(AppError.unknown(error: e, stackTrace: st));
+    }
+  }
+
+  /// Credits dungeon reward crystals to the caller's wallet via the
+  /// SECURITY DEFINER `credit_crystals` RPC (keyed by users.id, idempotent on
+  /// [receiptId]). [authUid] is the Supabase auth uid; we resolve users.id.
+  Future<Result<void>> grantCrystals({
+    required String authUid,
+    required int amount,
+    required String receiptId,
+  }) async {
+    try {
+      final userRow = await _client
+          .from('users')
+          .select('id')
+          .eq('auth_uid', authUid)
+          .maybeSingle();
+      final userId = userRow?['id'] as String?;
+      if (userId == null) {
+        return err(const AppError.notFound(resource: 'user'));
+      }
+      await _client.rpc<void>(
+        'credit_crystals',
+        params: {
+          'p_user_id': userId,
+          'p_amount': amount,
+          'p_receipt_id': receiptId,
+        },
+      );
+      return ok(null);
     } on PostgrestException catch (e) {
       return err(
         AppError.network(

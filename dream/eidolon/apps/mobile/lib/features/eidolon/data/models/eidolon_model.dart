@@ -29,6 +29,9 @@ class EidolonModel {
         (row['current_mood'] as String?) ?? 'calm',
       ),
       autoStrategy: (row['auto_strategy'] as String?) ?? 'balanced',
+      // Bounded-autonomy guardrails (D6, migration 014). Conservative defaults.
+      riskTolerance: (row['risk_tolerance'] as num?)?.toInt() ?? 40,
+      socialOpenness: (row['social_openness'] as num?)?.toInt() ?? 30,
       appearance: (row['appearance'] as Map<String, dynamic>?) ?? {},
       createdAt: DateTime.parse(row['created_at'] as String),
       updatedAt: DateTime.parse(row['updated_at'] as String),

@@ -1,19 +1,16 @@
-import 'dart:async';
-
 import 'package:eidolon/core/error/app_error.dart';
-import 'package:eidolon/core/firebase/firebase_service.dart';
+import 'package:eidolon/core/supabase/supabase_service.dart';
 import 'package:eidolon/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:eidolon/features/auth/domain/entities/auth_user.dart';
 import 'package:eidolon/features/auth/domain/usecases/create_account_usecase.dart';
+import 'package:eidolon/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:eidolon/features/auth/domain/usecases/sign_in_with_apple_usecase.dart';
 import 'package:eidolon/features/auth/domain/usecases/sign_in_with_email_usecase.dart';
 import 'package:eidolon/features/auth/domain/usecases/sign_in_with_google_usecase.dart';
-import 'package:eidolon/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:eidolon/features/auth/domain/usecases/sign_out_usecase.dart';
-// Hide Supabase's User type which clashes with Firebase's User
-import 'package:firebase_auth/firebase_auth.dart' hide OAuthProvider;
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show User;
 
 part 'auth_provider.freezed.dart';
 part 'auth_provider.g.dart';
@@ -28,9 +25,7 @@ abstract class AuthState with _$AuthState {
     @Default(false) bool isLoading,
     String? errorMessage,
 
-    /// Set to true when deleteAccount() fails with requiresRecentLogin.
-    /// The UI should show a re-authentication dialog then call
-    /// reauthenticateAndDelete().
+    /// Set to true when deleteAccount() requires the user to re-authenticate.
     @Default(false) bool needsReAuth,
   }) = _AuthState;
 }
@@ -39,10 +34,10 @@ abstract class AuthState with _$AuthState {
 class AuthNotifier extends _$AuthNotifier {
   @override
   AuthState build() {
-    // React to Firebase auth stream on every change
-    ref.listen(authStateChangesProvider, (_, next) {
+    // React to the Supabase auth session on every change.
+    ref.listen(supabaseAuthStateProvider, (_, next) {
       next.when(
-        data: _handleFirebaseUser,
+        data: _handleSupabaseUser,
         loading: () => state = const AuthState(status: AuthStatus.loading),
         error: (e, _) => state = state.copyWith(
           status: AuthStatus.unauthenticated,
@@ -51,43 +46,33 @@ class AuthNotifier extends _$AuthNotifier {
       );
     });
 
-    // Also handle the current value (stream may already have emitted)
+    // Handle the session that already exists at startup (if any).
     Future.microtask(() {
-      final current = ref.read(authStateChangesProvider);
-      current.whenData(_handleFirebaseUser);
+      final current = ref.read(supabaseClientProvider).auth.currentUser;
+      _handleSupabaseUser(current);
     });
 
     return const AuthState(status: AuthStatus.loading);
   }
 
-  Future<void> _handleFirebaseUser(User? user) async {
+  Future<void> _handleSupabaseUser(User? user) async {
     if (user == null) {
       state = const AuthState(status: AuthStatus.unauthenticated);
       return;
     }
 
-    final authUser = AuthUser.fromFirebase(user);
+    final authUser = AuthUser.fromSupabase(user);
     state = state.copyWith(status: AuthStatus.loading, user: authUser);
 
-    final hasProfile =
-        await ref.read(authRepositoryProvider).hasCompletedOnboarding(user.uid);
+    final onboarded =
+        await ref.read(authRepositoryProvider).hasCompletedOnboarding(user.id);
 
-    final newStatus =
-        hasProfile ? AuthStatus.authenticated : AuthStatus.onboardingRequired;
     state = state.copyWith(
-      status: newStatus,
+      status:
+          onboarded ? AuthStatus.authenticated : AuthStatus.onboardingRequired,
       user: authUser,
       errorMessage: null,
     );
-
-    // Log login event on first transition to authenticated.
-    // Guarded: analytics must never break auth flow (e.g. Firebase not
-    // initialized in unit tests).
-    if (newStatus == AuthStatus.authenticated) {
-      try {
-        unawaited(ref.read(firebaseAnalyticsProvider).logLogin());
-      } catch (_) {/* analytics unavailable — non-fatal */}
-    }
   }
 
   // ── Public actions ────────────────────────────────────────────────────────
@@ -129,7 +114,7 @@ class AuthNotifier extends _$AuthNotifier {
   Future<void> signOut() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     await ref.read(signOutUseCaseProvider).call();
-    // Firebase stream will trigger state update via _handleFirebaseUser(null)
+    // The auth stream transitions state to unauthenticated.
     state = state.copyWith(isLoading: false);
   }
 
@@ -145,14 +130,11 @@ class AuthNotifier extends _$AuthNotifier {
         errorMessage: isReAuth ? null : _errorMsg(result.error!),
       );
     } else {
-      // Clear loading on success; the Firebase stream will then transition
-      // state to unauthenticated once sign-out propagates.
       state = state.copyWith(isLoading: false);
     }
   }
 
-  /// Re-authenticates the current user with their password, then immediately
-  /// retries account deletion. Call when [AuthState.needsReAuth] is true.
+  /// Re-authenticates with the password, then retries account deletion.
   Future<void> reauthenticateAndDelete({
     required String email,
     required String password,
@@ -169,7 +151,6 @@ class AuthNotifier extends _$AuthNotifier {
       );
       return;
     }
-    // Re-auth succeeded — retry deletion
     final deleteResult = await ref.read(deleteAccountUseCaseProvider).call();
     if (!deleteResult.isSuccess) {
       state = state.copyWith(
@@ -177,23 +158,22 @@ class AuthNotifier extends _$AuthNotifier {
         errorMessage: _errorMsg(deleteResult.error!),
       );
     }
-    // On success, Firebase stream transitions to unauthenticated
   }
 
   void clearError() => state = state.copyWith(errorMessage: null);
 
-  /// Re-evaluates auth state against the current Firebase user.
-  /// Call this after operations that change profile completeness (e.g. onboarding).
+  /// Re-evaluates auth state against the current session.
+  /// Call after operations that change profile completeness (e.g. onboarding).
   Future<void> refreshAuth() async {
-    final user = ref.read(firebaseAuthProvider).currentUser;
-    await _handleFirebaseUser(user);
+    final user = ref.read(supabaseClientProvider).auth.currentUser;
+    await _handleSupabaseUser(user);
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   void _handleResult(Result<AuthUser> result) {
     if (result.isSuccess) {
-      // Firebase stream will update state — just clear loading
+      // The auth stream updates state — just clear loading.
       state = state.copyWith(isLoading: false);
     } else {
       state = state.copyWith(

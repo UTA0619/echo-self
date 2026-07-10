@@ -77,11 +77,11 @@ Map<String, dynamic> _runRow({
       'eidolon_id': 'eid-1',
       'dungeon_id': 'dun-1',
       'current_room': currentRoom,
-      'run_status': status,
+      'status': status,
       'atk_bonus': 5,
       'hp_modifier': -2,
       'started_at': '2026-06-01T10:00:00Z',
-      'ended_at': endedAt,
+      'completed_at': endedAt,
     };
 
 const _pgError = {'message': 'row not found', 'code': '406'};
@@ -146,10 +146,10 @@ void main() {
 
       final req = q.requests.single;
       expect(req.method, 'POST');
-      expect(req.url.path, endsWith('/dungeon_runs'));
+      expect(req.url.path, endsWith('/runs'));
       final body = jsonDecode(req.body) as Map<String, dynamic>;
       expect(body['eidolon_id'], 'eid-1');
-      expect(body['run_status'], 'in_progress');
+      expect(body['status'], 'in_progress');
       expect(body['current_room'], 0);
     });
 
@@ -174,7 +174,7 @@ void main() {
 
       final params = q.requests.single.url.queryParameters;
       expect(params['eidolon_id'], 'eq.eid-1');
-      expect(params['run_status'], 'eq.in_progress');
+      expect(params['status'], 'eq.in_progress');
       expect(params['order'], contains('started_at'));
       expect(params['limit'], '1');
     });
@@ -256,8 +256,8 @@ void main() {
 
         expect(result.error, isNull);
         final body = jsonDecode(q.requests.single.body) as Map<String, dynamic>;
-        expect(body['run_status'], expected);
-        expect(body['ended_at'], isNotNull);
+        expect(body['status'], expected);
+        expect(body['completed_at'], isNotNull);
       });
     }
 

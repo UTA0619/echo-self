@@ -1,0 +1,3 @@
+# Supabase CLI local artifacts (never commit — .temp holds the linked project ref)
+.branches
+.temp

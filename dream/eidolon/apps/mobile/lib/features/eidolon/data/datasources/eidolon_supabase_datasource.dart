@@ -30,13 +30,22 @@ class EidolonSupabaseDataSource {
           .from('users')
           .select('id')
           .eq('auth_uid', authUid)
-          .single();
+          .maybeSingle();
+      if (userRow == null) {
+        return err(const AppError.notFound(resource: 'user'));
+      }
 
+      // maybeSingle: a user without an Eidolon (e.g. before onboarding) returns
+      // null rather than throwing "Cannot coerce the result to a single JSON
+      // object", so the UI can show the "not yet awakened" state gracefully.
       final row = await _client
           .from('eidolons')
           .select('*')
           .eq('user_id', userRow['id'] as String)
-          .single();
+          .maybeSingle();
+      if (row == null) {
+        return err(const AppError.notFound(resource: 'eidolon'));
+      }
 
       return ok(EidolonModel.fromRow(row));
     } on PostgrestException catch (e) {
@@ -100,6 +109,39 @@ class EidolonSupabaseDataSource {
           .map((r) => MemoryModel.fromRow(r as Map<String, dynamic>))
           .toList();
       return ok(entries);
+    } on PostgrestException catch (e) {
+      return err(
+        AppError.network(
+          message: e.message,
+          statusCode: int.tryParse(e.code ?? ''),
+        ),
+      );
+    } catch (e, st) {
+      return err(AppError.unknown(error: e, stackTrace: st));
+    }
+  }
+
+  /// Persists level/XP/stat progression for [profile] (after a level-up
+  /// calculation). RLS `eidolons_update_own` limits this to the owner's row.
+  Future<Result<EidolonProfile>> persistProgression(
+    EidolonProfile profile,
+  ) async {
+    try {
+      final row = await _client
+          .from('eidolons')
+          .update({
+            'level': profile.level,
+            'xp': profile.xp,
+            'xp_to_next': profile.xpToNext,
+            'base_atk': profile.baseAtk,
+            'base_def': profile.baseDef,
+            'base_hp': profile.baseHp,
+            'base_mp': profile.baseMp,
+          })
+          .eq('id', profile.id)
+          .select()
+          .single();
+      return ok(EidolonModel.fromRow(row));
     } on PostgrestException catch (e) {
       return err(
         AppError.network(

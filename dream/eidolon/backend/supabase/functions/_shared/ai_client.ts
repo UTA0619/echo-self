@@ -35,7 +35,7 @@ export async function generateWithFallback(
     const response = await anthropic.messages.create({
       model:
         model === 'claude-sonnet-4-5'
-          ? 'claude-sonnet-4-5'
+          ? 'claude-sonnet-4-6'
           : 'claude-haiku-4-5-20251001',
       max_tokens: opts.maxTokens ?? 512,
       system: opts.system,

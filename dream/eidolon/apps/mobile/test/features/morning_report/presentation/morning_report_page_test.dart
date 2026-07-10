@@ -1,5 +1,6 @@
 import 'package:eidolon/core/error/app_error.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
+import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
 import 'package:eidolon/features/morning_report/data/repositories/morning_report_repository_impl.dart';
 import 'package:eidolon/features/morning_report/domain/entities/morning_report.dart';
 import 'package:eidolon/features/morning_report/domain/repositories/morning_report_repository.dart';
@@ -21,6 +22,9 @@ class _RecordingRepo implements MorningReportRepository {
       ok<MorningReport?>(null);
 
   @override
+  Future<Result<bool>> hasRunToday() async => ok(false);
+
+  @override
   Future<Result<void>> markSeen(String runId) async {
     seenId = runId;
     return ok(null);
@@ -37,6 +41,12 @@ class _FakeNotifier extends MorningReportNotifier {
 
   @override
   MorningReportState build() => _initial;
+}
+
+/// Signed-out auth so the page's referral lookup stays offline in tests.
+class _FakeAuth extends AuthNotifier {
+  @override
+  AuthState build() => const AuthState();
 }
 
 MorningReport _report({List<OvernightLoot> loot = const []}) => MorningReport(
@@ -71,6 +81,7 @@ void main() {
             morningReportNotifierProvider.overrideWith(
               () => _FakeNotifier(MorningReportState(report: report)),
             ),
+            authNotifierProvider.overrideWith(_FakeAuth.new),
           ],
           child: MaterialApp(
             theme: buildEidolonTheme(),
@@ -81,8 +92,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('outwitted a sentinel'), findsOneWidget);
-      expect(find.text('+130 XP'), findsOneWidget);
+      // Highlight + XP now also appear in the shareable preview card, so they
+      // legitimately render more than once on the page.
+      expect(
+        find.textContaining('outwitted a sentinel'),
+        findsAtLeastNWidgets(1),
+      );
+      expect(find.text('+130 XP'), findsAtLeastNWidgets(1));
       expect(find.text('Sentinel Core'), findsOneWidget);
       expect(find.text('EPIC'), findsOneWidget);
       // Opening the report marks it seen.
@@ -95,6 +111,7 @@ void main() {
         ProviderScope(
           overrides: [
             morningReportRepositoryProvider.overrideWithValue(_RecordingRepo()),
+            authNotifierProvider.overrideWith(_FakeAuth.new),
           ],
           child: MaterialApp(
             theme: buildEidolonTheme(),

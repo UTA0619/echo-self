@@ -51,6 +51,29 @@
   "personalityNeutral": "どちらでもない",
   "personalityStronglyAgree": "強く\nそう思う",
 
+  "personalityQ0": "新しいアイデアや経験を探求するのが好きだ。",
+  "personalityQ1": "目新しさよりも、決まった習慣を好む。",
+  "personalityQ2": "物事を徹底的に、予定通りにやり遂げる。",
+  "personalityQ3": "物事を途中で投げ出してしまうことが多い。",
+  "personalityQ4": "新しい人と出会い、話すのが大好きだ。",
+  "personalityQ5": "大勢の集まりより、一人で静かに過ごす方が好きだ。",
+  "personalityQ6": "他人の幸せを心から気にかけている。",
+  "personalityQ7": "他人に対して批判的で、要求が厳しくなることがある。",
+  "personalityQ8": "プレッシャーの中でも冷静でいられる。",
+  "personalityQ9": "心配性で、よく不安を感じる。",
+
+  "onboardingIdentityTitle": "あなたの\nアイデンティティを。",
+  "onboardingNameTitle": "魂の片割れに\n名前を。",
+  "usernameMinLength": "3文字以上で入力してください",
+  "usernameMaxLength": "20文字以内で入力してください",
+  "usernameInvalidChars": "英小文字・数字・_ のみ使用できます",
+  "usernameHintExample": "例：shadow_walker",
+  "usernameHelper": "英小文字・数字・アンダースコアのみ使用できます。",
+
+  "dungeonExpedition": "出撃準備",
+  "dungeonThemeRandom": "ランダム",
+  "dungeonNoEidolonHint": "ダンジョンに潜る前に、エイドロンを覚醒させてください。",
+
   "eidolonInputHint": "エイドロンに話しかける…",
   "eidolonInputConnecting": "接続中…",
 
@@ -128,15 +151,36 @@
   "gachaBuyCrystals": "ソウルクリスタルを購入",
   "gachaSummonRates": "召喚レート",
   "gachaSummoning": "召喚中…",
+  "gachaTapToOpen": "タップで開く",
   "gachaCrystalsLoading": "ソウルクリスタル読み込み中",
   "gachaCrystalsCount": "ソウルクリスタル: {count}",
 
   "morningReportTitle": "モーニングレポート",
   "morningReportWhileYouSlept": "あなたが眠っている間に",
+  "morningReportShare": "今朝をシェア",
   "morningReportXp": "+{xp} XP",
   "morningReportMoodHeading": "気分",
   "morningReportLootTitle": "夜の戦利品",
   "morningReportNoLoot": "手ぶらで帰ってきた。",
+
+  "weeklyReflectionTitle": "あなたについて気づいたこと",
+  "weeklyReflectionCardTeaser": "エイドロンがあなたの一週間を振り返っています。",
+  "weeklyReflectionObservationHeading": "気づいたこと",
+  "weeklyReflectionNudgeHeading": "そっと一言",
+  "weeklyReflectionLockedTitle": "週次リフレクション",
+  "weeklyReflectionLockedBody": "エイドロンがあなたの一週間を振り返ります — Bondティアの関係性特典です。",
+
+  "overnightDispatchTitle": "今夜の冒険",
+  "overnightDispatchBody": "{name}を夜の世界へ送り出しましょう。ひとりで冒険し、物語と戦利品を持ち帰ります。",
+  "@overnightDispatchBody": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "overnightDispatchButton": "送り出す",
+  "overnightDispatchInProgress": "{name}が夜を旅しています…",
+  "@overnightDispatchInProgress": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "overnightDispatchFailed": "送り出しに失敗しました。もう一度お試しください。",
 
   "eidolonAwaits": "エイドロンが待っています…",
   "eidolonReady": "{name} の準備ができました。",
@@ -150,6 +194,14 @@
   "dungeonDifficultyMaster": "マスター",
   "dungeonDifficultyVoid": "ヴォイド",
   "dungeonTheme": "テーマ",
+  "dungeonThemeForest": "森",
+  "dungeonThemeCave": "洞窟",
+  "dungeonThemeRuins": "遺跡",
+  "dungeonThemeVoid": "虚空",
+  "dungeonThemeOceanDepth": "深海",
+  "dungeonThemeSkyCitadel": "天空城",
+  "dungeonThemeShadowRealm": "影の領域",
+  "dungeonThemeCrystalMaze": "水晶迷宮",
   "dungeonNoThemeSelected": "テーマ未選択 — ランダムなダンジョンが生成されます。",
   "dungeonAbandon": "撤退",
   "dungeonDefeatBoss": "ボスを倒す",
@@ -158,5 +210,37 @@
   "dungeonRetreated": "💨 撤退",
   "dungeonFallbackName": "ダンジョン",
   "dungeonVictoryBody": "{name} を制覇しました。\nエイドロンがさらに強くなりました。",
-  "dungeonRetreatBody": "命からがら脱出しました。\nダンジョンはあなたの帰還を待っています。"
+  "dungeonRetreatBody": "命からがら脱出しました。\nダンジョンはあなたの帰還を待っています。",
+  "dungeonRoomCleared": "部屋クリア！",
+  "dungeonNextRoom": "次へ",
+  "dungeonRetry": "もう一度挑戦",
+  "dungeonRewards": "獲得報酬",
+  "dungeonEnemyMinion": "影の眷属",
+  "dungeonBoss": "守護者",
+  "dungeonLevelUp": "レベルアップ！  Lv.{level}",
+  "@dungeonLevelUp": {
+    "placeholders": { "level": { "type": "int" } }
+  },
+  "dailyRewardTitle": "デイリーボーナス",
+  "dailyRewardClaim": "受け取る",
+  "dailyRewardFlavor": "Novaがあなたを待っていました。",
+  "dailyRewardStreak": "{n}日目",
+  "@dailyRewardStreak": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "bondLabel": "絆",
+  "bondTierStranger": "出会ったばかり",
+  "bondTierAcquaintance": "顔なじみ",
+  "bondTierTrusted": "信頼の仲",
+  "bondTierCloseFriend": "親友",
+  "bondTierSoulmate": "ソウルメイト",
+  "awayReportTitle": "おかえりなさい",
+  "awayReportClaim": "受け取る",
+  "awayReportBody": "留守の{hours}時間、Novaが冒険して{enemies}体の魔物を倒しました。",
+  "@awayReportBody": {
+    "placeholders": {
+      "hours": { "type": "int" },
+      "enemies": { "type": "int" }
+    }
+  }
 }

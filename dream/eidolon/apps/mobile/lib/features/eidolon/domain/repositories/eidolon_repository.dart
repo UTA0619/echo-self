@@ -14,4 +14,7 @@ abstract interface class EidolonRepository {
     required String eidolonId,
     int limit = 50,
   });
+
+  /// Persist level/XP/stat progression (after applying earned XP).
+  Future<Result<EidolonProfile>> persistProgression(EidolonProfile profile);
 }

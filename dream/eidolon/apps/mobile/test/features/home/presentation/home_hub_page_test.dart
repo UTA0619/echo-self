@@ -6,6 +6,7 @@ import 'package:eidolon/features/home/presentation/pages/home_hub_page.dart';
 import 'package:eidolon/features/home/presentation/providers/home_provider.dart';
 import 'package:eidolon/features/morning_report/presentation/providers/morning_report_provider.dart';
 import 'package:eidolon/features/reality_sync/presentation/providers/reality_sync_provider.dart';
+import 'package:eidolon/features/weekly_reflection/presentation/providers/weekly_reflection_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,6 +45,9 @@ Widget _wrap({HomeState? homeState, AuthState? authState}) {
       ),
       morningReportNotifierProvider.overrideWith(
         _FakeMorningReportNotifier.new,
+      ),
+      weeklyReflectionNotifierProvider.overrideWith(
+        _FakeWeeklyReflectionNotifier.new,
       ),
     ],
     child: MaterialApp.router(
@@ -100,6 +104,40 @@ void main() {
       expect(find.textContaining('Adventurer'), findsOneWidget);
       expect(find.text("TODAY'S STATS"), findsOneWidget);
       expect(find.text('QUICK ACTIONS'), findsOneWidget);
+
+      await _settle(tester);
+    });
+
+    testWidgets('home content scrolls when it overflows the viewport',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 500));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        _wrap(
+          homeState: const HomeState(
+            summary: HomeSummary(
+              hasActiveRun: false,
+              dungeonRunsToday: 2,
+              currentStreak: 7,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final scrollable =
+          tester.state<ScrollableState>(find.byType(Scrollable).first);
+      expect(scrollable.position.pixels, 0);
+
+      await tester.drag(
+        find.byType(CustomScrollView),
+        const Offset(0, -250),
+      );
+      await tester.pump();
+
+      // A working scroll view moves its offset past 0.
+      expect(scrollable.position.pixels, greaterThan(0));
 
       await _settle(tester);
     });
@@ -256,6 +294,17 @@ class _FakeRealitySyncNotifier extends RealitySyncNotifier {
 class _FakeMorningReportNotifier extends MorningReportNotifier {
   @override
   MorningReportState build() => const MorningReportState();
+
+  @override
+  Future<void> loadLatest() async {}
+
+  @override
+  Future<void> refresh() async {}
+}
+
+class _FakeWeeklyReflectionNotifier extends WeeklyReflectionNotifier {
+  @override
+  WeeklyReflectionState build() => const WeeklyReflectionState();
 
   @override
   Future<void> loadLatest() async {}

@@ -51,13 +51,17 @@ class HomeNotifier extends _$HomeNotifier {
       if (summaryResult.isSuccess) summary = summaryResult.value;
     }
 
+    // A missing Eidolon (before onboarding) is a normal state, not an error —
+    // show the "not yet awakened" card without a red error banner.
+    final eidolonMissing = eidolonResult.error is NotFoundError;
     state = state.copyWith(
       isLoading: false,
       player: player,
       eidolon: eidolonResult.isSuccess ? eidolonResult.value : null,
       summary: summary,
-      errorMessage:
-          eidolonResult.isSuccess ? null : _errorMsg(eidolonResult.error!),
+      errorMessage: (eidolonResult.isSuccess || eidolonMissing)
+          ? null
+          : _errorMsg(eidolonResult.error!),
     );
   }
 

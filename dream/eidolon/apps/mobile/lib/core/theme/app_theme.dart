@@ -1,29 +1,33 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// "Daylight Pop" — a bright, friendly, mass-market palette: warm cream base,
+/// white surfaces, and vibrant coral / teal / sunny accents. Token names are
+/// kept stable so the whole app re-skins from this one place.
 abstract final class EidolonColors {
-  static const background = Color(0xFF09090F);
-  static const surface = Color(0xFF13141E);
-  static const surfaceElevated = Color(0xFF1C1D2A);
-  static const border = Color(0xFF252636);
+  static const background = Color(0xFFFFF8F0); // warm cream
+  static const surface = Color(0xFFFFFFFF); // white card
+  static const surfaceElevated = Color(0xFFF6F1EA); // input fills / raised tint
+  static const border = Color(0xFFEFE6DA); // soft warm hairline
 
-  static const accent = Color(0xFF7B5CF6);
-  static const accentDim = Color(0xFF4C3699);
-  static const accentGlow = Color(0xFFAB8FFF);
+  static const accent = Color(0xFFFF7A59); // coral — primary action
+  static const accentDim = Color(0xFFF2643F); // deeper coral — outlined borders
+  static const accentGlow = Color(0xFF2BB6A3); // teal — secondary highlight
 
-  static const gold = Color(0xFFFFB347);
-  static const goldDim = Color(0xFF8B6A1A);
+  static const gold = Color(0xFFFFC53D); // sunny — rewards
+  static const goldDim = Color(0xFFC9971F);
 
-  static const textPrimary = Color(0xFFF0F0FF);
-  static const textSecondary = Color(0xFF9898B8);
-  static const textMuted = Color(0xFF5A5A78);
-  static const textDim = Color(0xFF3D3D58);
+  static const textPrimary = Color(0xFF1E2330); // dark navy
+  static const textSecondary = Color(0xFF6B7180);
+  static const textMuted = Color(0xFF9AA0AC);
+  static const textDim = Color(0xFFC2C7D0);
 
-  static const success = Color(0xFF4ADE80);
-  static const warning = Color(0xFFFBBF24);
-  static const error = Color(0xFFF87171);
+  static const success = Color(0xFF16B364);
+  static const warning = Color(0xFFF5A524);
+  static const error = Color(0xFFE5484D);
 
-  static const soulCore = Color(0xFF00FFCC);
+  static const soulCore = Color(0xFF00C2A8); // teal-cyan soul glow
 }
 
 abstract final class EidolonTextStyles {
@@ -86,17 +90,17 @@ abstract final class EidolonTextStyles {
 ThemeData buildEidolonTheme() {
   return ThemeData(
     useMaterial3: true,
-    brightness: Brightness.dark,
+    brightness: Brightness.light,
     scaffoldBackgroundColor: EidolonColors.background,
-    colorScheme: const ColorScheme.dark(
+    colorScheme: const ColorScheme.light(
       primary: EidolonColors.accent,
-      onPrimary: EidolonColors.textPrimary,
+      onPrimary: Colors.white,
       secondary: EidolonColors.gold,
-      onSecondary: EidolonColors.background,
+      onSecondary: EidolonColors.textPrimary,
       surface: EidolonColors.surface,
       onSurface: EidolonColors.textPrimary,
       error: EidolonColors.error,
-      onError: EidolonColors.textPrimary,
+      onError: Colors.white,
     ),
     textTheme: TextTheme(
       displayLarge: EidolonTextStyles.displayLarge,
@@ -108,7 +112,7 @@ ThemeData buildEidolonTheme() {
       labelLarge: EidolonTextStyles.labelLarge,
       labelSmall: EidolonTextStyles.labelSmall,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: EidolonColors.surface,
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -119,10 +123,11 @@ ThemeData buildEidolonTheme() {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: EidolonColors.accent,
-        foregroundColor: EidolonColors.textPrimary,
+        foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: EidolonTextStyles.labelLarge,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        // Coral button needs white text — labelLarge bakes in a dark color.
+        textStyle: EidolonTextStyles.labelLarge.copyWith(color: Colors.white),
         elevation: 0,
       ),
     ),

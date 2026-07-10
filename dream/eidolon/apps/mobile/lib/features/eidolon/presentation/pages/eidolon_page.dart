@@ -1,12 +1,15 @@
 import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/eidolon/presentation/providers/eidolon_provider.dart';
+import 'package:eidolon/features/eidolon/presentation/widgets/avatar_genes.dart';
+import 'package:eidolon/features/eidolon/presentation/widgets/eidolon_avatar.dart';
 import 'package:eidolon/features/eidolon/presentation/widgets/eidolon_chat_bubble.dart';
 import 'package:eidolon/features/eidolon/presentation/widgets/eidolon_input_bar.dart';
 import 'package:eidolon/features/eidolon/presentation/widgets/eidolon_status_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_types/shared_types.dart';
 
 class EidolonPage extends ConsumerStatefulWidget {
   const EidolonPage({super.key});
@@ -120,7 +123,17 @@ class _ChatBody extends StatelessWidget {
     final messages = state.messages;
 
     if (messages.isEmpty) {
-      return _EmptyState(eidolonName: state.eidolon?.name ?? '');
+      final eidolon = state.eidolon;
+      return _EmptyState(
+        eidolonName: eidolon?.name ?? '',
+        mood: eidolon?.currentMood ?? EidolonMood.calm,
+        genes: eidolon == null
+            ? AvatarGenes.fallback
+            : AvatarGenes.fromPersonality(
+                eidolon.personality,
+                seed: eidolon.id,
+              ),
+      );
     }
 
     return ListView.builder(
@@ -138,8 +151,14 @@ class _ChatBody extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.eidolonName});
+  const _EmptyState({
+    required this.eidolonName,
+    required this.mood,
+    required this.genes,
+  });
   final String eidolonName;
+  final EidolonMood mood;
+  final AvatarGenes genes;
 
   @override
   Widget build(BuildContext context) {
@@ -147,10 +166,7 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            '✨',
-            style: const TextStyle(fontSize: 48),
-          ),
+          EidolonAvatar(mood: mood, size: 120, genes: genes),
           const SizedBox(height: 16),
           Text(
             eidolonName.isEmpty

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Eidolon — demo</title>
+<style>
+  /* Minimal, ChatGPT/Claude/Grok-like: near-monochrome, one green accent, high
+     contrast & readable, generous space, easy to tap. */
+  :root{ /* light — single premium accent: indigo */
+    --page:#ECECEA; --bg:#FFFFFF; --surface:#FFFFFF; --soft:#F4F4F2; --elev:#EDEDEA;
+    --gold:#5B54E8; --goldDeep:#4842C4; --goldSoft:#ECEBFB;
+    --sky:#8A8A90; --green:#5B54E8;
+    --ink:#1B1B1D; --ink2:#6B6B70; --ink3:#A6A6AB;
+    --line:rgba(0,0,0,.08); --line2:rgba(0,0,0,.14);
+  }
+  :root[data-theme="dark"]{
+    --page:#0C0C10; --bg:#161619; --surface:#1E1E23; --soft:#26262C; --elev:#2C2C33;
+    --gold:#8F89FF; --goldDeep:#A9A4FF; --goldSoft:rgba(143,137,255,.18);
+    --sky:#7A7A84; --green:#8F89FF;
+    --ink:#F1F1F5; --ink2:#A2A2AC; --ink3:#6E6E78;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.17);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{background:var(--page);color:var(--ink);transition:background .25s;
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Segoe UI",Roboto,sans-serif;
+    display:flex;justify-content:center;min-height:100vh;padding:24px 14px}
+  #phone{width:100%;max-width:420px;background:var(--bg);border:1px solid var(--line);
+    border-radius:28px;overflow:hidden;position:relative;min-height:760px;box-shadow:0 10px 44px rgba(0,0,0,.10)}
+  #app{position:relative;z-index:1}
+  .pad{padding:24px}
+  .muted{color:var(--ink2)} .dim{color:var(--ink3)} .accent{color:var(--gold)} .sky{color:var(--sky)} .green{color:var(--green)}
+  h1{font-size:25px;font-weight:600;line-height:1.4;letter-spacing:-.2px} h2{font-size:19px;font-weight:600} h3{font-size:15px;font-weight:600}
+  .small{font-size:13.5px} .tiny{font-size:12px} .lh{line-height:1.75}
+  .wordmark{letter-spacing:2px;font-weight:600;font-size:13px;color:var(--ink)}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:13px;font-size:15px;font-weight:600;padding:15px 18px;width:100%;transition:opacity .15s,background .15s}
+  button:active{opacity:.85}
+  .btn{background:var(--gold);color:#FFFFFF} .btn:hover{filter:brightness(1.07)}
+  .btnGhost{background:var(--surface);color:var(--ink);border:1px solid var(--line2)} .btnGhost:hover{background:var(--soft)}
+  .btnSm{width:auto;padding:10px 15px;font-size:14px;border-radius:11px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line2);border-radius:999px;padding:9px 15px;font-size:14px;color:var(--ink);font-weight:500;cursor:pointer}
+  .chip.sel{border-color:var(--gold);background:var(--goldSoft);color:var(--goldDeep)}
+  .chip.mini{padding:8px 13px;font-size:13px;color:var(--ink2)}
+  .row{display:flex;gap:10px;align-items:center} .between{justify-content:space-between} .wrap{flex-wrap:wrap}
+  .col{display:flex;flex-direction:column}
+  .sep{height:1px;background:var(--line);margin:18px 0}
+  .opt{border:1px solid var(--line2);border-radius:14px;padding:17px;background:var(--surface);cursor:pointer;transition:.12s;margin-bottom:11px;font-size:15px;line-height:1.5}
+  .opt:hover{border-color:var(--gold);background:var(--soft)}
+  textarea,input{width:100%;background:var(--surface);border:1px solid var(--line2);border-radius:12px;color:var(--ink);font-size:15px;padding:14px;font-family:inherit;outline:none;resize:none}
+  textarea:focus,input:focus{border-color:var(--gold)}
+  .meter{height:7px;background:var(--soft);border-radius:6px;overflow:hidden;margin-top:9px}
+  .meter>span{display:block;height:100%;border-radius:6px;background:var(--green);transition:width .6s}
+  .overlay{position:absolute;inset:0;background:rgba(0,0,0,.32);display:flex;align-items:flex-end;z-index:30;animation:fade .2s}
+  .sheet{background:var(--surface);border-top:1px solid var(--line);border-radius:24px 24px 0 0;width:100%;max-height:93%;overflow:auto;padding:24px;animation:up .3s cubic-bezier(.2,.8,.2,1);box-shadow:0 -12px 40px rgba(0,0,0,.2)}
+  @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:translateY(0);opacity:1}}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .fade{animation:fade .35s}
+  .before{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:14.5px;line-height:1.65;color:var(--ink2)}
+  .after{background:var(--goldSoft);border:1px solid var(--line2);border-radius:12px;padding:14px;font-size:15px;line-height:1.7;color:var(--ink)}
+  .toast{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);background:var(--gold);color:#FFFFFF;padding:13px 18px;border-radius:12px;font-size:13.5px;font-weight:500;z-index:40;animation:fade .2s;max-width:88%;text-align:center}
+  .tag{font-size:11px;letter-spacing:.3px;color:var(--ink3);font-weight:600}
+  .badge{font-size:11px;padding:4px 10px;border-radius:7px;font-weight:700;background:var(--soft);color:var(--ink);letter-spacing:.5px;border:1px solid var(--line)}
+  .badge.free{background:var(--soft);color:var(--ink2)}
+  .link{color:var(--ink2);cursor:pointer;font-weight:500;font-size:14px}
+  .prog{height:4px;background:var(--soft);border-radius:5px;overflow:hidden}
+  .prog>span{display:block;height:100%;background:var(--gold);transition:width .3s}
+</style>
+</head>
+<body>
+<div id="phone"><div id="app"></div></div>
+<script>
+const $=(h)=>{const t=document.createElement('template');t.innerHTML=h.trim();return t.content.childNodes.length===1?t.content.firstChild:t.content;};
+const sp=(px)=>$(`<div style="height:${px}px"></div>`);
+const app=document.getElementById('app'); const LS='eidolon_demo_v4';
+const load=()=>{try{return JSON.parse(localStorage.getItem(LS))}catch(e){return null}};
+const save=()=>{try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){}};
+let state=load();
+// theme (persists independently of onboarding)
+function getTheme(){try{return localStorage.getItem('eidolon_theme')||'light'}catch(e){return 'light'}}
+function applyTheme(t){document.documentElement.setAttribute('data-theme',t);}
+function toggleTheme(){const t=getTheme()==='dark'?'light':'dark';try{localStorage.setItem('eidolon_theme',t)}catch(e){}applyTheme(t);render();}
+applyTheme(getTheme());
+
+// ── 8-question, MBTI-style quiz (choice only) ──
+const QUIZ=[
+  {a:'ei',q:'気になることがあると…',o:[['すぐ口に出す','E'],['まず自分の中で考える','I']]},
+  {a:'ei',q:'人と長く一緒にいると…',o:[['元気が出る','E'],['疲れて一人になりたい','I']]},
+  {a:'sn',q:'話すときは…',o:[['具体的な事実から','S'],['ひらめき・可能性から','N']]},
+  {a:'sn',q:'心が向くのは…',o:[['今ここの現実','S'],['これからの理想','N']]},
+  {a:'tf',q:'意見が対立したら…',o:[['正しさを大事にする','T'],['相手の気持ちを大事にする','F']]},
+  {a:'tf',q:'友達が失敗した時…',o:[['まず解決策を言う','T'],['まず気持ちに寄り添う','F']]},
+  {a:'jp',q:'会話は…',o:[['結論から筋道立てて','J'],['思いつくまま自由に','P']]},
+  {a:'jp',q:'予定は…',o:[['きっちり決めたい','J'],['流れで決めたい','P']]},
+];
+const TRAIT={
+  E:'思ったことをすぐ言葉にする',I:'言葉にする前に、じっくり考える',
+  S:'具体的で現実的な伝え方をする',N:'話が抽象的・可能性寄りになりがち',
+  T:'正しさを大事にし率直。ときに相手にはきつく響く',F:'相手の気持ちに敏感で、和を大事にする',
+  J:'結論から順序立てて話す',P:'思いつくまま話し、脱線もしがち',
+};
+const STRENGTH={E:'行動力と率直さ',I:'思慮深さ',S:'現実感覚',N:'発想力',T:'論理と誠実さ',F:'共感力',J:'段取り力',P:'柔軟さ'};
+function computeType(ans){
+  const c={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
+  ans.forEach(p=>c[p]++);
+  return (c.E>=c.I?'E':'I')+(c.S>=c.N?'S':'N')+(c.T>=c.F?'T':'F')+(c.J>=c.P?'J':'P');
+}
+// ── 独自の「伝え方タイプ」（MBTIコードではなく、言い方のクセを一言で）──
+// 率直さ(T/F) × テンポ(E/I) の 4 コアに、S/N・J/P をニュアンスとして重ねる
+const ARCHE={
+  TE:{short:'直球型', name:'まっすぐ直球タイプ', icon:'🎯',
+      tag:'思ったことを、そのまま まっすぐ言える人。',
+      good:'スピードと正直さ。ごまかさず、物事を前に進める力がある。',
+      edge:'勢いが強いぶん、相手が“責められた”と感じることも。送る前のひと呼吸で、同じ本音がちゃんと届く。'},
+  TI:{short:'切れ味型', name:'静かな切れ味タイプ', icon:'🗡️',
+      tag:'よく考えてから、要点をズバッと言える人。',
+      good:'冷静な分析力。少ない言葉で本質を突ける。',
+      edge:'言葉が短く鋭いぶん、冷たく伝わりがち。ひと言の“やわらかさ”を足すだけで印象が変わる。'},
+  FE:{short:'あたたか型', name:'あたたかい発信タイプ', icon:'🌸',
+      tag:'気持ちをすぐ言葉にして、場を温められる人。',
+      good:'共感力と明るさ。まわりを安心させ、空気をやわらげる。',
+      edge:'感情が先に出て、本当に言いたい一点がぼやけることも。芯を一つに絞ると、ぐっと伝わる。'},
+  FI:{short:'熟考型', name:'思いやりの熟考タイプ', icon:'🌙',
+      tag:'相手の気持ちを、誰よりも深く考えられる人。',
+      good:'繊細な気配り。相手の立場に立って考えられる。',
+      edge:'考えすぎて、言えないまま我慢しがち。“やさしいまま言う”練習で、心がずっと軽くなる。'},
+};
+function arche(type){return ARCHE[type[2]+type[0]];}          // T/F + E/I → コアタイプ
+function subLine(type){return `${TRAIT[type[1]]}／${TRAIT[type[3]]}`;} // S/N・J/P の口ぐせ
+
+const STRUGGLES=[
+  {id:'harsh',t:'友達につい きつい言葉を言う'},{id:'selftalk',t:'自分の話ばかりしてしまう'},
+  {id:'work',t:'職場で浮いてしまう'},{id:'team',t:'チームワークが苦手'},
+  {id:'blurt_love',t:'恋人に思ったことをすぐ言う'},{id:'notconvey',t:'気持ちがうまく伝わらない'},
+  {id:'blurt',t:'考える前に言葉が出る'},{id:'miss',t:'相手の気持ちを見落とす'},
+];
+
+// canned "before → after" so the value is crisp; personalized by type
+const SAMPLES=[
+  {who:'恋人',draft:'なんで既読無視するの?ずっと待ってたんだけど。',
+   read:'「非難」の形になっています。相手は責められたと感じて、防御に入りがち。',
+   after:'返信を待ってたから、ちょっと寂しかったよ。忙しかった?',
+   tones:{soft:'ムリしてなければいいけど…返信もらえると安心するな。時間ある時でいいよ🙂',
+     firm:'待ってる間、少し不安だったよ。読んだら一言だけでも返してくれると嬉しい。',
+     humor:'既読の妖精にさらわれたのかと思ったよ😂 生きてる?笑'},
+   why:'“非難”を“自分の気持ち＋相手を気づかう質問”に変えると、同じ本音でも相手は受け取りやすくなります。'},
+  {who:'友達',draft:'また遅刻?いつもそうだよね。',
+   read:'事実は正しくても「決めつけ」に聞こえ、相手は言い返したくなります。',
+   after:'待ってたよ〜。次からひと言くれると助かるな。',
+   tones:{soft:'大丈夫?何かあったかと思っちゃった。次は連絡くれたら安心だな😊',
+     firm:'正直けっこう待った…。遅れる時は先に一報ほしいな。',
+     humor:'また遅刻界の王者きたな👑 次は連絡だけでも頼むよ〜笑'},
+   why:'過去の断罪より「これからの小さなお願い」にすると、角が立たず伝わります。'},
+  {who:'職場',draft:'そのやり方は非効率だと思います。',
+   read:'正論ですが、相手のやり方を否定する入りで、場が固くなります。',
+   after:'いいですね。ひとつ、こうするともっと速くなるかもと思ったんですが、どうでしょう?',
+   tones:{soft:'すごく良いと思います!差し出がましいですが、ここだけ少し工夫すると更に良いかも…いかがでしょう?',
+     firm:'方向性は賛成です。効率の観点で一点、こう変える提案があります。検討いただけますか?',
+     humor:'ナイスです!ここだけ“時短の魔法”かけたら最強かもです✨ どうでしょう?'},
+   why:'“否定”ではなく“肯定＋提案＋相手に委ねる質問”にすると、意見が通りやすくなります。'},
+];
+const ACTS=[
+  {t:'会議で反対意見を言う',advice:(ty)=>`${ty.includes('T')?'あなたは正しさから入りがち。':''}まず相手の案の良い点を一つ認めてから、「一点だけ、こう考えると…」と“提案”の形で。否定でなく上乗せに。`},
+  {t:'友達に謝る',advice:(ty)=>`${ty.includes('T')?'あなたは解決策から入りがち。でも謝罪は順番が逆。':''}最初に相手の気持ちを認める一言（「嫌な思いさせてごめん」）から。理由や言い訳は後。`},
+  {t:'恋人に本音を伝える',advice:(ty)=>`${ty.includes('E')?'勢いで全部言う前に、':''}「責める」でなく「私はこう感じた」を主語に。伝えたいこと一つに絞ると、ちゃんと届きます。`},
+];
+
+const load2=()=>state; // noop
+function render(){app.innerHTML='';app.appendChild(state?home():onboarding());}
+
+// ── Onboarding: quiz → type → struggles → plan ──
+function onboarding(){
+  const w=$(`<div class="pad fade"></div>`);
+  let stage='intro', qi=0, ans=[], picks=[], txt='';
+  function draw(){
+    w.innerHTML='';
+    if(stage==='intro'){
+      w.appendChild(sp(10)); w.appendChild($(`<div class="wordmark">EIDOLON</div>`)); w.appendChild(sp(26));
+      w.appendChild($(`<h1>もう一人の、<span class="accent">賢いあなた</span>。</h1>`)); w.appendChild(sp(12));
+      w.appendChild($(`<p class="muted lh">言いにくいことを“あなたらしく上手に”伝えられるように。<br>まずは、あなたの性格を知るところから。<b class="accent">8つの質問</b>。</p>`)); w.appendChild(sp(26));
+      const b=$(`<button class="btn" type="button">診断をはじめる →</button>`); b.onclick=()=>{stage='quiz';draw();}; w.appendChild(b);
+    } else if(stage==='quiz'){
+      const q=QUIZ[qi];
+      w.appendChild(sp(6));
+      w.appendChild($(`<div class="row between"><div class="tag">性格診断</div><div class="tag">${qi+1} / 8</div></div>`)); w.appendChild(sp(8));
+      w.appendChild($(`<div class="prog"><span style="width:${(qi/8)*100}%"></span></div>`)); w.appendChild(sp(26));
+      w.appendChild($(`<h2>${q.q}</h2>`)); w.appendChild(sp(16));
+      q.o.forEach(([label,pole])=>{
+        const el=$(`<div class="opt">${label}</div>`);
+        el.onclick=()=>{ans[qi]=pole; if(qi<7){qi++;draw();} else {stage='result';draw();}};
+        w.appendChild(el);
+      });
+      if(qi>0){const back=$(`<div class="link" style="text-align:center;margin-top:6px">← 戻る</div>`);back.onclick=()=>{qi--;draw();};w.appendChild(back);}
+    } else if(stage==='result'){
+      const ty=computeType(ans); const a=arche(ty);
+      w.appendChild(sp(14)); w.appendChild($(`<div class="tag">あなたの伝え方タイプ</div>`)); w.appendChild(sp(14));
+      w.appendChild($(`<div style="font-size:44px;line-height:1">${a.icon}</div>`)); w.appendChild(sp(10));
+      w.appendChild($(`<h1 class="accent" style="line-height:1.25">${a.name}</h1>`)); w.appendChild(sp(8));
+      w.appendChild($(`<p class="muted lh">${a.tag}</p>`)); w.appendChild(sp(18));
+      const c=$(`<div class="card lh"></div>`);
+      c.appendChild($(`<div class="small tag">強み</div>`)); c.appendChild($(`<div class="small lh" style="margin:6px 0 14px">${a.good}</div>`));
+      c.appendChild($(`<div class="small tag">伸びしろ</div>`)); c.appendChild($(`<div class="small lh" style="margin:6px 0">${a.edge}</div>`));
+      w.appendChild(c); w.appendChild(sp(14));
+      w.appendChild($(`<p class="muted lh small">口ぐせのクセ：${subLine(ty)}</p>`)); w.appendChild(sp(18));
+      const b=$(`<button class="btn" type="button">次へ →</button>`); b.onclick=()=>{state={_type:ty};stage='struggle';draw();}; w.appendChild(b);
+    } else if(stage==='struggle'){
+      w.appendChild(sp(10)); w.appendChild($(`<h1>どこを、変えたい?</h1>`)); w.appendChild(sp(8));
+      w.appendChild($(`<p class="muted small">当てはまるものを選んでください（いくつでも）。</p>`)); w.appendChild(sp(16));
+      const g=$(`<div class="row wrap" style="gap:9px"></div>`);
+      STRUGGLES.forEach(s=>{const c=$(`<div class="chip ${picks.includes(s.id)?'sel':''}">${s.t}</div>`);
+        c.onclick=()=>{picks.includes(s.id)?picks.splice(picks.indexOf(s.id),1):picks.push(s.id);draw();};g.appendChild(c);});
+      w.appendChild(g); w.appendChild(sp(16));
+      w.appendChild($(`<div class="tag">他にもあれば（任意）</div>`)); w.appendChild(sp(8));
+      const ta=$(`<textarea rows="2" placeholder="例：つい強く言ってしまって後悔する…">${txt}</textarea>`); ta.oninput=e=>txt=e.target.value; w.appendChild(ta); w.appendChild(sp(16));
+      const b=$(`<button class="btn" type="button">プランを作る →</button>`);
+      b.onclick=()=>{if(!picks.length&&!txt.trim()){toast('ひとつ選ぶか、入力してください');return;}stage='plan';draw();}; w.appendChild(b);
+    } else {
+      const ty=state._type;
+      w.appendChild(sp(14)); w.appendChild($(`<div class="tag">あなたの成長プラン</div>`)); w.appendChild(sp(12));
+      w.appendChild($(`<h1>強みは残す。<br>角だけ、丸くする。</h1>`)); w.appendChild(sp(16));
+      const c=$(`<div class="card lh"></div>`);
+      c.appendChild($(`<div class="small">あなたの<b class="accent">${STRENGTH[ty[2]]}</b>はそのままに、</div>`));
+      c.appendChild($(`<div class="small" style="margin-top:8px">🎯 まず身につけるクセ：<b class="accent">送る・言う前に、ひと呼吸</b></div>`));
+      c.appendChild($(`<div class="small muted" style="margin-top:8px">迷ったら、送信前にエイドロンに相談。あなたらしさを保ったまま、伝わる言い方に整えます。</div>`));
+      w.appendChild(c); w.appendChild(sp(20));
+      const b=$(`<button class="btn" type="button">はじめる →</button>`);
+      b.onclick=()=>{state={type:ty,struggles:picks,strugglesText:txt.trim(),growth:8,saved:0,streak:0,day:1,tier:'free',usesLeft:3,people:[],pending:null,resolved:0};save();render();};
+      w.appendChild(b);
+    }
+  }
+  draw(); return w;
+}
+
+function home(){
+  const w=$(`<div class="fade"></div>`);
+  const head=$(`<div class="pad" style="padding-bottom:8px"></div>`);
+  if(state.usesLeft==null)state.usesLeft=3;
+  if(!state.people)state.people=[];
+  if(state.resolved==null)state.resolved=0;
+  const top=$(`<div class="row between"></div>`);
+  top.appendChild($(`<div class="row" style="gap:9px"><div class="wordmark">EIDOLON</div><span class="badge">${arche(state.type).icon} ${arche(state.type).short}</span></div>`));
+  const right=$(`<div class="row" style="gap:8px"></div>`);
+  const th=$(`<div class="chip mini" style="padding:8px 11px">${getTheme()==='dark'?'☀︎':'☾'}</div>`); th.onclick=toggleTheme;
+  const chip = state.tier==='bond'
+    ? $(`<div class="chip mini" style="background:var(--gold);color:#fff;border-color:var(--gold)">✦ Bond</div>`)
+    : $(`<div class="chip mini">Free</div>`);
+  chip.onclick=tiersSheet;
+  right.appendChild(th); right.appendChild(chip);
+  top.appendChild(right); head.appendChild(top); head.appendChild(sp(18));
+  head.appendChild($(`<h1 style="font-size:23px">おはよう。<br>今日も、<span class="accent">伝わる自分</span>で。</h1>`));
+  w.appendChild(head);
+  // Free vs paid — make the state (and the reason to upgrade) obvious
+  if(state.tier==='free'){
+    const fb=$(`<div class="pad" style="padding-top:6px"></div>`);
+    const b=$(`<div class="card" style="cursor:pointer;padding:13px 16px;border-color:var(--gold);background:var(--goldSoft)"></div>`);
+    b.appendChild($(`<div class="row between"><div class="small" style="color:var(--goldDeep);font-weight:600">Free プラン · 今週あと ${state.usesLeft} 回</div><div class="small" style="color:var(--goldDeep);font-weight:700">アップグレード →</div></div>`));
+    b.onclick=tiersSheet; fb.appendChild(b); w.appendChild(fb);
+  }
+
+  // ★ 送った後の「どうだった?」ループ（成果を捉えて相手カードに学習）
+  if(state.pending){ w.appendChild(afterSendCard()); }
+
+  // ★ the killer utility
+  const u=$(`<div class="pad" style="padding-top:16px"></div>`);
+  const uc=$(`<div class="card" style="cursor:pointer;border-color:var(--ink);background:var(--soft)"></div>`);
+  uc.appendChild($(`<div style="font-size:15px;font-weight:600">🆘 送る前に、相談する</div>`)); uc.appendChild(sp(8));
+  uc.appendChild($(`<div class="small muted lh">LINEやメール、送っていいか迷ったら。あなたらしさは残して、伝わる言い方に。</div>`)); uc.appendChild(sp(12));
+  uc.appendChild($(`<div class="small accent" style="font-weight:600">相談する →</div>`));
+  uc.onclick=adviceSheet; u.appendChild(uc); w.appendChild(u);
+
+  const a=$(`<div class="pad" style="padding-top:12px"></div>`);
+  const ac=$(`<div class="card" style="cursor:pointer"></div>`);
+  ac.appendChild($(`<div style="font-size:15px;font-weight:600">🚶 行動する前に、相談する</div>`)); ac.appendChild(sp(8));
+  ac.appendChild($(`<div class="small muted lh">「これから謝る」「会議で反対意見を言う」— どう動けばいい?</div>`)); ac.appendChild(sp(12));
+  ac.appendChild($(`<div class="small accent" style="font-weight:600">相談する →</div>`));
+  ac.onclick=actSheet; a.appendChild(ac); w.appendChild(a);
+
+  // 人物カード（課金の核への入口）
+  const pp=$(`<div class="pad" style="padding-top:12px"></div>`);
+  const ppc=$(`<div class="card" style="cursor:pointer"></div>`);
+  const pcnt=getPeople().length;
+  ppc.appendChild($(`<div style="font-size:15px;font-weight:600">📇 あなたの相手 ${pcnt?`· ${pcnt}人`:''}</div>`)); ppc.appendChild(sp(8));
+  ppc.appendChild($(`<div class="small muted lh">よく連絡する人を登録。相手ごとに“ちゃんと届く”言い方を覚えます。</div>`)); ppc.appendChild(sp(12));
+  ppc.appendChild($(`<div class="small accent" style="font-weight:600">${pcnt?'相手を見る →':'相手を登録する →'}</div>`));
+  ppc.onclick=peopleSheet; pp.appendChild(ppc); w.appendChild(pp);
+
+  // growth
+  const gp=$(`<div class="pad" style="padding-top:14px"></div>`);
+  gp.appendChild($(`<div class="row between"><div class="tag">伝わる自分 · 成長</div><div class="small accent" style="font-weight:600">${state.growth}%</div></div>`));
+  gp.appendChild($(`<div class="meter"><span style="width:${state.growth}%"></span></div>`));
+  gp.appendChild($(`<div class="tiny dim" style="margin-top:8px">🔥 送る前に立ち止まれた：${state.saved}回　·　🤍 気まずさを避けられた：${state.resolved||0}回</div>`));
+  w.appendChild(gp);
+
+  // today's reflection / practice
+  const rp=$(`<div class="pad" style="padding-top:12px"></div>`);
+  const rc=$(`<div class="card"></div>`);
+  rc.appendChild($(`<div class="tag">今日のひとこと</div>`)); rc.appendChild(sp(10));
+  rc.appendChild($(`<div class="small lh">「正しいこと」より「伝わること」。あなたの${STRENGTH[state.type[2]]}は、優しさとセットで最強になります。</div>`));
+  rp.appendChild(rc); w.appendChild(rp);
+
+  // upsell + settings
+  const up=$(`<div class="pad" style="padding-top:12px"></div>`);
+  if(state.tier==='free'){
+    const uc2=$(`<div class="card" style="cursor:pointer"><div class="row between"><div class="small"><b>🎙️ 声で練習・無制限相談</b><div class="muted" style="margin-top:3px">難しい会話を、事前にロールプレイ</div></div><span class="badge">Bond</span></div></div>`);
+    uc2.onclick=tiersSheet; up.appendChild(uc2);
+  }
+  const link=$(`<div class="link" style="text-align:center;margin-top:14px">あなたのタイプ・プランを見る</div>`); link.onclick=profileSheet; up.appendChild(link);
+  w.appendChild(up); w.appendChild(sp(16));
+  return w;
+}
+
+// ── 送った後の「どうだった?」ループ ──
+function afterSendCard(){
+  const pd=state.pending, p=pd.personId?personById(pd.personId):null, nm=p?p.name+'さん':pd.who;
+  const c=$(`<div class="pad" style="padding-top:16px"></div>`);
+  const card=$(`<div class="card" style="border-color:var(--gold);background:var(--goldSoft)"></div>`);
+  card.appendChild($(`<div class="small" style="font-weight:700;color:var(--goldDeep)">さっき ${nm} に送ったの、どうだった?</div>`));
+  card.appendChild($(`<div class="tiny dim lh" style="margin-top:6px">結果を教えてくれると、${p?nm+'専用に':''}次の言い方に活かします。</div>`));
+  card.appendChild(sp(12));
+  const row=$(`<div class="row" style="gap:8px"></div>`);
+  [['win','😊 うまくいった'],['meh','😐 微妙'],['bad','😣 気まずい']].forEach(([k,l])=>{const b=$(`<div class="chip mini" style="flex:1;text-align:center;justify-content:center">${l}</div>`);b.onclick=()=>resolvePending(k);row.appendChild(b);});
+  card.appendChild(row);
+  c.appendChild(card); return c;
+}
+function resolvePending(r){
+  const pd=state.pending; if(!pd)return;
+  const p=pd.personId?personById(pd.personId):null;
+  if(r==='win'){state.resolved=(state.resolved||0)+1; state.growth=Math.min(100,state.growth+3); if(p)p.wins=(p.wins||0)+1;}
+  else if(r==='bad'){ if(p)p.misses=(p.misses||0)+1; }
+  state.pending=null; save(); render();
+  toast(r==='win'?'よかった！その距離感、覚えておくね 🤍':r==='bad'?'教えてくれてありがとう。次はワンクッション多めにいこう':'記録したよ。少しずつ整えていこう');
+}
+
+function sheet(builder){const ov=$(`<div class="overlay"></div>`),sh=$(`<div class="sheet"></div>`);
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};builder(sh,()=>ov.remove());ov.appendChild(sh);document.getElementById('phone').appendChild(ov);}
+function head2(sh,label,close){const r=$(`<div class="row between"></div>`);r.appendChild($(`<div class="tag">${label}</div>`));const x=$(`<div class="link">閉じる</div>`);x.onclick=close;r.appendChild(x);sh.appendChild(r);}
+
+// copy to clipboard so the suggestion goes straight into LINE / WhatsApp
+function copyText(t){
+  const ok=()=>toast('コピーしました。あとは貼るだけ 📋');
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok).catch(()=>fb(t,ok));}
+  else fb(t,ok);
+}
+function fb(t,ok){try{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();document.execCommand('copy');document.body.removeChild(ta);ok();}catch(e){toast('コピーできませんでした');}}
+
+// ── 言い方相談 (the showpiece): text OR screenshot input ──
+function adviceSheet(preId){
+  let person = preId?personById(preId):null;
+  let who = person?person.rel:'恋人', draft='', mode='text', img=null;
+  sheet((sh,close)=>{
+    function draw(){
+      sh.innerHTML='';
+      head2(sh,'送る前に相談',close); sh.appendChild(sp(14));
+      const mt=$(`<div class="row" style="gap:8px"></div>`);
+      const t1=$(`<div class="chip ${mode==='text'?'sel':''}">✏️ テキスト</div>`); t1.onclick=()=>{mode='text';draw();};
+      const t2=$(`<div class="chip ${mode==='image'?'sel':''}">📷 スクショ</div>`); t2.onclick=()=>{mode='image';draw();};
+      mt.appendChild(t1);mt.appendChild(t2); sh.appendChild(mt); sh.appendChild(sp(16));
+      sh.appendChild($(`<div class="tag">誰に送る?</div>`)); sh.appendChild(sp(9));
+      const g=$(`<div class="row wrap" style="gap:8px"></div>`);
+      getPeople().forEach(p=>{const sel=person&&person.id===p.id;const c=$(`<div class="chip ${sel?'sel':''}">👤 ${p.name}</div>`);c.onclick=()=>{person=p;who=p.rel;draw();};g.appendChild(c);});
+      ['恋人','友達','職場','家族'].forEach(x=>{const sel=!person&&who===x;const c=$(`<div class="chip ${sel?'sel':''}">${x}</div>`);c.onclick=()=>{person=null;who=x;draw();};g.appendChild(c);});
+      const addc=$(`<div class="chip mini" style="border-style:dashed">＋ 人物</div>`);addc.onclick=()=>{close();addPersonSheet(()=>adviceSheet());};g.appendChild(addc);
+      sh.appendChild(g); sh.appendChild(sp(8));
+      if(person)sh.appendChild($(`<div class="tiny dim">📇 ${person.name}さん専用に整えます${isPolite(who)?'（敬語）':'（タメ口）'}</div>`));
+      sh.appendChild(sp(16));
+      if(mode==='text'){
+        sh.appendChild($(`<div class="tag">送ろうとしている文</div>`)); sh.appendChild(sp(9));
+        const ta=$(`<textarea rows="3" placeholder="そのまま貼り付けてOK。">${draft}</textarea>`); ta.oninput=e=>draft=e.target.value; sh.appendChild(ta);
+        sh.appendChild(sp(10)); sh.appendChild($(`<div class="tiny dim">例をタップして試す：</div>`)); sh.appendChild(sp(8));
+        const ex=$(`<div class="row wrap" style="gap:8px"></div>`);
+        SAMPLES.forEach(s=>{const c=$(`<div class="chip mini">${s.draft.slice(0,12)}…</div>`);c.onclick=()=>{who=s.who;draft=s.draft;mode='text';draw();};ex.appendChild(c);});
+        sh.appendChild(ex);
+      } else {
+        sh.appendChild($(`<div class="tag">会話のスクショを貼る（LINE / WhatsApp）</div>`)); sh.appendChild(sp(9));
+        if(!img){
+          const fi=$(`<input type="file" accept="image/*" style="display:none">`);
+          const pick=$(`<button class="btnGhost" type="button">📷 スクショを選ぶ</button>`);
+          pick.onclick=()=>fi.click();
+          fi.onchange=()=>{const f=fi.files&&fi.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{img=rd.result;const s=SAMPLES[0];draft=s.draft;who=s.who;draw();};rd.readAsDataURL(f);};
+          sh.appendChild(pick); sh.appendChild(fi);
+          sh.appendChild(sp(10)); sh.appendChild($(`<div class="tiny dim">選ぶと、AIが会話の文面を読み取ります。</div>`));
+        } else {
+          sh.appendChild($(`<img src="${img}" style="width:100%;border-radius:14px;border:1px solid var(--line);max-height:200px;object-fit:cover"/>`)); sh.appendChild(sp(12));
+          sh.appendChild($(`<div class="tag green">AIが読み取った文（デモ）</div>`)); sh.appendChild(sp(8));
+          sh.appendChild($(`<div class="before" style="background:var(--soft);border-color:var(--line)">${draft}</div>`));
+          const re=$(`<div class="link" style="margin-top:10px">別の画像を選ぶ</div>`); re.onclick=()=>{img=null;draft='';draw();}; sh.appendChild(re);
+        }
+      }
+      sh.appendChild(sp(16));
+      const b=$(`<button class="btn" type="button">エイドロンに聞く</button>`);
+      b.onclick=()=>{ if(!draft.trim()){toast(mode==='image'?'スクショを選んでください':'文を入力してください');return;}
+        if(state.tier==='free'&&(state.usesLeft||0)<=0){ close(); upgradeSheet('今週の無料相談を使い切りました'); return; }
+        if(state.tier==='free'){ state.usesLeft=Math.max(0,(state.usesLeft||0)-1); save(); }
+        showAdvice(sh,close,who,draft.trim(),person); };
+      sh.appendChild(b);
+    }
+    draw();
+  });
+}
+// 恋人・友達・家族＝タメ口 / 職場・上司・同僚＝敬語
+const isPolite=(who)=> who==='職場'||who==='上司'||who==='同僚';
+// ── 人物カード（課金の核：使うほど、あなたの“相手”を覚える）──
+const RELS=['恋人','友達','家族','上司','同僚'];
+function pid(){return 'p'+Math.random().toString(36).slice(2,8);}
+function getPeople(){if(!state.people)state.people=[];return state.people;}
+function personById(id){return getPeople().find(p=>p.id===id);}
+// 前回の結果から、その相手向けの“見立て”を一言で（Bondで記録される記憶）
+function personInsight(p){
+  if(!p)return '';
+  const w=p.wins||0,m=p.misses||0,n=w+m;
+  if(!n)return `${p.name}さんは初めての相談。ここから${p.name}さん専用に学んでいきます。`;
+  if(m>=w&&m>0)return `前回この相手には少しきつく響いた記録。今回はワンクッション多めに整えます。`;
+  return `${p.name}さんとは${w}回うまくいった実績。その距離感を保って整えます。`;
+}
+function addPersonSheet(after){
+  let name='', rel='友達', note='';
+  sheet((sh,close)=>{
+    head2(sh,'人物を追加',close); sh.appendChild(sp(16));
+    sh.appendChild($(`<div class="tag">名前・呼び方</div>`)); sh.appendChild(sp(9));
+    const ni=$(`<input type="text" placeholder="例：田中課長 / みさき"/>`); ni.oninput=e=>name=e.target.value; sh.appendChild(ni); sh.appendChild(sp(16));
+    sh.appendChild($(`<div class="tag">関係</div>`)); sh.appendChild(sp(9));
+    const g=$(`<div class="row wrap" style="gap:8px"></div>`);
+    function drawRel(){g.innerHTML='';RELS.forEach(r=>{const c=$(`<div class="chip ${rel===r?'sel':''}">${r}</div>`);c.onclick=()=>{rel=r;drawRel();};g.appendChild(c);});}
+    drawRel(); sh.appendChild(g); sh.appendChild(sp(8));
+    sh.appendChild($(`<div class="tiny dim">${isPolite(rel)?'この相手には敬語で整えます':'この相手にはタメ口で整えます'}</div>`)); sh.appendChild(sp(16));
+    sh.appendChild($(`<div class="tag">気をつけたいこと（任意）</div>`)); sh.appendChild(sp(9));
+    const ta=$(`<textarea rows="2" placeholder="例：プライドが高い。責められると黙る。"></textarea>`); ta.oninput=e=>note=e.target.value; sh.appendChild(ta); sh.appendChild(sp(18));
+    const b=$(`<button class="btn" type="button">保存する</button>`);
+    b.onclick=()=>{
+      if(!name.trim()){toast('名前を入力してください');return;}
+      if(state.tier==='free'&&getPeople().length>=1){ close(); upgradeSheet('人物カードを2人以上覚えるのは Bond の機能です'); return; }
+      getPeople().push({id:pid(),name:name.trim(),rel,note:note.trim(),wins:0,misses:0}); save(); close(); if(after)after(); else render();
+    };
+    sh.appendChild(b);
+  });
+}
+function peopleSheet(){
+  sheet((sh,close)=>{
+    const draw=()=>{ sh.innerHTML='';
+      head2(sh,'あなたの相手',close); sh.appendChild(sp(6));
+      sh.appendChild($(`<div class="small muted lh">相手ごとに覚えるほど、その人に“ちゃんと届く”言い方になります。</div>`)); sh.appendChild(sp(16));
+      const ppl=getPeople();
+      if(!ppl.length){ sh.appendChild($(`<div class="card small muted lh">まだ登録がありません。まずは一人、よく連絡する相手を追加してみましょう。</div>`)); sh.appendChild(sp(14)); }
+      ppl.forEach(p=>{
+        const c=$(`<div class="card" style="cursor:pointer"></div>`);
+        c.appendChild($(`<div class="row between"><div class="small" style="font-weight:700">${p.name}</div><span class="badge">${p.rel}</span></div>`));
+        const n=(p.wins||0)+(p.misses||0);
+        c.appendChild($(`<div class="tiny dim" style="margin-top:6px">${state.tier==='bond'?`👍${p.wins||0} · 😣${p.misses||0} の記録から学習中`:(n?'記録あり · 履歴は Bond で振り返れます':'これから学習')}</div>`));
+        if(p.note)c.appendChild($(`<div class="tiny dim" style="margin-top:4px">📝 ${p.note}</div>`));
+        c.onclick=()=>{ close(); adviceSheet(p.id); };
+        sh.appendChild(c); sh.appendChild(sp(10));
+      });
+      sh.appendChild(sp(4));
+      const add=$(`<button class="btnGhost" type="button">＋ 人物を追加</button>`); add.onclick=()=>{ close(); addPersonSheet(()=>peopleSheet()); }; sh.appendChild(add);
+    };
+    draw();
+  });
+}
+function freeVariants(d,who){const base=softEN(d,who);
+  return isPolite(who)
+    ? {balance:base,soft:'差し出がましいのですが、'+base,firm:'率直に申し上げますと、'+base,humor:base+'（なんて、少し冗談です）'}
+    : {balance:base,soft:'ムリしてなければいいんだけど、'+base,firm:'正直に言うね。'+base,humor:base+'（なんてね、笑）'};}
+function showAdvice(sh,close,who,draft,person){
+  const s=SAMPLES.find(x=>x.draft===draft), ty=state.type;
+  const read = s? s.read : `${ty.includes('T')?'あなたの“率直さ”が出ています。正直だけど、':'この言い方だと、'}相手は少し身構えるかもしれません。`;
+  const why = s? s.why : `“事実の指摘”に“あなたの気持ち”と“相手への一問”を足すと、同じ本音でも角が取れて届きます。`;
+  const V = s? {balance:s.after,soft:s.tones.soft,firm:s.tones.firm,humor:s.tones.humor} : freeVariants(draft,who);
+  let tone='balance';
+  function drawA(){
+    sh.innerHTML='';
+    head2(sh,`${person?person.name+'さん':who}への言い方`,close); sh.appendChild(sp(14));
+    if(person){
+      const bn=$(`<div class="card" style="border-color:var(--gold);background:var(--goldSoft);padding:12px 14px"></div>`);
+      bn.appendChild($(`<div class="tiny" style="color:var(--goldDeep);font-weight:700">📇 ${person.name}さんの記憶</div>`));
+      if(state.tier==='bond'){ bn.appendChild($(`<div class="small lh" style="margin-top:5px;color:var(--goldDeep)">${personInsight(person)}</div>`)); if(person.note)bn.appendChild($(`<div class="tiny dim" style="margin-top:5px">📝 ${person.note}</div>`)); }
+      else { bn.appendChild($(`<div class="small lh" style="margin-top:5px;color:var(--goldDeep)">${person.name}さん専用の記憶と“前回どうだったか”は Bond で貯まっていきます。</div>`)); }
+      sh.appendChild(bn); sh.appendChild(sp(14));
+    }
+    sh.appendChild($(`<div class="tag">いまの文（そのまま）</div>`)); sh.appendChild(sp(8));
+    sh.appendChild($(`<div class="before">${draft}</div>`)); sh.appendChild(sp(14));
+    sh.appendChild($(`<div class="tag">エイドロンの見立て</div>`)); sh.appendChild(sp(8));
+    sh.appendChild($(`<div class="small muted lh">${read}</div>`)); sh.appendChild(sp(16));
+    sh.appendChild($(`<div class="tag green">あなたらしい、届く言い方</div>`)); sh.appendChild(sp(8));
+    sh.appendChild($(`<div class="after">${V[tone]}</div>`)); sh.appendChild(sp(10));
+    const cp=$(`<button class="btnGhost btnSm" type="button" style="width:100%">📋 コピーして LINE に貼る</button>`);
+    cp.onclick=()=>copyText(V[tone]); sh.appendChild(cp); sh.appendChild(sp(14));
+    sh.appendChild($(`<div class="tag">トーンを変える${state.tier!=='bond'?' <span style="color:var(--gold)">· Bond</span>':''}</div>`)); sh.appendChild(sp(9));
+    const tr=$(`<div class="row wrap" style="gap:8px"></div>`);
+    [['balance','ちょうどよく'],['soft','やさしめ'],['firm','はっきり'],['humor','ユーモア']].forEach(([k,l])=>{
+      const c=$(`<div class="chip mini ${tone===k?'sel':''}">${l}</div>`);
+      c.onclick=()=>{ if(k!=='balance'&&state.tier!=='bond'){upgradeSheet('3つのトーンの出し分けは Bond の機能です');return;} tone=k; drawA(); };
+      tr.appendChild(c);
+    });
+    sh.appendChild(tr); sh.appendChild(sp(16));
+    sh.appendChild($(`<div class="small muted lh"><b class="accent">なぜ:</b> ${why}</div>`)); sh.appendChild(sp(18));
+    const b=$(`<button class="btn" type="button">これで送る（コピー）</button>`);
+    b.onclick=()=>{copyText(V[tone]);state.growth=Math.min(100,state.growth+6);state.saved++;
+      state.pending={personId:person?person.id:null,who,text:V[tone]};
+      save();close();render();toast('コピー＆送信前に立ち止まれました 🤍 +6%');};
+    sh.appendChild(b);
+  }
+  drawA();
+}
+function softEN(t,who){ let s=t.replace(/なんで/g,'').replace(/いつも/g,'').replace(/絶対/g,'').replace(/[。!？?]*$/,'');
+  return isPolite(who) ? `${s}… と感じました。いかがでしょうか?` : `${s}… と感じたよ。あなたはどう思ってた?`; }
+
+function actSheet(){
+  sheet((sh,close)=>{
+    head2(sh,'行動する前に相談',close); sh.appendChild(sp(14));
+    sh.appendChild($(`<div class="tag">これから何をする?</div>`)); sh.appendChild(sp(10));
+    ACTS.forEach(a=>{const el=$(`<div class="opt">${a.t}</div>`);
+      el.onclick=()=>{ sh.innerHTML=''; head2(sh,a.t,close); sh.appendChild(sp(16));
+        sh.appendChild($(`<div class="tag green">エイドロンのアドバイス</div>`)); sh.appendChild(sp(10));
+        sh.appendChild($(`<div class="after">${a.advice(state.type)}</div>`)); sh.appendChild(sp(18));
+        const b=$(`<button class="btn" type="button">やってみる</button>`);
+        b.onclick=()=>{state.growth=Math.min(100,state.growth+5);state.saved++;save();close();render();toast('一歩、伝わる自分へ 🤍 成長 +5%');};
+        sh.appendChild(b);
+      }; sh.appendChild(el);});
+  });
+}
+
+function profileSheet(){sheet((sh,close)=>{
+  head2(sh,'あなたのタイプ・プラン',close); sh.appendChild(sp(16));
+  const _a=arche(state.type);
+  sh.appendChild($(`<div style="font-size:38px;line-height:1">${_a.icon}</div>`)); sh.appendChild(sp(6));
+  sh.appendChild($(`<div style="font-size:22px;font-weight:800" class="accent">${_a.name}</div>`)); sh.appendChild(sp(4));
+  sh.appendChild($(`<div class="small muted lh">${_a.tag}</div>`)); sh.appendChild(sp(14));
+  const c=$(`<div class="card lh"></div>`);
+  c.appendChild($(`<div class="tag">強み</div>`)); c.appendChild($(`<div class="small lh" style="margin:6px 0 12px">${_a.good}</div>`));
+  c.appendChild($(`<div class="tag">伸びしろ</div>`)); c.appendChild($(`<div class="small lh" style="margin:6px 0 12px">${_a.edge}</div>`));
+  c.appendChild($(`<div class="tag">口ぐせのクセ</div>`)); c.appendChild($(`<div class="small muted lh" style="margin:6px 0">${subLine(state.type)}</div>`));
+  sh.appendChild(c); sh.appendChild(sp(14));
+  if(state.struggles.length||state.strugglesText){
+    sh.appendChild($(`<div class="tag">変えたいこと</div>`)); sh.appendChild(sp(8));
+    state.struggles.forEach(id=>{const s=STRUGGLES.find(x=>x.id===id);if(s)sh.appendChild($(`<div class="small muted" style="margin:4px 0">・${s.t}</div>`));});
+    if(state.strugglesText)sh.appendChild($(`<div class="small muted" style="margin:4px 0">・${state.strugglesText}</div>`));
+  }
+}); }
+
+// focused paywall — appears at the moment of need (stronger conversion)
+function upgradeSheet(reason){ sheet((sh,close)=>{
+  const r=$(`<div class="row between"></div>`);
+  r.appendChild($(`<span class="badge" style="background:var(--gold);color:#fff;border-color:var(--gold)">BOND</span>`));
+  const x=$(`<div class="link">閉じる</div>`); x.onclick=close; r.appendChild(x); sh.appendChild(r);
+  sh.appendChild(sp(16));
+  sh.appendChild($(`<h2>${reason}。</h2>`));
+  sh.appendChild($(`<p class="muted lh small" style="margin-top:8px">迷う瞬間に、いつでも。あなたらしさを保ったまま、伝わる言葉に。</p>`));
+  sh.appendChild(sp(16));
+  ['💬 「言い方相談」無制限','📷 スクショから無制限で読み取り','🎨 3つのトーンで出し分け','🧠 相手ごとにあなたの傾向を記憶','🎙️ 声で相談・練習'].forEach(f=>
+    sh.appendChild($(`<div class="small" style="margin:7px 0"><span class="accent" style="font-weight:700">✓</span> ${f.replace(/^..\s/,'')}</div>`)));
+  sh.appendChild(sp(16));
+  sh.appendChild($(`<div style="font-size:24px;font-weight:700">¥980 <span class="small muted" style="font-weight:500">/ 月</span></div>`));
+  sh.appendChild(sp(14));
+  const b=$(`<button class="btn" type="button">Bond をはじめる</button>`);
+  b.onclick=()=>{state.tier='bond';save();close();render();toast('Bond へようこそ 🎉');}; sh.appendChild(b);
+  const b2=$(`<button class="btnGhost" type="button" style="margin-top:10px">プランを比べる</button>`);
+  b2.onclick=()=>{close();tiersSheet();}; sh.appendChild(b2);
+}); }
+function tiersSheet(){sheet((sh,close)=>{
+  head2(sh,'成長に、投資する',close); sh.appendChild(sp(16));
+  const mk=(name,badge,price,feats,key)=>{const c=$(`<div class="card" style="margin-bottom:12px;${state.tier===key?'border-color:var(--gold)':''}"></div>`);
+    const r=$(`<div class="row between"></div>`); r.appendChild($(`<div class="row" style="gap:8px"><h3>${name}</h3><span class="badge ${key==='free'?'free':''}">${badge}</span></div>`));
+    r.appendChild($(`<div class="small muted">${price}</div>`)); c.appendChild(r); c.appendChild(sp(10));
+    feats.forEach(f=>c.appendChild($(`<div class="small muted" style="margin:5px 0">${f}</div>`)));
+    if(state.tier!==key){const b=$(`<button class="btnGhost btnSm" type="button" style="width:100%;margin-top:12px">${name}にする</button>`);
+      b.onclick=()=>{state.tier=key;save();close();render();toast(key==='bond'?'Bond 🤍 無制限相談・記憶・練習・声':'Freeに戻しました');};c.appendChild(b);}
+    else c.appendChild($(`<div class="small accent" style="margin-top:12px;font-weight:600">利用中</div>`));return c;};
+  sh.appendChild(mk('Free','おためし','—',['・週3回まで「言い方相談」','・スクショ読み取り 月3回','・ちょうどよい言い換え 1案'],'free'));
+  sh.appendChild(mk('Bond','本気で変わる','¥980 / 月',[
+    '・💬 「言い方相談」無制限',
+    '・📷 スクショから会話を無制限で読み取り',
+    '・🎨 3つのトーンで出し分け（やさしめ / はっきり / ユーモア）',
+    '・🧠 相手ごとにあなたの傾向を記憶',
+    '・🎭 難しい会話の“ロールプレイ練習”',
+    '・🎙️ 声で相談・練習',
+    '・📊 毎週の成長レポート'],'bond'));
+  sh.appendChild($(`<div class="tiny dim" style="margin-top:4px">人間関係が懸かるから、払う価値がある。強さでなく“伝わる自分”に投資。</div>`));
+}); }
+
+let toastT;
+function toast(msg){const o=document.querySelector('.toast');if(o)o.remove();const t=$(`<div class="toast">${msg}</div>`);document.getElementById('phone').appendChild(t);clearTimeout(toastT);toastT=setTimeout(()=>t.remove(),3200);}
+window.eidolonReset=()=>{try{localStorage.removeItem(LS)}catch(e){}state=null;render();};
+render();
+</script>
+</body>
+</html>

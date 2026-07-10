@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -225,6 +224,11 @@ class LoginSocialButtons extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(authNotifierProvider.notifier);
+    // Sign in with Apple is offered on Apple platforms only. Use the
+    // web-safe platform check (dart:io's Platform throws on Flutter web).
+    final showApple = !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.macOS);
     return Column(
       children: [
         LoginSocialButton(
@@ -232,7 +236,7 @@ class LoginSocialButtons extends ConsumerWidget {
           iconAsset: Icons.g_mobiledata_rounded,
           onTap: isLoading ? null : notifier.signInWithGoogle,
         ),
-        if (Platform.isIOS) ...[
+        if (showApple) ...[
           const SizedBox(height: 12),
           LoginSocialButton(
             label: context.l10n.loginContinueApple,

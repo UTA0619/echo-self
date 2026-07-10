@@ -1,7 +1,4 @@
-import 'dart:async';
-
 import 'package:eidolon/core/error/app_error.dart';
-import 'package:eidolon/core/firebase/firebase_service.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
 import 'package:eidolon/features/gacha/domain/entities/gacha_item.dart';
 import 'package:eidolon/features/gacha/domain/entities/gacha_pull_result.dart';
@@ -90,19 +87,6 @@ class GachaNotifier extends _$GachaNotifier {
         crystals: state.crystals - pullResult.crystalsSpent,
         history: [...pullResult.items, ...state.history].take(30).toList(),
       );
-      // Guarded: analytics must never break the pull flow (e.g. Firebase not
-      // initialized in unit tests).
-      try {
-        unawaited(
-          ref.read(firebaseAnalyticsProvider).logEvent(
-            name: 'gacha_pull',
-            parameters: {
-              'count': count,
-              'crystals_spent': pullResult.crystalsSpent,
-            },
-          ),
-        );
-      } catch (_) {/* analytics unavailable — non-fatal */}
     } else {
       state = state.copyWith(
         phase: GachaPhase.idle,

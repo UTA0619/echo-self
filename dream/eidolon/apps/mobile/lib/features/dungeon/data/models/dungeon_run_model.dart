@@ -8,13 +8,13 @@ class DungeonRunModel {
         dungeonId: row['dungeon_id'] as String,
         currentRoom: (row['current_room'] as num?)?.toInt() ?? 0,
         status: RunStatus.fromString(
-          (row['run_status'] as String?) ?? 'in_progress',
+          (row['status'] as String?) ?? 'in_progress',
         ),
         atkBonus: (row['atk_bonus'] as num?)?.toInt() ?? 0,
         hpModifier: (row['hp_modifier'] as num?)?.toInt() ?? 0,
         startedAt: DateTime.parse(row['started_at'] as String),
-        endedAt: row['ended_at'] != null
-            ? DateTime.parse(row['ended_at'] as String)
+        endedAt: row['completed_at'] != null
+            ? DateTime.parse(row['completed_at'] as String)
             : null,
       );
 }

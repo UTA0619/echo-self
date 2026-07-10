@@ -1,3 +1,4 @@
+import 'package:eidolon/core/analytics/analytics.dart';
 import 'package:eidolon/core/error/app_error.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
 import 'package:eidolon/features/onboarding/domain/entities/onboarding_state.dart';
@@ -55,6 +56,14 @@ class OnboardingNotifier extends _$OnboardingNotifier {
     final Result<void> result = await useCase(state, authUid: authUid);
 
     if (result.isSuccess) {
+      // Activation: identify the user and mark the moment they awakened their
+      // Eidolon — the anchor for D1/D7/D30 retention cohorts.
+      ref.read(analyticsProvider)
+        ..identify(authUid)
+        ..track(
+          AppEvents.eidolonAwakened,
+          props: {'answered': state.answers.length},
+        );
       state = state.copyWith(isSubmitting: false, isComplete: true);
     } else {
       state = state.copyWith(

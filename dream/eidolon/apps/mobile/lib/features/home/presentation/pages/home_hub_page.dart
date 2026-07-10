@@ -1,4 +1,7 @@
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
+import 'package:eidolon/features/away_report/presentation/away_report_card.dart';
+import 'package:eidolon/features/daily_reward/presentation/daily_reward_card.dart';
+import 'package:eidolon/features/eidolon/presentation/providers/eidolon_provider.dart';
 import 'package:eidolon/features/home/presentation/providers/home_provider.dart';
 import 'package:eidolon/features/home/presentation/widgets/home_active_run_banner.dart';
 import 'package:eidolon/features/home/presentation/widgets/home_daily_stats.dart';
@@ -9,7 +12,10 @@ import 'package:eidolon/features/home/presentation/widgets/home_quick_actions.da
 import 'package:eidolon/core/theme/app_theme.dart';
 import 'package:eidolon/features/morning_report/presentation/providers/morning_report_provider.dart';
 import 'package:eidolon/features/morning_report/presentation/widgets/morning_report_card.dart';
+import 'package:eidolon/features/morning_report/presentation/widgets/overnight_dispatch_card.dart';
 import 'package:eidolon/features/reality_sync/presentation/widgets/reality_sync_card.dart';
+import 'package:eidolon/features/weekly_reflection/presentation/providers/weekly_reflection_provider.dart';
+import 'package:eidolon/features/weekly_reflection/presentation/widgets/weekly_reflection_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,14 +35,23 @@ class _HomeHubPageState extends ConsumerState<HomeHubPage> {
       if (uid.isNotEmpty) {
         ref.read(homeNotifierProvider.notifier).load(uid);
       }
-      // Surface last night's autonomous run, if any.
-      ref.read(morningReportNotifierProvider.notifier).loadLatest();
+      // Surface last night's autonomous run, and learn whether tonight's run
+      // already happened (gates the on-demand dispatch prompt).
+      ref.read(morningReportNotifierProvider.notifier).refresh();
+      // Surface this week's "what I noticed about you" reflection, if any.
+      ref.read(weeklyReflectionNotifierProvider.notifier).loadLatest();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(homeNotifierProvider);
+    // Prefer the live Eidolon (mutated by dungeon level-ups) so the card and
+    // its avatar reflect progression the instant the player returns home.
+    final eidolon = ref.watch(
+          eidolonNotifierProvider.select((s) => s.eidolon),
+        ) ??
+        state.eidolon;
 
     if (state.isLoading && state.player == null) {
       return const Scaffold(
@@ -59,9 +74,13 @@ class _HomeHubPageState extends ConsumerState<HomeHubPage> {
               SliverToBoxAdapter(
                 child: HomeGreetingHeader(state: state),
               ),
+              const SliverToBoxAdapter(child: AwayReportCard()),
+              const SliverToBoxAdapter(child: DailyRewardCard()),
               const SliverToBoxAdapter(child: MorningReportCard()),
+              const SliverToBoxAdapter(child: WeeklyReflectionCard()),
+              const SliverToBoxAdapter(child: OvernightDispatchCard()),
               SliverToBoxAdapter(
-                child: HomeEidolonCard(eidolon: state.eidolon),
+                child: HomeEidolonCard(eidolon: eidolon),
               ),
               if (state.summary?.hasActiveRun == true)
                 SliverToBoxAdapter(

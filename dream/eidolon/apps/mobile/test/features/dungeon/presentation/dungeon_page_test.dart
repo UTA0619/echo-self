@@ -142,9 +142,11 @@ void main() {
       await tester.pumpWidget(_wrap());
       await tester.pump();
 
-      expect(find.text('Theme'), findsOneWidget);
-      // At least one theme chip visible
-      expect(find.text('forest'), findsOneWidget);
+      // "Theme" appears twice: the section header and the Expedition
+      // preview card's stat label.
+      expect(find.text('Theme'), findsNWidgets(2));
+      // At least one theme chip visible (localized label, en locale)
+      expect(find.text('Forest'), findsOneWidget);
 
       await _settle(tester);
     });
@@ -180,7 +182,7 @@ void main() {
       await tester.pumpWidget(_wrapWithNotifier(notifier));
       await tester.pump();
 
-      await tester.tap(find.text('forest'));
+      await tester.tap(find.text('Forest'));
       await tester.pump();
 
       expect(notifier.lastTheme, DungeonTheme.forest);

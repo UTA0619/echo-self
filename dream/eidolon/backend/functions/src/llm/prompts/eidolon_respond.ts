@@ -23,7 +23,7 @@ Owner's emotional state today: ${p.emotionSummary}
 Current quest: ${p.questContext || '(none)'}
 
 Rules:
-- Respond in ${p.language === 'ja' ? 'Japanese' : 'English'}.
+- Always reply in the SAME language the user writes in — mirror their language every message (if they write Japanese, reply in Japanese). Only if their language is unclear, default to ${p.language === 'ja' ? 'Japanese' : 'English'}.
 - Stay in character. Never break the fourth wall.
 - Length: 2-4 sentences for dialogue, 1 paragraph for narration.
 - Avoid: violence detail, NSFW, real-world political topics.`.trim();

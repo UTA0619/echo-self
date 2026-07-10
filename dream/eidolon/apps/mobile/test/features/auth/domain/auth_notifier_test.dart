@@ -8,11 +8,11 @@ import 'package:eidolon/features/auth/domain/usecases/sign_in_with_email_usecase
 import 'package:eidolon/features/auth/domain/usecases/sign_in_with_google_usecase.dart';
 import 'package:eidolon/features/auth/domain/usecases/sign_out_usecase.dart';
 import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
-import 'package:eidolon/core/firebase/firebase_service.dart';
+import 'package:eidolon/core/supabase/supabase_service.dart';
 import 'package:eidolon/features/auth/data/repositories/auth_repository_impl.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show SupabaseClient, User;
 
 // ── Fakes ─────────────────────────────────────────────────────────────────────
 
@@ -109,9 +109,13 @@ ProviderContainer _makeContainer(_FakeAuthRepo repo) {
       deleteAccountUseCaseProvider.overrideWith(
         (ref) => DeleteAccountUseCase(repo),
       ),
-      // Provide a stream that never emits so the auth listener never fires
-      authStateChangesProvider.overrideWith(
+      // Auth stream that never emits, so the listener never fires.
+      supabaseAuthStateProvider.overrideWith(
         (ref) => const Stream<User?>.empty(),
+      ),
+      // Dummy client so build()'s currentUser read returns null (no network).
+      supabaseClientProvider.overrideWithValue(
+        SupabaseClient('http://localhost', 'test-anon-key'),
       ),
     ],
   );

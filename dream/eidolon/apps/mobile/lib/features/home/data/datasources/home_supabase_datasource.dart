@@ -44,8 +44,8 @@ class HomeSupabaseDataSource {
           '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
 
       final rows = await _client
-          .from('dungeon_runs')
-          .select('id, run_status, started_at')
+          .from('runs')
+          .select('id, status, started_at')
           .eq('eidolon_id', eidolonId)
           .gte('started_at', '${todayStr}T00:00:00')
           .lte('started_at', '${todayStr}T23:59:59');
@@ -55,7 +55,7 @@ class HomeSupabaseDataSource {
       final activeRow = list
           .cast<Map<String, dynamic>>()
           .where(
-            (r) => r['run_status'] == 'in_progress',
+            (r) => r['status'] == 'in_progress',
           )
           .firstOrNull;
 

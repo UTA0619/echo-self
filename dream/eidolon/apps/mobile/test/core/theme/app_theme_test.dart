@@ -3,29 +3,47 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+double _contrast(Color a, Color b) {
+  final la = a.computeLuminance();
+  final lb = b.computeLuminance();
+  final hi = la > lb ? la : lb;
+  final lo = la > lb ? lb : la;
+  return (hi + 0.05) / (lo + 0.05);
+}
+
 void main() {
-  group('EidolonColors (pure unit tests)', () {
-    test('background is sufficiently dark', () {
-      const bg = EidolonColors.background;
-      expect(bg.computeLuminance(), lessThan(0.05));
+  group('EidolonColors — Daylight Pop (pure unit tests)', () {
+    test('background is light', () {
+      expect(EidolonColors.background.computeLuminance(), greaterThan(0.8));
     });
 
-    test('accent color meets WCAG AA contrast on background', () {
-      final bgLum = EidolonColors.background.computeLuminance();
-      final accentLum = EidolonColors.accent.computeLuminance();
-      final contrast = (accentLum + 0.05) / (bgLum + 0.05);
-      expect(contrast, greaterThanOrEqualTo(3.0));
-    });
-
-    test('surface is darker than surfaceElevated', () {
+    test('primary text is readable on the light background (WCAG AA)', () {
       expect(
-        EidolonColors.surface.computeLuminance(),
-        lessThan(EidolonColors.surfaceElevated.computeLuminance()),
+        _contrast(EidolonColors.textPrimary, EidolonColors.background),
+        greaterThanOrEqualTo(4.5),
       );
     });
 
-    test('text primary is near white', () {
-      expect(EidolonColors.textPrimary.computeLuminance(), greaterThan(0.8));
+    test('white button text stays legible on the coral accent', () {
+      // Vibrant CTAs deliberately trade strict WCAG for "pop" (cf. Duolingo's
+      // ~1.9:1 green buttons). We hold a sensible floor for bold button text
+      // rather than dull the brand coral down to a 4.5:1 brown.
+      expect(
+        _contrast(const Color(0xFFFFFFFF), EidolonColors.accent),
+        greaterThanOrEqualTo(2.5),
+      );
+    });
+
+    test('surfaceElevated is a subtle tint, distinct from the white surface',
+        () {
+      expect(
+        EidolonColors.surfaceElevated.computeLuminance(),
+        lessThan(EidolonColors.surface.computeLuminance()),
+      );
+    });
+
+    test('primary text is dark', () {
+      expect(EidolonColors.textPrimary.computeLuminance(), lessThan(0.1));
     });
   });
 
@@ -41,17 +59,23 @@ void main() {
       expect(theme.useMaterial3, isTrue);
     });
 
-    testWidgets('is dark theme', (tester) async {
+    testWidgets('is light theme', (tester) async {
       final theme = buildEidolonTheme();
-      expect(theme.brightness, equals(Brightness.dark));
+      expect(theme.brightness, equals(Brightness.light));
     });
 
-    testWidgets('primary color is accent purple', (tester) async {
+    testWidgets('primary color is the accent', (tester) async {
       final theme = buildEidolonTheme();
       expect(theme.colorScheme.primary, equals(EidolonColors.accent));
     });
 
-    testWidgets('scaffold background is deep black', (tester) async {
+    testWidgets('onPrimary is white so button labels stay readable',
+        (tester) async {
+      final theme = buildEidolonTheme();
+      expect(theme.colorScheme.onPrimary, equals(const Color(0xFFFFFFFF)));
+    });
+
+    testWidgets('scaffold background is the app background', (tester) async {
       final theme = buildEidolonTheme();
       expect(theme.scaffoldBackgroundColor, equals(EidolonColors.background));
     });

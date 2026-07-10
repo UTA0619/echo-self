@@ -58,4 +58,16 @@ class DungeonRepositoryImpl implements DungeonRepository {
   @override
   Future<Result<DungeonRun>> finishRun(String runId, RunStatus finalStatus) =>
       db.finishRun(runId, finalStatus);
+
+  @override
+  Future<Result<void>> grantCrystals({
+    required String authUid,
+    required int amount,
+    required String receiptId,
+  }) =>
+      db.grantCrystals(
+        authUid: authUid,
+        amount: amount,
+        receiptId: receiptId,
+      );
 }

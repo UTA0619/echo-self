@@ -65,12 +65,12 @@ void main() {
         ..enqueue(200, [
           {
             'id': 'run-1',
-            'run_status': 'completed',
+            'status': 'completed',
             'started_at': '2026-06-01T08:00:00',
           },
           {
             'id': 'run-2',
-            'run_status': 'in_progress',
+            'status': 'in_progress',
             'started_at': '2026-06-01T09:00:00',
           },
         ]);

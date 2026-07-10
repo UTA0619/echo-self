@@ -86,12 +86,17 @@ Rules: last room must be eventType "boss". No markdown. No extra text.`;
     maxTokens: 2048,
   });
 
-  // Parse AI output
+  // Parse AI output. Models often wrap JSON in ```json fences or add a short
+  // preamble, so extract the JSON object before parsing instead of trusting
+  // the raw text — otherwise every dungeon silently falls back to a template.
   let parsed: { name: string; narrativeIntro: string; rooms: unknown[]; bossConfig: unknown };
   try {
-    parsed = JSON.parse(text);
-  } catch {
-    // Fallback if AI returns malformed JSON
+    parsed = JSON.parse(extractJson(text));
+    if (!parsed?.name || !Array.isArray(parsed.rooms) || parsed.rooms.length === 0) {
+      throw new Error('incomplete dungeon JSON');
+    }
+  } catch (e) {
+    console.warn('[dungeon-generate] JSON parse failed, using template:', e);
     parsed = buildFallbackDungeon(selectedTheme, difficulty, roomCount);
   }
 
@@ -123,6 +128,21 @@ Rules: last room must be eventType "boss". No markdown. No extra text.`;
 
   return jsonResponse(response);
 });
+
+/** Pull the JSON object out of an LLM reply (handles ```json fences + preamble). */
+function extractJson(raw: string): string {
+  let s = raw.trim();
+  // Strip markdown code fences if present.
+  const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence) s = fence[1].trim();
+  // Otherwise grab from the first { to the last } .
+  const first = s.indexOf('{');
+  const last = s.lastIndexOf('}');
+  if (first !== -1 && last !== -1 && last > first) {
+    s = s.slice(first, last + 1);
+  }
+  return s;
+}
 
 function buildFallbackDungeon(theme: DungeonTheme, difficulty: number, roomCount: number) {
   const rooms = Array.from({ length: roomCount }, (_, i) => ({

@@ -33,16 +33,7 @@ dependencies:
   # ── Local Storage ───────────────────────────────────────────────
   shared_preferences: ^2.3.3
 
-  # ── Firebase ────────────────────────────────────────────────────
-  firebase_core: ^3.8.1
-  firebase_auth: ^5.3.4
-  cloud_firestore: ^5.5.4
-  firebase_storage: ^12.3.7
-  firebase_remote_config: ^5.1.6
-  firebase_crashlytics: ^4.1.6
-  firebase_analytics: ^11.3.6
-
-  # ── Supabase ────────────────────────────────────────────────────
+  # ── Supabase (Auth + DB + Edge Functions — the single backend) ──
   supabase_flutter: ^2.8.4
 
   # ── Health / Reality Sync ───────────────────────────────────────
@@ -52,12 +43,12 @@ dependencies:
   purchases_flutter: ^10.1.1
 
   # ── Analytics / Monitoring ──────────────────────────────────────
-  sentry_flutter: ^8.11.0
+  sentry_flutter: ^9.22.0
   mixpanel_flutter: ^2.3.4
   app_tracking_transparency: ^2.0.7
 
   # ── Fonts ───────────────────────────────────────────────────────
-  google_fonts: ^6.2.1
+  google_fonts: ^8.1.0
 
   # ── Internal packages ───────────────────────────────────────────
   shared_types:
@@ -65,7 +56,7 @@ dependencies:
 
   # ── Utilities ───────────────────────────────────────────────────
   uuid: ^4.5.1
-  intl: ^0.19.0
+  intl: ^0.20.2
   logger: ^2.5.0
   path_provider: ^2.1.5
   url_launcher: ^6.3.1
@@ -74,6 +65,7 @@ dependencies:
   google_sign_in: ^7.1.1
   sign_in_with_apple: ^7.0.1
   crypto: ^3.0.7
+  share_plus: ^12.0.2
 
 dev_dependencies:
   flutter_test:

@@ -45,6 +45,30 @@ class MorningReportDataSource {
     }
   }
 
+  /// Whether tonight's run already exists (seen or not). Used to gate the
+  /// on-demand "send Nova adventuring" prompt so we never dispatch twice in a
+  /// day or step on the nightly cron. Matches the Edge Function's UTC run_date.
+  Future<Result<bool>> hasRunToday() async {
+    try {
+      final today = DateTime.now().toUtc().toIso8601String().substring(0, 10);
+      final rows = await _client
+          .from('overnight_runs')
+          .select('id')
+          .eq('run_date', today)
+          .limit(1);
+      return ok((rows as List).isNotEmpty);
+    } on PostgrestException catch (e) {
+      return err(
+        AppError.network(
+          message: e.message,
+          statusCode: int.tryParse(e.code ?? ''),
+        ),
+      );
+    } catch (e, st) {
+      return err(AppError.unknown(error: e, stackTrace: st));
+    }
+  }
+
   /// Mark a report as read so it stops surfacing on the home screen.
   Future<Result<void>> markSeen(String runId) async {
     try {

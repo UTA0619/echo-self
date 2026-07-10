@@ -1,8 +1,11 @@
+import 'package:eidolon/core/analytics/analytics.dart';
 import 'package:eidolon/core/i18n/l10n.dart';
 import 'package:eidolon/core/theme/app_theme.dart';
+import 'package:eidolon/features/auth/presentation/providers/auth_provider.dart';
 import 'package:eidolon/features/morning_report/domain/entities/morning_report.dart';
 import 'package:eidolon/features/morning_report/presentation/providers/morning_report_provider.dart';
 import 'package:eidolon/features/morning_report/presentation/widgets/morning_report_mood.dart';
+import 'package:eidolon/features/morning_report/presentation/widgets/morning_share_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,8 +13,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Full-screen Morning Report — the story of the Eidolon's overnight venture,
 /// plus the XP and loot it earned. Marks the report read on open.
 class MorningReportPage extends ConsumerStatefulWidget {
-  const MorningReportPage({super.key, required this.report});
+  const MorningReportPage({super.key, required this.report, this.eidolonName});
   final MorningReport report;
+
+  /// The Eidolon's name, for the shareable card headline. Optional so the page
+  /// stays decoupled from the eidolon provider; callers pass it when available.
+  final String? eidolonName;
 
   @override
   ConsumerState<MorningReportPage> createState() => _MorningReportPageState();
@@ -25,6 +32,31 @@ class _MorningReportPageState extends ConsumerState<MorningReportPage> {
     Future.microtask(
       () => ref.read(morningReportNotifierProvider.notifier).markSeen(),
     );
+    // Morning-return habit signal (metric #2): the player came back and opened
+    // what their Eidolon brought home overnight.
+    ref.read(analyticsProvider).track(
+      AppEvents.morningReportViewed,
+      props: {
+        'theme': widget.report.theme,
+        'mood': widget.report.mood.name,
+        'xp_gained': widget.report.xpGained,
+        'loot_count': widget.report.loot.length,
+      },
+    );
+  }
+
+  /// The signed-in user id, if any — drives the referral link.
+  String? get _uid {
+    final uid = ref.read(authNotifierProvider).user?.uid;
+    return (uid == null || uid.isEmpty) ? null : uid;
+  }
+
+  /// Share copy with an invite link carrying the sharer's referral code (the
+  /// viral-K carrier). Falls back to plain copy when signed out.
+  String _shareText() {
+    const base = 'My Eidolon adventured while I slept. 🌙 #Eidolon';
+    final uid = _uid;
+    return uid == null ? base : '$base\n${inviteLink(uid)}';
   }
 
   @override
@@ -105,6 +137,26 @@ class _MorningReportPageState extends ConsumerState<MorningReportPage> {
               ...r.loot.map((item) => _LootTile(loot: item)),
 
             const SizedBox(height: 32),
+            // Shareable card — the growth loop (STRATEGY Act/§10).
+            Center(
+              child: MorningShareCard(
+                report: r,
+                eidolonName: widget.eidolonName ?? 'Eidolon',
+                label: l10n.morningReportShare,
+                shareText: _shareText(),
+                onShareInitiated: () =>
+                    ref.read(analyticsProvider).track(
+                      AppEvents.morningShareInitiated,
+                      props: {'theme': r.theme, 'has_referral': _uid != null},
+                    ),
+                onShareCompleted: (success) =>
+                    ref.read(analyticsProvider).track(
+                      AppEvents.morningShareCompleted,
+                      props: {'success': success, 'theme': r.theme},
+                    ),
+              ),
+            ).animate(delay: 400.ms).fadeIn(),
+            const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
