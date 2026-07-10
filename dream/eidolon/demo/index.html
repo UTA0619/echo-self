@@ -224,7 +224,7 @@ function onboarding(){
       c.appendChild($(`<div class="small muted" style="margin-top:8px">迷ったら、送信前にエイドロンに相談。あなたらしさを保ったまま、伝わる言い方に整えます。</div>`));
       w.appendChild(c); w.appendChild(sp(20));
       const b=$(`<button class="btn" type="button">はじめる →</button>`);
-      b.onclick=()=>{state={type:ty,struggles:picks,strugglesText:txt.trim(),growth:8,saved:0,streak:0,day:1,tier:'free',usesLeft:3};save();render();};
+      b.onclick=()=>{state={type:ty,struggles:picks,strugglesText:txt.trim(),growth:8,saved:0,streak:0,day:1,tier:'free',usesLeft:3,people:[],pending:null,resolved:0};save();render();};
       w.appendChild(b);
     }
   }
@@ -235,6 +235,8 @@ function home(){
   const w=$(`<div class="fade"></div>`);
   const head=$(`<div class="pad" style="padding-bottom:8px"></div>`);
   if(state.usesLeft==null)state.usesLeft=3;
+  if(!state.people)state.people=[];
+  if(state.resolved==null)state.resolved=0;
   const top=$(`<div class="row between"></div>`);
   top.appendChild($(`<div class="row" style="gap:9px"><div class="wordmark">EIDOLON</div><span class="badge">${arche(state.type).icon} ${arche(state.type).short}</span></div>`));
   const right=$(`<div class="row" style="gap:8px"></div>`);
@@ -255,6 +257,9 @@ function home(){
     b.onclick=tiersSheet; fb.appendChild(b); w.appendChild(fb);
   }
 
+  // ★ 送った後の「どうだった?」ループ（成果を捉えて相手カードに学習）
+  if(state.pending){ w.appendChild(afterSendCard()); }
+
   // ★ the killer utility
   const u=$(`<div class="pad" style="padding-top:16px"></div>`);
   const uc=$(`<div class="card" style="cursor:pointer;border-color:var(--ink);background:var(--soft)"></div>`);
@@ -270,11 +275,20 @@ function home(){
   ac.appendChild($(`<div class="small accent" style="font-weight:600">相談する →</div>`));
   ac.onclick=actSheet; a.appendChild(ac); w.appendChild(a);
 
+  // 人物カード（課金の核への入口）
+  const pp=$(`<div class="pad" style="padding-top:12px"></div>`);
+  const ppc=$(`<div class="card" style="cursor:pointer"></div>`);
+  const pcnt=getPeople().length;
+  ppc.appendChild($(`<div style="font-size:15px;font-weight:600">📇 あなたの相手 ${pcnt?`· ${pcnt}人`:''}</div>`)); ppc.appendChild(sp(8));
+  ppc.appendChild($(`<div class="small muted lh">よく連絡する人を登録。相手ごとに“ちゃんと届く”言い方を覚えます。</div>`)); ppc.appendChild(sp(12));
+  ppc.appendChild($(`<div class="small accent" style="font-weight:600">${pcnt?'相手を見る →':'相手を登録する →'}</div>`));
+  ppc.onclick=peopleSheet; pp.appendChild(ppc); w.appendChild(pp);
+
   // growth
   const gp=$(`<div class="pad" style="padding-top:14px"></div>`);
   gp.appendChild($(`<div class="row between"><div class="tag">伝わる自分 · 成長</div><div class="small accent" style="font-weight:600">${state.growth}%</div></div>`));
   gp.appendChild($(`<div class="meter"><span style="width:${state.growth}%"></span></div>`));
-  gp.appendChild($(`<div class="tiny dim" style="margin-top:8px">🔥 送る前に立ち止まれた回数：${state.saved}回</div>`));
+  gp.appendChild($(`<div class="tiny dim" style="margin-top:8px">🔥 送る前に立ち止まれた：${state.saved}回　·　🤍 気まずさを避けられた：${state.resolved||0}回</div>`));
   w.appendChild(gp);
 
   // today's reflection / practice
@@ -295,6 +309,28 @@ function home(){
   return w;
 }
 
+// ── 送った後の「どうだった?」ループ ──
+function afterSendCard(){
+  const pd=state.pending, p=pd.personId?personById(pd.personId):null, nm=p?p.name+'さん':pd.who;
+  const c=$(`<div class="pad" style="padding-top:16px"></div>`);
+  const card=$(`<div class="card" style="border-color:var(--gold);background:var(--goldSoft)"></div>`);
+  card.appendChild($(`<div class="small" style="font-weight:700;color:var(--goldDeep)">さっき ${nm} に送ったの、どうだった?</div>`));
+  card.appendChild($(`<div class="tiny dim lh" style="margin-top:6px">結果を教えてくれると、${p?nm+'専用に':''}次の言い方に活かします。</div>`));
+  card.appendChild(sp(12));
+  const row=$(`<div class="row" style="gap:8px"></div>`);
+  [['win','😊 うまくいった'],['meh','😐 微妙'],['bad','😣 気まずい']].forEach(([k,l])=>{const b=$(`<div class="chip mini" style="flex:1;text-align:center;justify-content:center">${l}</div>`);b.onclick=()=>resolvePending(k);row.appendChild(b);});
+  card.appendChild(row);
+  c.appendChild(card); return c;
+}
+function resolvePending(r){
+  const pd=state.pending; if(!pd)return;
+  const p=pd.personId?personById(pd.personId):null;
+  if(r==='win'){state.resolved=(state.resolved||0)+1; state.growth=Math.min(100,state.growth+3); if(p)p.wins=(p.wins||0)+1;}
+  else if(r==='bad'){ if(p)p.misses=(p.misses||0)+1; }
+  state.pending=null; save(); render();
+  toast(r==='win'?'よかった！その距離感、覚えておくね 🤍':r==='bad'?'教えてくれてありがとう。次はワンクッション多めにいこう':'記録したよ。少しずつ整えていこう');
+}
+
 function sheet(builder){const ov=$(`<div class="overlay"></div>`),sh=$(`<div class="sheet"></div>`);
   ov.onclick=e=>{if(e.target===ov)ov.remove();};builder(sh,()=>ov.remove());ov.appendChild(sh);document.getElementById('phone').appendChild(ov);}
 function head2(sh,label,close){const r=$(`<div class="row between"></div>`);r.appendChild($(`<div class="tag">${label}</div>`));const x=$(`<div class="link">閉じる</div>`);x.onclick=close;r.appendChild(x);sh.appendChild(r);}
@@ -308,8 +344,9 @@ function copyText(t){
 function fb(t,ok){try{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();document.execCommand('copy');document.body.removeChild(ta);ok();}catch(e){toast('コピーできませんでした');}}
 
 // ── 言い方相談 (the showpiece): text OR screenshot input ──
-function adviceSheet(){
-  let who='恋人', draft='', mode='text', img=null;
+function adviceSheet(preId){
+  let person = preId?personById(preId):null;
+  let who = person?person.rel:'恋人', draft='', mode='text', img=null;
   sheet((sh,close)=>{
     function draw(){
       sh.innerHTML='';
@@ -320,8 +357,12 @@ function adviceSheet(){
       mt.appendChild(t1);mt.appendChild(t2); sh.appendChild(mt); sh.appendChild(sp(16));
       sh.appendChild($(`<div class="tag">誰に送る?</div>`)); sh.appendChild(sp(9));
       const g=$(`<div class="row wrap" style="gap:8px"></div>`);
-      ['恋人','友達','職場','家族'].forEach(x=>{const c=$(`<div class="chip ${who===x?'sel':''}">${x}</div>`);c.onclick=()=>{who=x;draw();};g.appendChild(c);});
-      sh.appendChild(g); sh.appendChild(sp(16));
+      getPeople().forEach(p=>{const sel=person&&person.id===p.id;const c=$(`<div class="chip ${sel?'sel':''}">👤 ${p.name}</div>`);c.onclick=()=>{person=p;who=p.rel;draw();};g.appendChild(c);});
+      ['恋人','友達','職場','家族'].forEach(x=>{const sel=!person&&who===x;const c=$(`<div class="chip ${sel?'sel':''}">${x}</div>`);c.onclick=()=>{person=null;who=x;draw();};g.appendChild(c);});
+      const addc=$(`<div class="chip mini" style="border-style:dashed">＋ 人物</div>`);addc.onclick=()=>{close();addPersonSheet(()=>adviceSheet());};g.appendChild(addc);
+      sh.appendChild(g); sh.appendChild(sp(8));
+      if(person)sh.appendChild($(`<div class="tiny dim">📇 ${person.name}さん専用に整えます${isPolite(who)?'（敬語）':'（タメ口）'}</div>`));
+      sh.appendChild(sp(16));
       if(mode==='text'){
         sh.appendChild($(`<div class="tag">送ろうとしている文</div>`)); sh.appendChild(sp(9));
         const ta=$(`<textarea rows="3" placeholder="そのまま貼り付けてOK。">${draft}</textarea>`); ta.oninput=e=>draft=e.target.value; sh.appendChild(ta);
@@ -350,19 +391,76 @@ function adviceSheet(){
       b.onclick=()=>{ if(!draft.trim()){toast(mode==='image'?'スクショを選んでください':'文を入力してください');return;}
         if(state.tier==='free'&&(state.usesLeft||0)<=0){ close(); upgradeSheet('今週の無料相談を使い切りました'); return; }
         if(state.tier==='free'){ state.usesLeft=Math.max(0,(state.usesLeft||0)-1); save(); }
-        showAdvice(sh,close,who,draft.trim()); };
+        showAdvice(sh,close,who,draft.trim(),person); };
       sh.appendChild(b);
     }
     draw();
   });
 }
-// 恋人・友達・家族＝タメ口 / 職場・上司＝敬語
-const isPolite=(who)=> who==='職場'||who==='上司';
+// 恋人・友達・家族＝タメ口 / 職場・上司・同僚＝敬語
+const isPolite=(who)=> who==='職場'||who==='上司'||who==='同僚';
+// ── 人物カード（課金の核：使うほど、あなたの“相手”を覚える）──
+const RELS=['恋人','友達','家族','上司','同僚'];
+function pid(){return 'p'+Math.random().toString(36).slice(2,8);}
+function getPeople(){if(!state.people)state.people=[];return state.people;}
+function personById(id){return getPeople().find(p=>p.id===id);}
+// 前回の結果から、その相手向けの“見立て”を一言で（Bondで記録される記憶）
+function personInsight(p){
+  if(!p)return '';
+  const w=p.wins||0,m=p.misses||0,n=w+m;
+  if(!n)return `${p.name}さんは初めての相談。ここから${p.name}さん専用に学んでいきます。`;
+  if(m>=w&&m>0)return `前回この相手には少しきつく響いた記録。今回はワンクッション多めに整えます。`;
+  return `${p.name}さんとは${w}回うまくいった実績。その距離感を保って整えます。`;
+}
+function addPersonSheet(after){
+  let name='', rel='友達', note='';
+  sheet((sh,close)=>{
+    head2(sh,'人物を追加',close); sh.appendChild(sp(16));
+    sh.appendChild($(`<div class="tag">名前・呼び方</div>`)); sh.appendChild(sp(9));
+    const ni=$(`<input type="text" placeholder="例：田中課長 / みさき"/>`); ni.oninput=e=>name=e.target.value; sh.appendChild(ni); sh.appendChild(sp(16));
+    sh.appendChild($(`<div class="tag">関係</div>`)); sh.appendChild(sp(9));
+    const g=$(`<div class="row wrap" style="gap:8px"></div>`);
+    function drawRel(){g.innerHTML='';RELS.forEach(r=>{const c=$(`<div class="chip ${rel===r?'sel':''}">${r}</div>`);c.onclick=()=>{rel=r;drawRel();};g.appendChild(c);});}
+    drawRel(); sh.appendChild(g); sh.appendChild(sp(8));
+    sh.appendChild($(`<div class="tiny dim">${isPolite(rel)?'この相手には敬語で整えます':'この相手にはタメ口で整えます'}</div>`)); sh.appendChild(sp(16));
+    sh.appendChild($(`<div class="tag">気をつけたいこと（任意）</div>`)); sh.appendChild(sp(9));
+    const ta=$(`<textarea rows="2" placeholder="例：プライドが高い。責められると黙る。"></textarea>`); ta.oninput=e=>note=e.target.value; sh.appendChild(ta); sh.appendChild(sp(18));
+    const b=$(`<button class="btn" type="button">保存する</button>`);
+    b.onclick=()=>{
+      if(!name.trim()){toast('名前を入力してください');return;}
+      if(state.tier==='free'&&getPeople().length>=1){ close(); upgradeSheet('人物カードを2人以上覚えるのは Bond の機能です'); return; }
+      getPeople().push({id:pid(),name:name.trim(),rel,note:note.trim(),wins:0,misses:0}); save(); close(); if(after)after(); else render();
+    };
+    sh.appendChild(b);
+  });
+}
+function peopleSheet(){
+  sheet((sh,close)=>{
+    const draw=()=>{ sh.innerHTML='';
+      head2(sh,'あなたの相手',close); sh.appendChild(sp(6));
+      sh.appendChild($(`<div class="small muted lh">相手ごとに覚えるほど、その人に“ちゃんと届く”言い方になります。</div>`)); sh.appendChild(sp(16));
+      const ppl=getPeople();
+      if(!ppl.length){ sh.appendChild($(`<div class="card small muted lh">まだ登録がありません。まずは一人、よく連絡する相手を追加してみましょう。</div>`)); sh.appendChild(sp(14)); }
+      ppl.forEach(p=>{
+        const c=$(`<div class="card" style="cursor:pointer"></div>`);
+        c.appendChild($(`<div class="row between"><div class="small" style="font-weight:700">${p.name}</div><span class="badge">${p.rel}</span></div>`));
+        const n=(p.wins||0)+(p.misses||0);
+        c.appendChild($(`<div class="tiny dim" style="margin-top:6px">${state.tier==='bond'?`👍${p.wins||0} · 😣${p.misses||0} の記録から学習中`:(n?'記録あり · 履歴は Bond で振り返れます':'これから学習')}</div>`));
+        if(p.note)c.appendChild($(`<div class="tiny dim" style="margin-top:4px">📝 ${p.note}</div>`));
+        c.onclick=()=>{ close(); adviceSheet(p.id); };
+        sh.appendChild(c); sh.appendChild(sp(10));
+      });
+      sh.appendChild(sp(4));
+      const add=$(`<button class="btnGhost" type="button">＋ 人物を追加</button>`); add.onclick=()=>{ close(); addPersonSheet(()=>peopleSheet()); }; sh.appendChild(add);
+    };
+    draw();
+  });
+}
 function freeVariants(d,who){const base=softEN(d,who);
   return isPolite(who)
     ? {balance:base,soft:'差し出がましいのですが、'+base,firm:'率直に申し上げますと、'+base,humor:base+'（なんて、少し冗談です）'}
     : {balance:base,soft:'ムリしてなければいいんだけど、'+base,firm:'正直に言うね。'+base,humor:base+'（なんてね、笑）'};}
-function showAdvice(sh,close,who,draft){
+function showAdvice(sh,close,who,draft,person){
   const s=SAMPLES.find(x=>x.draft===draft), ty=state.type;
   const read = s? s.read : `${ty.includes('T')?'あなたの“率直さ”が出ています。正直だけど、':'この言い方だと、'}相手は少し身構えるかもしれません。`;
   const why = s? s.why : `“事実の指摘”に“あなたの気持ち”と“相手への一問”を足すと、同じ本音でも角が取れて届きます。`;
@@ -370,7 +468,14 @@ function showAdvice(sh,close,who,draft){
   let tone='balance';
   function drawA(){
     sh.innerHTML='';
-    head2(sh,`${who}への言い方`,close); sh.appendChild(sp(16));
+    head2(sh,`${person?person.name+'さん':who}への言い方`,close); sh.appendChild(sp(14));
+    if(person){
+      const bn=$(`<div class="card" style="border-color:var(--gold);background:var(--goldSoft);padding:12px 14px"></div>`);
+      bn.appendChild($(`<div class="tiny" style="color:var(--goldDeep);font-weight:700">📇 ${person.name}さんの記憶</div>`));
+      if(state.tier==='bond'){ bn.appendChild($(`<div class="small lh" style="margin-top:5px;color:var(--goldDeep)">${personInsight(person)}</div>`)); if(person.note)bn.appendChild($(`<div class="tiny dim" style="margin-top:5px">📝 ${person.note}</div>`)); }
+      else { bn.appendChild($(`<div class="small lh" style="margin-top:5px;color:var(--goldDeep)">${person.name}さん専用の記憶と“前回どうだったか”は Bond で貯まっていきます。</div>`)); }
+      sh.appendChild(bn); sh.appendChild(sp(14));
+    }
     sh.appendChild($(`<div class="tag">いまの文（そのまま）</div>`)); sh.appendChild(sp(8));
     sh.appendChild($(`<div class="before">${draft}</div>`)); sh.appendChild(sp(14));
     sh.appendChild($(`<div class="tag">エイドロンの見立て</div>`)); sh.appendChild(sp(8));
@@ -389,7 +494,9 @@ function showAdvice(sh,close,who,draft){
     sh.appendChild(tr); sh.appendChild(sp(16));
     sh.appendChild($(`<div class="small muted lh"><b class="accent">なぜ:</b> ${why}</div>`)); sh.appendChild(sp(18));
     const b=$(`<button class="btn" type="button">これで送る（コピー）</button>`);
-    b.onclick=()=>{copyText(V[tone]);state.growth=Math.min(100,state.growth+6);state.saved++;save();close();render();toast('コピー＆送信前に立ち止まれました 🤍 +6%');};
+    b.onclick=()=>{copyText(V[tone]);state.growth=Math.min(100,state.growth+6);state.saved++;
+      state.pending={personId:person?person.id:null,who,text:V[tone]};
+      save();close();render();toast('コピー＆送信前に立ち止まれました 🤍 +6%');};
     sh.appendChild(b);
   }
   drawA();
