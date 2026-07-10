@@ -105,6 +105,28 @@ function computeType(ans){
   ans.forEach(p=>c[p]++);
   return (c.E>=c.I?'E':'I')+(c.S>=c.N?'S':'N')+(c.T>=c.F?'T':'F')+(c.J>=c.P?'J':'P');
 }
+// ── 独自の「伝え方タイプ」（MBTIコードではなく、言い方のクセを一言で）──
+// 率直さ(T/F) × テンポ(E/I) の 4 コアに、S/N・J/P をニュアンスとして重ねる
+const ARCHE={
+  TE:{short:'直球型', name:'まっすぐ直球タイプ', icon:'🎯',
+      tag:'思ったことを、そのまま まっすぐ言える人。',
+      good:'スピードと正直さ。ごまかさず、物事を前に進める力がある。',
+      edge:'勢いが強いぶん、相手が“責められた”と感じることも。送る前のひと呼吸で、同じ本音がちゃんと届く。'},
+  TI:{short:'切れ味型', name:'静かな切れ味タイプ', icon:'🗡️',
+      tag:'よく考えてから、要点をズバッと言える人。',
+      good:'冷静な分析力。少ない言葉で本質を突ける。',
+      edge:'言葉が短く鋭いぶん、冷たく伝わりがち。ひと言の“やわらかさ”を足すだけで印象が変わる。'},
+  FE:{short:'あたたか型', name:'あたたかい発信タイプ', icon:'🌸',
+      tag:'気持ちをすぐ言葉にして、場を温められる人。',
+      good:'共感力と明るさ。まわりを安心させ、空気をやわらげる。',
+      edge:'感情が先に出て、本当に言いたい一点がぼやけることも。芯を一つに絞ると、ぐっと伝わる。'},
+  FI:{short:'熟考型', name:'思いやりの熟考タイプ', icon:'🌙',
+      tag:'相手の気持ちを、誰よりも深く考えられる人。',
+      good:'繊細な気配り。相手の立場に立って考えられる。',
+      edge:'考えすぎて、言えないまま我慢しがち。“やさしいまま言う”練習で、心がずっと軽くなる。'},
+};
+function arche(type){return ARCHE[type[2]+type[0]];}          // T/F + E/I → コアタイプ
+function subLine(type){return `${TRAIT[type[1]]}／${TRAIT[type[3]]}`;} // S/N・J/P の口ぐせ
 
 const STRUGGLES=[
   {id:'harsh',t:'友達につい きつい言葉を言う'},{id:'selftalk',t:'自分の話ばかりしてしまう'},
@@ -170,15 +192,16 @@ function onboarding(){
       });
       if(qi>0){const back=$(`<div class="link" style="text-align:center;margin-top:6px">← 戻る</div>`);back.onclick=()=>{qi--;draw();};w.appendChild(back);}
     } else if(stage==='result'){
-      const ty=computeType(ans);
-      const [e,s,t,j]=ty.split('');
-      w.appendChild(sp(14)); w.appendChild($(`<div class="tag">あなたのタイプ</div>`)); w.appendChild(sp(10));
-      w.appendChild($(`<div style="font-size:46px;font-weight:800;letter-spacing:4px" class="accent">${ty}</div>`)); w.appendChild(sp(16));
-      const c=$(`<div class="card"></div>`);
-      c.appendChild($(`<div class="small tag">あなたの伝わり方</div>`)); c.appendChild(sp(10));
-      [e,s,t,j].forEach(k=>c.appendChild($(`<div class="small lh" style="margin:5px 0">・${TRAIT[k]}</div>`)));
-      w.appendChild(c); w.appendChild(sp(18));
-      w.appendChild($(`<p class="muted lh small">あなたの<b class="accent">${STRENGTH[t]}</b>は強み。そこに少しの工夫を足していきましょう。</p>`)); w.appendChild(sp(18));
+      const ty=computeType(ans); const a=arche(ty);
+      w.appendChild(sp(14)); w.appendChild($(`<div class="tag">あなたの伝え方タイプ</div>`)); w.appendChild(sp(14));
+      w.appendChild($(`<div style="font-size:44px;line-height:1">${a.icon}</div>`)); w.appendChild(sp(10));
+      w.appendChild($(`<h1 class="accent" style="line-height:1.25">${a.name}</h1>`)); w.appendChild(sp(8));
+      w.appendChild($(`<p class="muted lh">${a.tag}</p>`)); w.appendChild(sp(18));
+      const c=$(`<div class="card lh"></div>`);
+      c.appendChild($(`<div class="small tag">強み</div>`)); c.appendChild($(`<div class="small lh" style="margin:6px 0 14px">${a.good}</div>`));
+      c.appendChild($(`<div class="small tag">伸びしろ</div>`)); c.appendChild($(`<div class="small lh" style="margin:6px 0">${a.edge}</div>`));
+      w.appendChild(c); w.appendChild(sp(14));
+      w.appendChild($(`<p class="muted lh small">口ぐせのクセ：${subLine(ty)}</p>`)); w.appendChild(sp(18));
       const b=$(`<button class="btn" type="button">次へ →</button>`); b.onclick=()=>{state={_type:ty};stage='struggle';draw();}; w.appendChild(b);
     } else if(stage==='struggle'){
       w.appendChild(sp(10)); w.appendChild($(`<h1>どこを、変えたい?</h1>`)); w.appendChild(sp(8));
@@ -213,7 +236,7 @@ function home(){
   const head=$(`<div class="pad" style="padding-bottom:8px"></div>`);
   if(state.usesLeft==null)state.usesLeft=3;
   const top=$(`<div class="row between"></div>`);
-  top.appendChild($(`<div class="row" style="gap:9px"><div class="wordmark">EIDOLON</div><span class="badge">${state.type}</span></div>`));
+  top.appendChild($(`<div class="row" style="gap:9px"><div class="wordmark">EIDOLON</div><span class="badge">${arche(state.type).icon} ${arche(state.type).short}</span></div>`));
   const right=$(`<div class="row" style="gap:8px"></div>`);
   const th=$(`<div class="chip mini" style="padding:8px 11px">${getTheme()==='dark'?'☀︎':'☾'}</div>`); th.onclick=toggleTheme;
   const chip = state.tier==='bond'
@@ -391,9 +414,14 @@ function actSheet(){
 
 function profileSheet(){sheet((sh,close)=>{
   head2(sh,'あなたのタイプ・プラン',close); sh.appendChild(sp(16));
-  sh.appendChild($(`<div style="font-size:40px;font-weight:800;letter-spacing:3px" class="accent">${state.type}</div>`)); sh.appendChild(sp(14));
-  const c=$(`<div class="card"></div>`); c.appendChild($(`<div class="tag">伝わり方</div>`)); c.appendChild(sp(8));
-  state.type.split('').forEach(k=>c.appendChild($(`<div class="small lh" style="margin:5px 0">・${TRAIT[k]}</div>`)));
+  const _a=arche(state.type);
+  sh.appendChild($(`<div style="font-size:38px;line-height:1">${_a.icon}</div>`)); sh.appendChild(sp(6));
+  sh.appendChild($(`<div style="font-size:22px;font-weight:800" class="accent">${_a.name}</div>`)); sh.appendChild(sp(4));
+  sh.appendChild($(`<div class="small muted lh">${_a.tag}</div>`)); sh.appendChild(sp(14));
+  const c=$(`<div class="card lh"></div>`);
+  c.appendChild($(`<div class="tag">強み</div>`)); c.appendChild($(`<div class="small lh" style="margin:6px 0 12px">${_a.good}</div>`));
+  c.appendChild($(`<div class="tag">伸びしろ</div>`)); c.appendChild($(`<div class="small lh" style="margin:6px 0 12px">${_a.edge}</div>`));
+  c.appendChild($(`<div class="tag">口ぐせのクセ</div>`)); c.appendChild($(`<div class="small muted lh" style="margin:6px 0">${subLine(state.type)}</div>`));
   sh.appendChild(c); sh.appendChild(sp(14));
   if(state.struggles.length||state.strugglesText){
     sh.appendChild($(`<div class="tag">変えたいこと</div>`)); sh.appendChild(sp(8));
