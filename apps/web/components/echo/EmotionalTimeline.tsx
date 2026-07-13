@@ -127,7 +127,7 @@ export function EmotionalTimeline({ data }: EmotionalTimelineProps) {
                 fontSize={8}
                 fill="#8B8FA8"
               >
-                {new Date(p.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                {new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </text>
             )
           })}
@@ -144,7 +144,7 @@ export function EmotionalTimeline({ data }: EmotionalTimelineProps) {
             <span className="font-medium text-[#F0F0F5]">{tooltip.point.emotion}</span>
             <span className="text-[#8B8FA8] ml-1">{Math.round(tooltip.point.score * 100)}%</span>
             <div className="text-[#8B8FA8]">
-              {new Date(tooltip.point.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+              {new Date(tooltip.point.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </div>
           </div>
         )}
