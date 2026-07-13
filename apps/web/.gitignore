@@ -1,0 +1,3 @@
+# Stray nested project (separate repo UTA0619/driver-copilot) — do not track/ship.
+# Has unpushed commits; relocate out of apps/web rather than delete.
+/driver-copilot/

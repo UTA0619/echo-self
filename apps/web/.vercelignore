@@ -1,0 +1,4 @@
+# Stray nested project accidentally placed inside apps/web.
+# It is a separate git repo (UTA0619/driver-copilot) with unpushed work —
+# excluded from deploys so it never ships with ECHO. Relocate it out of apps/web.
+driver-copilot/
