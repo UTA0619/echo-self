@@ -88,7 +88,7 @@ async function handleExport(supabase: ReturnType<typeof createClient>, userId: s
 
     supabase
       .from('memories')
-      .select('id, content_chunk, importance, created_at')
+      .select('id, content_chunk, importance_score, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false }),
 
