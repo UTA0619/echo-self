@@ -210,7 +210,7 @@ export const useIAPStore = create<IAPState>((set, get) => ({
       if (!user) return;
 
       await supabase
-        .from('profiles')
+        .from('users')
         .update({ subscription_tier: isPremium ? 'premium' : 'free' })
         .eq('id', user.id);
     } catch (err) {

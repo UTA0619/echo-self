@@ -39,10 +39,11 @@ export const useAuthStore = create<AuthState>()(
       loadProfile: async (userId: string) => {
         set({ isLoading: true });
         try {
-          // Use `profiles` table — profiles.id == auth.users.id (no separate users table)
+          // `users` table holds profile stats — users.id == auth.users.id.
+          // (subscription_tier / streaks live here; profiles holds onboarding.)
           const { data, error } = await supabase
-            .from('profiles')
-            .select('id, display_name, created_at, subscription_tier, onboarding_completed')
+            .from('users')
+            .select('id, display_name, created_at, subscription_tier, current_streak, longest_streak')
             .eq('id', userId)
             .maybeSingle();
 
@@ -66,8 +67,8 @@ export const useAuthStore = create<AuthState>()(
             email: authUser?.email,
             displayName: data?.display_name ?? undefined,
             avatarUrl: undefined,
-            currentStreak: 0,
-            longestStreak: 0,
+            currentStreak: data?.current_streak ?? 0,
+            longestStreak: data?.longest_streak ?? 0,
             totalEntries: entryCount ?? 0,
             subscriptionTier: data?.subscription_tier === 'premium' ? 'premium' : 'free',
             createdAt: data?.created_at ?? new Date().toISOString(),
