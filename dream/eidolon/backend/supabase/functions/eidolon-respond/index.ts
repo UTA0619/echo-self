@@ -60,6 +60,22 @@ Deno.serve(async (req: Request) => {
     .map((m: MemoryEntry) => `[${m.memoryType}] ${m.content}`)
     .join('\n');
 
+  // 3b. Load the recent conversation for real multi-turn continuity. Fetch newest
+  //     first (so the LIMIT keeps the latest turns), then replay oldest→newest.
+  const { data: recentTurns } = await db
+    .from('chat_messages')
+    .select('role, content')
+    .eq('eidolon_id', eidolonId)
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  const history = (recentTurns ?? [])
+    .reverse()
+    .map((t: { role: string; content: string }) => ({
+      role: t.role === 'eidolon' ? 'assistant' as const : 'user' as const,
+      content: t.content,
+    }));
+
   const emotionSummary = emotionLog
     ? `${emotionLog.emotion} (intensity: ${emotionLog.intensity}/10)`
     : 'unknown';
@@ -78,13 +94,27 @@ Deno.serve(async (req: Request) => {
     language: eidolon.users?.language ?? 'en',
   });
 
-  // 5. Generate response with fallback chain
+  // 5. Generate response with fallback chain (with conversation history)
   const { text, modelUsed, latencyMs } = await generateWithFallback({
     system: systemPrompt,
     user: eventTrigger,
+    history,
     model: 'claude-haiku-4-5',
     maxTokens: 256,
   });
+
+  // 5b. Persist both turns to the conversation log so continuity survives app
+  //     restarts and other devices. Fire-and-forget; never block the reply.
+  db.from('chat_messages').insert([
+    { eidolon_id: eidolonId, user_id: caller.userId, role: 'user', content: eventTrigger },
+    {
+      eidolon_id: eidolonId,
+      user_id: caller.userId,
+      role: 'eidolon',
+      content: text,
+      model_used: modelUsed,
+    },
+  ]).then(() => {}).catch(console.warn);
 
   // 6. Store new episodic memory
   const { data: newMemory } = await db

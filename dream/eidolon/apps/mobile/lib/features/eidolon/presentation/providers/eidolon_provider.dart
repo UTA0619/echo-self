@@ -1,5 +1,6 @@
 import 'package:eidolon/core/error/app_error.dart';
 import 'package:eidolon/features/eidolon/domain/entities/chat_message.dart';
+import 'package:eidolon/features/eidolon/domain/usecases/get_chat_history_usecase.dart';
 import 'package:eidolon/features/eidolon/domain/usecases/get_eidolon_usecase.dart';
 import 'package:eidolon/features/eidolon/domain/usecases/send_message_usecase.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -35,7 +36,18 @@ class EidolonNotifier extends _$EidolonNotifier {
     final Result<EidolonProfile> result = await useCase();
 
     if (result.isSuccess) {
-      state = state.copyWith(isLoading: false, eidolon: result.value);
+      final eidolon = result.value!;
+      // Restore the persisted conversation so the companion picks up where it
+      // left off instead of greeting the player as a stranger every launch.
+      final historyResult = await ref.read(getChatHistoryUseCaseProvider).call(
+            eidolonId: eidolon.id,
+          );
+      state = state.copyWith(
+        isLoading: false,
+        eidolon: eidolon,
+        messages:
+            historyResult.isSuccess ? historyResult.value! : state.messages,
+      );
     } else {
       state = state.copyWith(
         isLoading: false,
