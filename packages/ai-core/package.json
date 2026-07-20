@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@echo-self/shared-types": "workspace:*",
-    "openai": "^4.47.1"
+    "openai": "^6.48.0"
   },
   "devDependencies": {
     "typescript": "^5.4.5",
